@@ -1,7 +1,5 @@
 pub mod parser;
 
-use crate::serializer::Serializable;
-
 pub struct ConnectionMatrix {
     data: Vec<i16>,
     num_left: usize,

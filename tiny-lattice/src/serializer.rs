@@ -1,6 +1,6 @@
 //! Utilities for serializing/deserializing data.
 
-use crate::FromU32;
+use crate::utils::FromU32;
 
 /// Trait indicating serializability.
 ///

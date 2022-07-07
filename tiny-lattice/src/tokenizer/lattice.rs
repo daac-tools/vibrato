@@ -1,7 +1,7 @@
 use crate::connect::ConnectionMatrix;
 use crate::lexicon::word_param::WordParam;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Node {
     begin: u16,
     end: u16,
@@ -57,6 +57,8 @@ impl Node {
 #[derive(Default)]
 pub struct Lattice {
     ends: Vec<Vec<Node>>,
+    // end, min_idx, min_cost
+    eos: Option<(usize, usize, i32)>,
 }
 
 impl Lattice {
@@ -137,5 +139,20 @@ impl Lattice {
     /// Lookup a node for the index
     pub fn node(&self, end: usize, idx: usize) -> &Node {
         &self.ends[end][idx]
+    }
+
+    /// Fill the path with the minimum cost (indices only).
+    /// **Attention**: the path will be reversed (end to beginning) and will need to be traversed
+    /// in the reverse order.
+    pub fn fill_best_path(&self, result: &mut Vec<Node>) {
+        if self.eos.is_none() {
+            return;
+        }
+        let (mut end, mut min_idx, _) = self.eos.unwrap();
+        while end != 0 {
+            let node = &self.ends[end][min_idx];
+            result.push(node.clone());
+            (end, min_idx) = (node.end(), node.min_idx());
+        }
     }
 }
