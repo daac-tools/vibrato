@@ -1,6 +1,8 @@
 pub mod connect;
 pub mod lexicon;
+pub mod sentence;
 pub mod serializer;
+pub mod tokenizer;
 
 pub trait FromU32 {
     fn from_u32(src: u32) -> Self;

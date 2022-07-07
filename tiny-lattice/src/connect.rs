@@ -18,12 +18,10 @@ impl ConnectionMatrix {
     }
 
     #[inline(always)]
-    fn index(&self, left: u16, right: u16) -> usize {
-        let uleft = left as usize;
-        let uright = right as usize;
-        debug_assert!(uleft < self.num_left);
-        debug_assert!(uright < self.num_right);
-        let index = uright * self.num_left + uleft;
+    fn index(&self, left: usize, right: usize) -> usize {
+        debug_assert!(left < self.num_left);
+        debug_assert!(right < self.num_right);
+        let index = right * self.num_left + left;
         debug_assert!(index < self.data.len());
         index
     }
@@ -38,7 +36,7 @@ impl ConnectionMatrix {
     /// except in the case if the binary dictionary was tampered with.
     /// It is OK to make usage of tampered binary dictionaries UB.
     #[inline(always)]
-    pub fn cost(&self, left: u16, right: u16) -> i16 {
+    pub fn cost(&self, left: usize, right: usize) -> i16 {
         let index = self.index(left, right);
         *unsafe { self.data.get_unchecked(index) }
     }
