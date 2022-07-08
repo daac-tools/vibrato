@@ -8,8 +8,8 @@ pub struct TrieEntry {
 
 impl TrieEntry {
     #[inline]
-    pub fn new(value: u32, offset: usize) -> TrieEntry {
-        TrieEntry { value, end: offset }
+    pub fn new(value: u32, end: usize) -> TrieEntry {
+        TrieEntry { value, end }
     }
 }
 
@@ -30,17 +30,13 @@ impl Trie {
     }
 
     #[inline]
-    pub fn common_prefix_iterator<'a>(
-        &'a self,
-        input: &'a [u8],
-        offset: usize,
-    ) -> TrieEntryIter<'a> {
+    pub fn common_prefix_iterator<'a>(&'a self, input: &'a [u8]) -> TrieEntryIter<'a> {
         let unit: usize = self.get(0) as usize;
         TrieEntryIter {
             trie: &self.units,
             node_pos: Trie::offset(unit),
             data: input,
-            offset,
+            offset: 0,
         }
     }
 

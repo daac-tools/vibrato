@@ -27,7 +27,7 @@ impl Sentence {
     }
 
     /// Returns byte offsets of current chars
-    pub fn char_to_byte_offsets(&self) -> &[usize] {
+    pub fn c2b_offsets(&self) -> &[usize] {
         &self.c2b
     }
 

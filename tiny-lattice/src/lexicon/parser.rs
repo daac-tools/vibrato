@@ -1,3 +1,4 @@
+#[derive(Debug, PartialEq, Eq)]
 pub struct RawLexiconEntry {
     pub surface: String,
     pub left_id: i16,
@@ -24,5 +25,46 @@ fn parse_csv(line: &str) -> RawLexiconEntry {
         left_id: items[1].parse().unwrap(),
         right_id: items[2].parse().unwrap(),
         cost: items[3].parse().unwrap(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_small() {
+        let data = "京都,0,1,2
+東,3,4,5
+東京,6,7,8";
+        let entries = entries_from_csv(data.split('\n'));
+        assert_eq!(entries.len(), 3);
+        assert_eq!(
+            entries[0],
+            RawLexiconEntry {
+                surface: "京都".to_string(),
+                left_id: 0,
+                right_id: 1,
+                cost: 2
+            }
+        );
+        assert_eq!(
+            entries[1],
+            RawLexiconEntry {
+                surface: "東".to_string(),
+                left_id: 3,
+                right_id: 4,
+                cost: 5
+            }
+        );
+        assert_eq!(
+            entries[2],
+            RawLexiconEntry {
+                surface: "東京".to_string(),
+                left_id: 6,
+                right_id: 7,
+                cost: 8
+            }
+        );
     }
 }

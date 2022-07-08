@@ -1,9 +1,11 @@
 pub mod lattice;
 
-use crate::lexicon::Lexicon;
+use crate::lexicon::{Lexicon, WordParam};
 use crate::matrix::ConnectionMatrix;
 use crate::sentence::Sentence;
 use lattice::{Lattice, Node};
+
+const OOV_PARAM: WordParam = WordParam::new(-1, -1, 1000);
 
 pub struct Tokenizer {
     lexicon: Lexicon,
@@ -26,7 +28,7 @@ impl Tokenizer {
         }
     }
 
-    pub fn do_tokenize(&mut self, input: &str) -> &[Output] {
+    pub fn tokenize(&mut self, input: &str) -> &[Output] {
         self.build_lattice(input);
         self.resolve_best_path();
         &self.output
@@ -36,15 +38,27 @@ impl Tokenizer {
         self.lattice.reset(self.input.chars().len());
         let input_bytes = input.as_bytes();
 
-        for (char_off, &byte_off) in self.input.char_to_byte_offsets().iter().enumerate() {
-            if !self.lattice.has_previous_node(char_off) {
+        for (off_char, &off_byte) in self.input.c2b_offsets().iter().enumerate() {
+            if !self.lattice.has_previous_node(off_char) {
                 continue;
             }
-            for e in self.lexicon.lookup(input_bytes, byte_off) {
-                assert!(e.end_byte < input_bytes.len());
-                let end_char = self.input.char_offset(e.end_byte);
+
+            let mut found = false;
+            for e in self
+                .lexicon
+                .common_prefix_iterator(&input_bytes[off_byte..])
+            {
+                assert!(e.end_byte + off_byte < input_bytes.len());
+                let end_char = self.input.char_offset(e.end_byte + off_byte);
                 self.lattice
-                    .insert(char_off, end_char, e.word_param, &self.matrix);
+                    .insert(off_char, end_char, e.word_param, &self.matrix);
+                found = true;
+            }
+
+            // oov
+            if !found {
+                self.lattice
+                    .insert(off_char, off_char + 1, OOV_PARAM, &self.matrix);
             }
         }
     }
@@ -56,7 +70,7 @@ impl Tokenizer {
         self.lattice.fill_best_path(&mut self.best_path);
         self.output.resize(self.best_path.len(), Output::default());
 
-        let c2b = self.input.char_to_byte_offsets();
+        let c2b = self.input.c2b_offsets();
         for (i, node) in self.best_path.iter().rev().enumerate() {
             self.output[i] = Output {
                 begin_byte: c2b[i],

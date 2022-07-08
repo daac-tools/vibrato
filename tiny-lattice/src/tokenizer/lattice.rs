@@ -1,59 +1,6 @@
 use crate::lexicon::word_param::WordParam;
 use crate::matrix::ConnectionMatrix;
 
-#[derive(Default, Clone)]
-pub struct Node {
-    begin: u16,
-    end: u16,
-    left_id: i16,
-    right_id: i16,
-    cost: i16,
-    min_idx: u16,
-    min_cost: i32,
-}
-
-impl Node {
-    #[inline(always)]
-    fn begin(&self) -> usize {
-        self.begin as usize
-    }
-
-    #[inline(always)]
-    fn end(&self) -> usize {
-        self.end as usize
-    }
-
-    #[inline(always)]
-    fn left_id(&self) -> usize {
-        self.left_id as usize
-    }
-
-    #[inline(always)]
-    fn right_id(&self) -> usize {
-        self.right_id as usize
-    }
-
-    #[inline(always)]
-    fn cost(&self) -> i32 {
-        self.cost as i32
-    }
-
-    #[inline(always)]
-    fn min_idx(&self) -> usize {
-        self.min_idx as usize
-    }
-
-    #[inline(always)]
-    fn min_cost(&self) -> i32 {
-        self.min_cost
-    }
-
-    #[inline(always)]
-    fn is_connected_to_bos(&self) -> bool {
-        self.min_cost != i32::MAX
-    }
-}
-
 #[derive(Default)]
 pub struct Lattice {
     ends: Vec<Vec<Node>>,
@@ -77,6 +24,8 @@ impl Lattice {
 
     pub fn reset(&mut self, new_len: usize) {
         Self::reset_vec(&mut self.ends, new_len + 1);
+        self.eos = None;
+        self.connect_bos();
     }
 
     fn connect_bos(&mut self) {
@@ -154,5 +103,58 @@ impl Lattice {
             result.push(node.clone());
             (end, min_idx) = (node.end(), node.min_idx());
         }
+    }
+}
+
+#[derive(Default, Clone)]
+pub struct Node {
+    begin: u16,
+    end: u16,
+    left_id: i16,
+    right_id: i16,
+    cost: i16,
+    min_idx: u16,
+    min_cost: i32,
+}
+
+impl Node {
+    #[inline(always)]
+    fn begin(&self) -> usize {
+        self.begin as usize
+    }
+
+    #[inline(always)]
+    fn end(&self) -> usize {
+        self.end as usize
+    }
+
+    #[inline(always)]
+    fn left_id(&self) -> usize {
+        self.left_id as usize
+    }
+
+    #[inline(always)]
+    fn right_id(&self) -> usize {
+        self.right_id as usize
+    }
+
+    #[inline(always)]
+    fn cost(&self) -> i32 {
+        self.cost as i32
+    }
+
+    #[inline(always)]
+    fn min_idx(&self) -> usize {
+        self.min_idx as usize
+    }
+
+    #[inline(always)]
+    fn min_cost(&self) -> i32 {
+        self.min_cost
+    }
+
+    #[inline(always)]
+    fn is_connected_to_bos(&self) -> bool {
+        self.min_cost != i32::MAX
     }
 }
