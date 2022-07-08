@@ -25,14 +25,6 @@ impl ConnectionMatrix {
     }
 
     /// Gets the value of the connection matrix
-    ///
-    /// It is performance critical that this function
-    /// 1. Has no branches
-    /// 2. Is inlined to the caller
-    ///
-    /// This is UB if index is out of bounds, but that can't happen
-    /// except in the case if the binary dictionary was tampered with.
-    /// It is OK to make usage of tampered binary dictionaries UB.
     #[inline(always)]
     pub fn cost(&self, left: usize, right: usize) -> i16 {
         let index = self.index(left, right);
@@ -40,11 +32,13 @@ impl ConnectionMatrix {
     }
 
     /// Returns maximum number of left connection ID
+    #[inline(always)]
     pub fn num_left(&self) -> usize {
         self.num_left
     }
 
     /// Returns maximum number of right connection ID
+    #[inline(always)]
     pub fn num_right(&self) -> usize {
         self.num_right
     }

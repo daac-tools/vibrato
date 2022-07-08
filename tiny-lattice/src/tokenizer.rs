@@ -1,7 +1,7 @@
 pub mod lattice;
 
-use crate::connect::ConnectionMatrix;
 use crate::lexicon::Lexicon;
+use crate::matrix::ConnectionMatrix;
 use crate::sentence::Sentence;
 use lattice::{Lattice, Node};
 

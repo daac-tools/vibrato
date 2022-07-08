@@ -1,5 +1,5 @@
-use crate::connect::ConnectionMatrix;
 use crate::lexicon::word_param::WordParam;
+use crate::matrix::ConnectionMatrix;
 
 #[derive(Default, Clone)]
 pub struct Node {
