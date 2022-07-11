@@ -3,6 +3,7 @@ pub mod lattice;
 use crate::lexicon::Lexicon;
 use crate::matrix::CostMatrix;
 use crate::sentence::Sentence;
+use crate::Morpheme;
 use lattice::{EndNode, Lattice};
 
 pub struct Tokenizer {
@@ -11,7 +12,6 @@ pub struct Tokenizer {
     input: Sentence,
     lattice: Lattice,
     best_path: Vec<(usize, EndNode)>,
-    output: Vec<Output>,
 }
 
 impl Tokenizer {
@@ -22,18 +22,13 @@ impl Tokenizer {
             input: Sentence::default(),
             lattice: Lattice::default(),
             best_path: vec![],
-            output: vec![],
         }
     }
 
-    pub fn tokenize(&mut self, input: &str) {
+    pub fn tokenize(&mut self, input: &str, output: &mut Vec<Morpheme>) {
         self.input.set_sentence(input);
         self.build_lattice(input);
-        self.resolve_best_path();
-    }
-
-    pub fn output_ref(&self) -> &[Output] {
-        &self.output
+        self.resolve_best_path(output);
     }
 
     pub fn lexicon(&self) -> &Lexicon {
@@ -67,15 +62,15 @@ impl Tokenizer {
         self.lattice.insert_eos(&self.matrix);
     }
 
-    fn resolve_best_path(&mut self) {
+    fn resolve_best_path(&mut self, output: &mut Vec<Morpheme>) {
         self.best_path.clear();
-        self.output.clear();
-
         self.lattice.fill_best_path(&mut self.best_path);
-        self.output.resize(self.best_path.len(), Output::default());
+
+        output.clear();
+        output.resize(self.best_path.len(), Morpheme::default());
 
         for (i, (end_pos, end_node)) in self.best_path.iter().rev().enumerate() {
-            self.output[i] = Output {
+            output[i] = Morpheme {
                 begin_byte: self.input.byte_offset(end_node.begin()),
                 end_byte: self.input.byte_offset(*end_pos),
                 begin_char: end_node.begin(),
@@ -84,48 +79,6 @@ impl Tokenizer {
                 total_cost: end_node.min_cost(),
             };
         }
-    }
-}
-
-#[derive(Default, Debug, Clone)]
-pub struct Output {
-    begin_byte: usize,
-    end_byte: usize,
-    begin_char: usize,
-    end_char: usize,
-    word_id: u32,
-    total_cost: i32,
-}
-
-impl Output {
-    #[inline(always)]
-    pub fn begin_byte(&self) -> usize {
-        self.begin_byte
-    }
-
-    #[inline(always)]
-    pub fn end_byte(&self) -> usize {
-        self.end_byte
-    }
-
-    #[inline(always)]
-    pub fn begin_char(&self) -> usize {
-        self.begin_char
-    }
-
-    #[inline(always)]
-    pub fn end_char(&self) -> usize {
-        self.end_char
-    }
-
-    #[inline(always)]
-    pub fn word_id(&self) -> u32 {
-        self.word_id
-    }
-
-    #[inline(always)]
-    pub fn total_cost(&self) -> i32 {
-        self.total_cost
     }
 }
 
@@ -154,9 +107,31 @@ mod tests {
         let matrix = crate::matrix::parser::matrix_from_text(matrix_def.split('\n'));
 
         let mut tokenizer = Tokenizer::new(lexicon, matrix);
-        tokenizer.tokenize("自然言語処理");
-        let output = tokenizer.output_ref();
+        let mut morphs = vec![];
+        tokenizer.tokenize("自然言語処理", &mut morphs);
 
-        eprintln!("{:?}", output);
+        assert_eq!(
+            morphs,
+            vec![
+                // 自然
+                Morpheme {
+                    begin_byte: 0,
+                    end_byte: 6,
+                    begin_char: 0,
+                    end_char: 2,
+                    word_id: 0,
+                    total_cost: 1,
+                },
+                // 言語処理
+                Morpheme {
+                    begin_byte: 6,
+                    end_byte: 18,
+                    begin_char: 2,
+                    end_char: 6,
+                    word_id: 4,
+                    total_cost: 6,
+                },
+            ]
+        );
     }
 }
