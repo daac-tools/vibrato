@@ -1,13 +1,13 @@
 pub mod lattice;
 
 use crate::lexicon::Lexicon;
-use crate::matrix::ConnectionMatrix;
+use crate::matrix::CostMatrix;
 use crate::sentence::Sentence;
 use lattice::{EndNode, Lattice};
 
 pub struct Tokenizer {
     lexicon: Lexicon,
-    matrix: ConnectionMatrix,
+    matrix: CostMatrix,
     input: Sentence,
     lattice: Lattice,
     best_path: Vec<(usize, EndNode)>,
@@ -15,7 +15,7 @@ pub struct Tokenizer {
 }
 
 impl Tokenizer {
-    pub fn new(lexicon: Lexicon, matrix: ConnectionMatrix) -> Self {
+    pub fn new(lexicon: Lexicon, matrix: CostMatrix) -> Self {
         Self {
             lexicon,
             matrix,
