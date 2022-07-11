@@ -36,6 +36,10 @@ impl Tokenizer {
         &self.output
     }
 
+    pub fn lexicon(&self) -> &Lexicon {
+        &self.lexicon
+    }
+
     fn build_lattice(&mut self, input: &str) {
         self.lattice.reset(self.input.chars().len());
         let input_bytes = input.as_bytes();

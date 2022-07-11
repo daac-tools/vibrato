@@ -4,3 +4,5 @@ pub mod sentence;
 pub mod serializer;
 pub mod tokenizer;
 pub mod utils;
+
+pub use tokenizer::Tokenizer;

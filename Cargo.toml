@@ -1,4 +1,4 @@
 [workspace]
 members = [
-    "tiny-lattice",
+    "tinylattice",
 ]
