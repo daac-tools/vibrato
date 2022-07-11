@@ -48,7 +48,7 @@ impl Lattice {
     }
 
     pub fn insert_eos(&mut self, matrix: &CostMatrix) {
-        let (min_idx, _) = self.search_min_connection(self.len(), 0, matrix).unwrap();
+        let (min_idx, _) = self.search_min_node(self.len(), 0, matrix).unwrap();
         self.eos_min_idx = Some(min_idx as usize)
     }
 
@@ -61,7 +61,7 @@ impl Lattice {
         matrix: &CostMatrix,
     ) {
         let (min_idx, min_cost) = self
-            .search_min_connection(begin, param.left_id as usize, matrix)
+            .search_min_node(begin, param.left_id as usize, matrix)
             .unwrap();
         self.ends[end].push(EndNode {
             word_id,
@@ -72,12 +72,15 @@ impl Lattice {
         });
     }
 
-    pub fn search_min_connection(
+    fn search_min_node(
         &self,
         start: usize,
         left_id: usize,
         matrix: &CostMatrix,
     ) -> Option<(u16, i32)> {
+        if self.ends[start].is_empty() {
+            return None;
+        }
         let mut min_idx = INVALID_IDX;
         let mut min_cost = MAX_COST;
         for (i, l_node) in self.ends[start].iter().enumerate() {
@@ -89,11 +92,8 @@ impl Lattice {
                 min_cost = new_cost;
             }
         }
-        if min_idx == INVALID_IDX {
-            None
-        } else {
-            Some((min_idx, min_cost))
-        }
+        debug_assert_ne!(min_idx, INVALID_IDX);
+        Some((min_idx, min_cost))
     }
 
     /// Checks if there exist at least one at the word end boundary
