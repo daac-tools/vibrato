@@ -32,6 +32,7 @@ impl Lattice {
     }
 
     /// Number of characters of the input sentence.
+    #[inline(always)]
     pub fn len(&self) -> usize {
         self.ends.len() - 1
     }
@@ -96,6 +97,7 @@ impl Lattice {
     }
 
     /// Checks if there exist at least one at the word end boundary
+    #[inline(always)]
     pub fn has_previous_node(&self, i: usize) -> bool {
         self.ends.get(i).map(|d| !d.is_empty()).unwrap_or(false)
     }

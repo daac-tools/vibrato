@@ -30,7 +30,7 @@ impl Lexicon {
         Self { map, params, infos }
     }
 
-    #[inline]
+    #[inline(always)]
     pub fn common_prefix_iterator<'a>(
         &'a self,
         input: &'a [u8],
@@ -40,6 +40,7 @@ impl Lexicon {
         })
     }
 
+    #[inline(always)]
     pub fn get_word_info(&self, word_id: u32) -> &str {
         self.infos.get(word_id as usize)
     }
@@ -53,6 +54,7 @@ pub struct LexiconMatch {
 }
 
 impl LexiconMatch {
+    #[inline(always)]
     pub fn new(word_id: u32, word_param: WordParam, end_byte: u32) -> Self {
         Self {
             word_id,
@@ -61,14 +63,17 @@ impl LexiconMatch {
         }
     }
 
+    #[inline(always)]
     pub fn end_byte(&self) -> usize {
         self.end_byte as usize
     }
 
+    #[inline(always)]
     pub fn word_id(&self) -> u32 {
         self.word_id
     }
 
+    #[inline(always)]
     pub fn word_param(&self) -> WordParam {
         self.word_param
     }

@@ -8,6 +8,7 @@ impl IdListsBuilder {
         Self::default()
     }
 
+    #[inline(always)]
     pub fn push(&mut self, ids: &[u32]) -> usize {
         let offset = self.data.len();
         self.data.push(ids.len() as u32);

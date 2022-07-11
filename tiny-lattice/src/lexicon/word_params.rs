@@ -6,6 +6,7 @@ pub struct WordParam {
 }
 
 impl WordParam {
+    #[inline(always)]
     pub const fn new(left_id: i16, right_id: i16, cost: i16) -> Self {
         Self {
             left_id,
@@ -29,6 +30,7 @@ impl WordParams {
         }
     }
 
+    #[inline(always)]
     pub fn get(&self, i: usize) -> WordParam {
         self.params[i]
     }

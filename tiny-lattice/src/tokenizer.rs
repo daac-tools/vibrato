@@ -41,22 +41,17 @@ impl Tokenizer {
         let input_bytes = input.as_bytes();
 
         for (char_offset, &byte_offset) in self.input.c2b_offsets().iter().enumerate() {
-            dbg!(char_offset, byte_offset);
-
             if !self.lattice.has_previous_node(char_offset) {
                 continue;
             }
-
             for m in self
                 .lexicon
                 .common_prefix_iterator(&input_bytes[byte_offset..])
             {
                 assert!(m.end_byte() + byte_offset <= input_bytes.len());
-                let end_char = self.input.char_offset(m.end_byte() + byte_offset);
-                dbg!(end_char);
                 self.lattice.insert_node(
                     char_offset,
-                    end_char,
+                    self.input.char_offset(m.end_byte() + byte_offset),
                     m.word_id(),
                     m.word_param(),
                     &self.matrix,
@@ -99,26 +94,32 @@ pub struct Output {
 }
 
 impl Output {
+    #[inline(always)]
     pub fn begin_byte(&self) -> usize {
         self.begin_byte
     }
 
+    #[inline(always)]
     pub fn end_byte(&self) -> usize {
         self.end_byte
     }
 
+    #[inline(always)]
     pub fn begin_char(&self) -> usize {
         self.begin_char
     }
 
+    #[inline(always)]
     pub fn end_char(&self) -> usize {
         self.end_char
     }
 
+    #[inline(always)]
     pub fn word_id(&self) -> u32 {
         self.word_id
     }
 
+    #[inline(always)]
     pub fn total_cost(&self) -> i32 {
         self.total_cost
     }

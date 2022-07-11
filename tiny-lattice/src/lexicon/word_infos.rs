@@ -13,6 +13,7 @@ impl WordInfos {
         }
     }
 
+    #[inline(always)]
     pub fn get(&self, i: usize) -> &str {
         &self.infos[i]
     }

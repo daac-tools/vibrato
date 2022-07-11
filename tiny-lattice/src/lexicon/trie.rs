@@ -13,7 +13,7 @@ impl Trie {
         Self { units }
     }
 
-    #[inline]
+    #[inline(always)]
     pub fn common_prefix_iterator<'a>(&'a self, input: &'a [u8]) -> CommonPrefixIter<'a> {
         let unit: usize = self.get(0) as usize;
         CommonPrefixIter {

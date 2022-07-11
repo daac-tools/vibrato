@@ -28,19 +28,23 @@ impl Sentence {
         self.b2c[input.len()] = self.chars.len();
     }
 
+    #[inline(always)]
     pub fn chars(&self) -> &[char] {
         &self.chars
     }
 
     /// Returns byte offsets of current chars
+    #[inline(always)]
     pub fn c2b_offsets(&self) -> &[usize] {
         &self.c2b
     }
 
+    #[inline(always)]
     pub fn byte_offset(&self, char_offset: usize) -> usize {
         self.c2b[char_offset]
     }
 
+    #[inline(always)]
     pub fn char_offset(&self, byte_offset: usize) -> usize {
         self.b2c[byte_offset]
     }

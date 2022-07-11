@@ -21,6 +21,7 @@ impl WordMap {
         b.build()
     }
 
+    #[inline(always)]
     pub fn common_prefix_iterator<'a>(
         &'a self,
         input: &'a [u8],
@@ -41,6 +42,7 @@ pub struct WordMapMatch {
 }
 
 impl WordMapMatch {
+    #[inline(always)]
     pub fn new(word_id: u32, end_byte: u32) -> Self {
         Self { word_id, end_byte }
     }
@@ -52,10 +54,12 @@ pub struct WordMapBuilder {
 }
 
 impl WordMapBuilder {
+    #[inline(always)]
     pub fn new() -> Self {
         Self::default()
     }
 
+    #[inline(always)]
     pub fn add_record(&mut self, word: String, id: u32) {
         self.map.entry(word).or_default().push(id);
     }
