@@ -4,6 +4,7 @@ pub mod trie;
 pub mod word_param;
 
 use trie::Trie;
+
 pub use word_param::{WordParam, WordParamArrays};
 
 pub struct Lexicon {

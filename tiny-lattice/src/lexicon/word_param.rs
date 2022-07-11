@@ -1,3 +1,5 @@
+use super::parser::RawLexiconEntry;
+
 #[derive(Eq, PartialEq, Debug, Clone, Copy)]
 pub struct WordParam {
     pub left_id: i16,
@@ -11,6 +13,14 @@ impl WordParam {
             left_id,
             right_id,
             cost,
+        }
+    }
+
+    pub const fn from_raw_entry(e: &RawLexiconEntry) -> Self {
+        Self {
+            left_id: e.left_id,
+            right_id: e.right_id,
+            cost: e.cost,
         }
     }
 }

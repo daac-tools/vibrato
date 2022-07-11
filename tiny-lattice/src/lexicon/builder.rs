@@ -1,21 +1,31 @@
 use std::collections::BTreeMap;
 
+use super::parser::RawLexiconEntry;
 use super::trie::Trie;
 use super::word_param::{WordParam, WordParamArrays};
 use super::Lexicon;
 
 #[derive(Default)]
-pub struct LexiconBuilder<'a> {
-    map: BTreeMap<&'a str, Vec<WordParam>>,
+pub struct LexiconBuilder {
+    map: BTreeMap<String, Vec<WordParam>>,
 }
 
-impl<'a> LexiconBuilder<'a> {
+impl LexiconBuilder {
     pub fn new() -> Self {
         Self::default()
     }
 
-    pub fn add(&mut self, key: &'a str, param: WordParam) {
-        self.map.entry(key).or_default().push(param);
+    pub fn extend_from_raw_entries<I>(&mut self, entries: I)
+    where
+        I: IntoIterator<Item = RawLexiconEntry>,
+    {
+        for e in entries {
+            self.add(&e.surface, WordParam::from_raw_entry(&e));
+        }
+    }
+
+    pub fn add(&mut self, key: &str, param: WordParam) {
+        self.map.entry(key.to_owned()).or_default().push(param);
     }
 
     pub fn build(&self) -> Lexicon {
