@@ -3,14 +3,14 @@ pub mod lattice;
 use crate::lexicon::Lexicon;
 use crate::matrix::ConnectionMatrix;
 use crate::sentence::Sentence;
-use lattice::Lattice;
+use lattice::{EndNode, Lattice};
 
 pub struct Tokenizer {
     lexicon: Lexicon,
     matrix: ConnectionMatrix,
     input: Sentence,
     lattice: Lattice,
-    best_path: Vec<(usize, usize)>,
+    best_path: Vec<(usize, EndNode)>,
     output: Vec<Output>,
 }
 
@@ -47,16 +47,20 @@ impl Tokenizer {
                 continue;
             }
 
-            for e in self
+            for m in self
                 .lexicon
                 .common_prefix_iterator(&input_bytes[byte_offset..])
             {
-                dbg!(&e);
-                assert!(e.end_byte + byte_offset <= input_bytes.len());
-                let end_char = self.input.char_offset(e.end_byte + byte_offset);
+                assert!(m.end_byte() + byte_offset <= input_bytes.len());
+                let end_char = self.input.char_offset(m.end_byte() + byte_offset);
                 dbg!(end_char);
-                self.lattice
-                    .insert_node(char_offset, end_char, e.word_param, &self.matrix);
+                self.lattice.insert_node(
+                    char_offset,
+                    end_char,
+                    m.word_id(),
+                    m.word_param(),
+                    &self.matrix,
+                );
             }
 
             // TODO: OOV
@@ -71,10 +75,14 @@ impl Tokenizer {
         self.lattice.fill_best_path(&mut self.best_path);
         self.output.resize(self.best_path.len(), Output::default());
 
-        for (i, &(b, e)) in self.best_path.iter().rev().enumerate() {
+        for (i, (end_pos, end_node)) in self.best_path.iter().rev().enumerate() {
             self.output[i] = Output {
-                begin_byte: self.input.byte_offset(b),
-                end_byte: self.input.byte_offset(e),
+                begin_byte: self.input.byte_offset(end_node.begin()),
+                end_byte: self.input.byte_offset(*end_pos),
+                begin_char: end_node.begin(),
+                end_char: *end_pos,
+                word_id: end_node.word_id(),
+                total_cost: end_node.min_cost(),
             };
         }
     }
@@ -84,6 +92,10 @@ impl Tokenizer {
 pub struct Output {
     begin_byte: usize,
     end_byte: usize,
+    begin_char: usize,
+    end_char: usize,
+    word_id: u32,
+    total_cost: i32,
 }
 
 impl Output {
@@ -93,6 +105,22 @@ impl Output {
 
     pub fn end_byte(&self) -> usize {
         self.end_byte
+    }
+
+    pub fn begin_char(&self) -> usize {
+        self.begin_char
+    }
+
+    pub fn end_char(&self) -> usize {
+        self.end_char
+    }
+
+    pub fn word_id(&self) -> u32 {
+        self.word_id
+    }
+
+    pub fn total_cost(&self) -> i32 {
+        self.total_cost
     }
 }
 
@@ -116,12 +144,8 @@ mod tests {
 1 0 0
 1 1 0";
 
-        let lexicon = {
-            let mut b = crate::lexicon::builder::LexiconBuilder::new();
-            let raw_entries = crate::lexicon::parser::entries_from_csv(lexicon_csv.split('\n'));
-            b.extend_from_raw_entries(raw_entries);
-            b.build()
-        };
+        let entries = crate::lexicon::parser::entries_from_csv(lexicon_csv.split('\n'));
+        let lexicon = Lexicon::from_raw_entries(&entries);
         let matrix = crate::matrix::parser::matrix_from_text(matrix_def.split('\n'));
 
         let mut tokenizer = Tokenizer::new(lexicon, matrix);

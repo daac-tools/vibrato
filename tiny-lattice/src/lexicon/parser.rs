@@ -1,12 +1,6 @@
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub struct RawLexiconEntry {
-    pub surface: String,
-    pub left_id: i16,
-    pub right_id: i16,
-    pub cost: i16,
-}
+use super::{RawWordEntry, WordParam};
 
-pub fn entries_from_csv<I, S>(lines: I) -> Vec<RawLexiconEntry>
+pub fn entries_from_csv<I, S>(lines: I) -> Vec<RawWordEntry>
 where
     I: IntoIterator<Item = S>,
     S: AsRef<str>,
@@ -18,13 +12,24 @@ where
     entries
 }
 
-fn parse_csv(line: &str) -> RawLexiconEntry {
+fn parse_csv(line: &str) -> RawWordEntry {
     let items: Vec<_> = line.split(',').collect();
-    RawLexiconEntry {
+    assert!(4 <= items.len());
+
+    let info = if 4 < items.len() {
+        items[4..].join(",")
+    } else {
+        String::new()
+    };
+
+    RawWordEntry {
         surface: items[0].to_string(),
-        left_id: items[1].parse().unwrap(),
-        right_id: items[2].parse().unwrap(),
-        cost: items[3].parse().unwrap(),
+        param: WordParam::new(
+            items[1].parse().unwrap(),
+            items[2].parse().unwrap(),
+            items[3].parse().unwrap(),
+        ),
+        info,
     }
 }
 
@@ -33,7 +38,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn parse_small() {
+    fn test_parse() {
         let data = "京都,0,1,2
 東,3,4,5
 東京,6,7,8";
@@ -41,29 +46,59 @@ mod tests {
         assert_eq!(entries.len(), 3);
         assert_eq!(
             entries[0],
-            RawLexiconEntry {
+            RawWordEntry {
                 surface: "京都".to_string(),
-                left_id: 0,
-                right_id: 1,
-                cost: 2
+                param: WordParam::new(0, 1, 2),
+                info: String::new()
             }
         );
         assert_eq!(
             entries[1],
-            RawLexiconEntry {
+            RawWordEntry {
                 surface: "東".to_string(),
-                left_id: 3,
-                right_id: 4,
-                cost: 5
+                param: WordParam::new(3, 4, 5),
+                info: String::new()
             }
         );
         assert_eq!(
             entries[2],
-            RawLexiconEntry {
+            RawWordEntry {
                 surface: "東京".to_string(),
-                left_id: 6,
-                right_id: 7,
-                cost: 8
+                param: WordParam::new(6, 7, 8),
+                info: String::new()
+            }
+        );
+    }
+
+    #[test]
+    fn test_parse_with_info() {
+        let data = "京都,0,1,2,京都,名詞
+東,3,4,5,東,名詞
+東京,6,7,8,京都,名詞,固有名詞";
+        let entries = entries_from_csv(data.split('\n'));
+        assert_eq!(entries.len(), 3);
+        assert_eq!(
+            entries[0],
+            RawWordEntry {
+                surface: "京都".to_string(),
+                param: WordParam::new(0, 1, 2),
+                info: "京都,名詞".to_string(),
+            }
+        );
+        assert_eq!(
+            entries[1],
+            RawWordEntry {
+                surface: "東".to_string(),
+                param: WordParam::new(3, 4, 5),
+                info: "東,名詞".to_string(),
+            }
+        );
+        assert_eq!(
+            entries[2],
+            RawWordEntry {
+                surface: "東京".to_string(),
+                param: WordParam::new(6, 7, 8),
+                info: "京都,名詞,固有名詞".to_string(),
             }
         );
     }

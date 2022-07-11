@@ -1,18 +1,3 @@
-#[derive(Debug, Eq, PartialEq, Clone)]
-pub struct TrieEntry {
-    /// Value of Trie, this is not the pointer to WordId, but the offset in WordId table
-    pub value: u32,
-    /// Offset of word end
-    pub end: usize,
-}
-
-impl TrieEntry {
-    #[inline]
-    pub fn new(value: u32, end: usize) -> TrieEntry {
-        TrieEntry { value, end }
-    }
-}
-
 pub struct Trie {
     units: Vec<u32>,
 }
@@ -20,19 +5,18 @@ pub struct Trie {
 impl Trie {
     pub fn new(data: Vec<u8>) -> Self {
         assert_eq!(data.len() % 4, 0);
-        let len = data.len() / 4;
-        let mut units = Vec::with_capacity(len);
-        for i in 0..len {
-            let unit = u32::from_le_bytes(data[i * 4..i * 4 + 4].try_into().unwrap());
+        let mut units = Vec::with_capacity(data.len() / 4);
+        for i in (0..data.len()).step_by(4) {
+            let unit = u32::from_le_bytes(data[i..i + 4].try_into().unwrap());
             units.push(unit);
         }
         Self { units }
     }
 
     #[inline]
-    pub fn common_prefix_iterator<'a>(&'a self, input: &'a [u8]) -> TrieEntryIter<'a> {
+    pub fn common_prefix_iterator<'a>(&'a self, input: &'a [u8]) -> CommonPrefixIter<'a> {
         let unit: usize = self.get(0) as usize;
-        TrieEntryIter {
+        CommonPrefixIter {
             trie: &self.units,
             node_pos: Trie::offset(unit),
             data: input,
@@ -41,12 +25,12 @@ impl Trie {
     }
 
     #[inline(always)]
-    fn get(&self, index: usize) -> u32 {
-        debug_assert!(index < self.units.len());
+    fn get(&self, node_pos: usize) -> u32 {
+        debug_assert!(node_pos < self.units.len());
         // UB if out of bounds
         // Should we panic in release builds here instead?
         // Safe version is not optimized away
-        *unsafe { self.units.get_unchecked(index) }
+        *unsafe { self.units.get_unchecked(node_pos) }
     }
 
     #[inline(always)]
@@ -70,26 +54,39 @@ impl Trie {
     }
 }
 
-pub struct TrieEntryIter<'a> {
+#[derive(Debug, Eq, PartialEq, Clone)]
+pub struct TrieMatch {
+    pub value: u32,
+    pub end_byte: u32,
+}
+
+impl TrieMatch {
+    #[inline(always)]
+    pub fn new(value: u32, end_byte: u32) -> Self {
+        Self { value, end_byte }
+    }
+}
+
+pub struct CommonPrefixIter<'a> {
     trie: &'a [u32],
     node_pos: usize,
     data: &'a [u8],
     offset: usize,
 }
 
-impl<'a> TrieEntryIter<'a> {
+impl<'a> CommonPrefixIter<'a> {
     #[inline(always)]
-    fn get(&self, index: usize) -> u32 {
-        debug_assert!(index < self.trie.len());
+    fn get(&self, node_pos: usize) -> u32 {
+        debug_assert!(node_pos < self.trie.len());
         // UB if out of bounds
         // Should we panic in release builds here instead?
         // Safe version is not optimized away
-        *unsafe { self.trie.get_unchecked(index) }
+        *unsafe { self.trie.get_unchecked(node_pos) }
     }
 }
 
-impl<'a> Iterator for TrieEntryIter<'a> {
-    type Item = TrieEntry;
+impl<'a> Iterator for CommonPrefixIter<'a> {
+    type Item = TrieMatch;
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
@@ -108,8 +105,8 @@ impl<'a> Iterator for TrieEntryIter<'a> {
 
             node_pos ^= Trie::offset(unit);
             if Trie::has_leaf(unit) {
-                let r = TrieEntry::new(Trie::value(self.get(node_pos)), i + 1);
-                self.offset = r.end;
+                let r = TrieMatch::new(Trie::value(self.get(node_pos)), (i + 1) as u32);
+                self.offset = r.end_byte as usize;
                 self.node_pos = node_pos;
                 return Some(r);
             }

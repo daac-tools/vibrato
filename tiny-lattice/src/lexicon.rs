@@ -1,48 +1,84 @@
-pub mod builder;
+pub mod id_lists;
 pub mod parser;
 pub mod trie;
-pub mod word_param;
+pub mod word_infos;
+pub mod word_map;
+pub mod word_params;
 
-use trie::Trie;
-
-pub use word_param::{WordParam, WordParamArrays};
+pub use word_infos::WordInfos;
+pub use word_map::WordMap;
+pub use word_params::{WordParam, WordParams};
 
 pub struct Lexicon {
-    trie: Trie,
-    word_params: WordParamArrays,
-}
-
-/// Result of the Lexicon lookup
-#[derive(Eq, PartialEq, Debug)]
-pub struct LexiconEntry {
-    /// Id of the returned word
-    pub word_param: WordParam,
-    /// Byte index of the word end
-    pub end_byte: usize,
-}
-
-impl LexiconEntry {
-    pub fn new(word_param: WordParam, end_byte: usize) -> Self {
-        Self {
-            word_param,
-            end_byte,
-        }
-    }
+    map: WordMap,
+    params: WordParams,
+    infos: WordInfos,
 }
 
 impl Lexicon {
-    /// Returns an iterator of word_id and end of words that matches given input
+    pub fn new(entries: &[(&str, WordParam, &str)]) -> Self {
+        let map = WordMap::from_iter(entries.iter().map(|e| e.0));
+        let params = WordParams::from_iter(entries.iter().map(|e| e.1));
+        let infos = WordInfos::from_iter(entries.iter().map(|e| e.2));
+        Self { map, params, infos }
+    }
+
+    pub fn from_raw_entries(entries: &[RawWordEntry]) -> Self {
+        let map = WordMap::from_iter(entries.iter().map(|e| &e.surface));
+        let params = WordParams::from_iter(entries.iter().map(|e| e.param));
+        let infos = WordInfos::from_iter(entries.iter().map(|e| &e.info));
+        Self { map, params, infos }
+    }
+
     #[inline]
     pub fn common_prefix_iterator<'a>(
         &'a self,
         input: &'a [u8],
-    ) -> impl Iterator<Item = LexiconEntry> + 'a {
-        self.trie.common_prefix_iterator(input).flat_map(move |e| {
-            self.word_params
-                .iter(e.value)
-                .map(move |wp| LexiconEntry::new(wp, e.end))
+    ) -> impl Iterator<Item = LexiconMatch> + 'a {
+        self.map.common_prefix_iterator(input).map(move |e| {
+            LexiconMatch::new(e.word_id, self.params.get(e.word_id as usize), e.end_byte)
         })
     }
+
+    pub fn get_word_info(&self, word_id: u32) -> &str {
+        self.infos.get(word_id as usize)
+    }
+}
+
+#[derive(Eq, PartialEq, Debug)]
+pub struct LexiconMatch {
+    end_byte: u32,
+    word_id: u32,
+    word_param: WordParam,
+}
+
+impl LexiconMatch {
+    pub fn new(word_id: u32, word_param: WordParam, end_byte: u32) -> Self {
+        Self {
+            word_id,
+            word_param,
+            end_byte,
+        }
+    }
+
+    pub fn end_byte(&self) -> usize {
+        self.end_byte as usize
+    }
+
+    pub fn word_id(&self) -> u32 {
+        self.word_id
+    }
+
+    pub fn word_param(&self) -> WordParam {
+        self.word_param
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct RawWordEntry {
+    pub surface: String,
+    pub param: WordParam,
+    pub info: String,
 }
 
 #[cfg(test)]
@@ -51,32 +87,36 @@ mod tests {
 
     #[test]
     fn test_common_prefix_iterator() {
-        let mut b = builder::LexiconBuilder::new();
-        b.add("東京", WordParam::new(1, 2, 3));
-        b.add("東京都", WordParam::new(4, 5, 6));
-        b.add("東京", WordParam::new(7, 8, 9));
-        b.add("京都", WordParam::new(10, 11, 12));
-        let lex = b.build();
-        let mut it = lex.common_prefix_iterator("東京都".as_bytes());
+        let entries = vec![
+            ("東京", WordParam::new(1, 2, 3), ""),
+            ("東京都", WordParam::new(4, 5, 6), ""),
+            ("東京", WordParam::new(7, 8, 9), ""),
+            ("京都", WordParam::new(10, 11, 12), ""),
+        ];
+        let lexicon = Lexicon::new(&entries);
+        let mut it = lexicon.common_prefix_iterator("東京都".as_bytes());
         assert_eq!(
             it.next().unwrap(),
-            LexiconEntry {
+            LexiconMatch {
+                end_byte: 6,
+                word_id: 0,
                 word_param: WordParam::new(1, 2, 3),
-                end_byte: 6
             }
         );
         assert_eq!(
             it.next().unwrap(),
-            LexiconEntry {
+            LexiconMatch {
+                end_byte: 6,
+                word_id: 2,
                 word_param: WordParam::new(7, 8, 9),
-                end_byte: 6
             }
         );
         assert_eq!(
             it.next().unwrap(),
-            LexiconEntry {
+            LexiconMatch {
+                end_byte: 9,
+                word_id: 1,
                 word_param: WordParam::new(4, 5, 6),
-                end_byte: 9
             }
         );
         assert_eq!(it.next(), None);

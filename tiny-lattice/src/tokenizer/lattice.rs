@@ -1,4 +1,4 @@
-use crate::lexicon::word_param::WordParam;
+use crate::lexicon::WordParam;
 use crate::matrix::ConnectionMatrix;
 
 const MAX_COST: i32 = i32::MAX;
@@ -38,6 +38,7 @@ impl Lattice {
 
     fn insert_bos(&mut self) {
         self.ends[0].push(EndNode {
+            word_id: u32::MAX,
             begin: u16::MAX,
             right_id: 0,
             min_idx: INVALID_IDX,
@@ -54,6 +55,7 @@ impl Lattice {
         &mut self,
         begin: usize,
         end: usize,
+        word_id: u32,
         param: WordParam,
         matrix: &ConnectionMatrix,
     ) {
@@ -61,6 +63,7 @@ impl Lattice {
             .search_min_connection(begin, param.left_id as usize, matrix)
             .unwrap();
         self.ends[end].push(EndNode {
+            word_id,
             begin: begin as u16,
             right_id: param.right_id,
             min_idx,
@@ -97,21 +100,13 @@ impl Lattice {
         self.ends.get(i).map(|d| !d.is_empty()).unwrap_or(false)
     }
 
-    /// Lookup a node for the index
-    // pub fn node(&self, end: usize, idx: usize) -> &Node {
-    //     &self.ends[end][idx]
-    // }
-
-    /// Fill the path with the minimum cost (indices only).
-    /// **Attention**: the path will be reversed (end to beginning) and will need to be traversed
-    /// in the reverse order.
-    pub fn fill_best_path(&self, result: &mut Vec<(usize, usize)>) {
+    pub fn fill_best_path(&self, result: &mut Vec<(usize, EndNode)>) {
         let mut end_pos = self.len();
         let mut min_idx = self.eos_min_idx.unwrap();
         dbg!(end_pos, min_idx);
         while end_pos != 0 {
             let node = &self.ends[end_pos][min_idx];
-            result.push((node.begin(), end_pos));
+            result.push((end_pos, node.clone()));
             (end_pos, min_idx) = (node.begin(), node.min_idx());
         }
     }
@@ -119,6 +114,7 @@ impl Lattice {
 
 #[derive(Default, Debug, Clone)]
 pub struct EndNode {
+    word_id: u32,
     begin: u16,
     right_id: i16,
     min_idx: u16,
@@ -127,27 +123,32 @@ pub struct EndNode {
 
 impl EndNode {
     #[inline(always)]
-    fn begin(&self) -> usize {
+    pub fn word_id(&self) -> u32 {
+        self.word_id
+    }
+
+    #[inline(always)]
+    pub fn begin(&self) -> usize {
         self.begin as usize
     }
 
     #[inline(always)]
-    fn right_id(&self) -> usize {
+    pub fn right_id(&self) -> usize {
         self.right_id as usize
     }
 
     #[inline(always)]
-    fn min_idx(&self) -> usize {
+    pub fn min_idx(&self) -> usize {
         self.min_idx as usize
     }
 
     #[inline(always)]
-    fn min_cost(&self) -> i32 {
+    pub fn min_cost(&self) -> i32 {
         self.min_cost
     }
 
     #[inline(always)]
-    fn is_connected_to_bos(&self) -> bool {
+    pub fn is_connected_to_bos(&self) -> bool {
         self.min_cost != MAX_COST
     }
 }
