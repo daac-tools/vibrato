@@ -87,6 +87,27 @@ impl Sentence {
     pub fn char_offset(&self, byte_offset: usize) -> usize {
         self.b2c[byte_offset]
     }
+
+    /// Whether the byte can start a new word.
+    /// Supports bytes not on character boundaries.
+    #[inline(always)]
+    pub fn can_bow(&self, byte_pos: usize) -> bool {
+        self.bow[byte_pos]
+    }
+
+    /// Returns char length to the next can_bow point
+    ///
+    /// Used by SimpleOOV plugin
+    #[inline(always)]
+    pub fn get_word_candidate_length(&self, char_pos: usize) -> usize {
+        for i in (char_pos + 1)..self.chars.len() {
+            let byte_pos = self.c2b[i];
+            if self.can_bow(byte_pos) {
+                return i - char_pos;
+            }
+        }
+        self.chars.len() - char_pos
+    }
 }
 
 #[cfg(test)]
