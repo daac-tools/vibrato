@@ -24,7 +24,7 @@ impl Lexicon {
     pub fn from_raw_entries(entries: &[RawWordEntry]) -> Self {
         let map = WordMap::from_iter(entries.iter().map(|e| &e.surface));
         let params = WordParams::from_iter(entries.iter().map(|e| e.param));
-        let feats = WordFeats::from_iter(entries.iter().map(|e| &e.info));
+        let feats = WordFeats::from_iter(entries.iter().map(|e| &e.feat));
         Self { map, params, feats }
     }
 
@@ -81,7 +81,7 @@ impl LexiconMatch {
 pub struct RawWordEntry {
     pub surface: String,
     pub param: WordParam,
-    pub info: String,
+    pub feat: String,
 }
 
 #[cfg(test)]

@@ -16,7 +16,7 @@ fn parse_csv(line: &str) -> RawWordEntry {
     let items: Vec<_> = line.split(',').collect();
     assert!(4 <= items.len());
 
-    let info = if 4 < items.len() {
+    let feat = if 4 < items.len() {
         items[4..].join(",")
     } else {
         String::new()
@@ -29,7 +29,7 @@ fn parse_csv(line: &str) -> RawWordEntry {
             items[2].parse().unwrap(),
             items[3].parse().unwrap(),
         ),
-        info,
+        feat,
     }
 }
 
@@ -49,7 +49,7 @@ mod tests {
             RawWordEntry {
                 surface: "京都".to_string(),
                 param: WordParam::new(0, 1, 2),
-                info: String::new()
+                feat: String::new()
             }
         );
         assert_eq!(
@@ -57,7 +57,7 @@ mod tests {
             RawWordEntry {
                 surface: "東".to_string(),
                 param: WordParam::new(3, 4, 5),
-                info: String::new()
+                feat: String::new()
             }
         );
         assert_eq!(
@@ -65,7 +65,7 @@ mod tests {
             RawWordEntry {
                 surface: "東京".to_string(),
                 param: WordParam::new(6, 7, 8),
-                info: String::new()
+                feat: String::new()
             }
         );
     }
@@ -82,7 +82,7 @@ mod tests {
             RawWordEntry {
                 surface: "京都".to_string(),
                 param: WordParam::new(0, 1, 2),
-                info: "京都,名詞".to_string(),
+                feat: "京都,名詞".to_string(),
             }
         );
         assert_eq!(
@@ -90,7 +90,7 @@ mod tests {
             RawWordEntry {
                 surface: "東".to_string(),
                 param: WordParam::new(3, 4, 5),
-                info: "東,名詞".to_string(),
+                feat: "東,名詞".to_string(),
             }
         );
         assert_eq!(
@@ -98,7 +98,7 @@ mod tests {
             RawWordEntry {
                 surface: "東京".to_string(),
                 param: WordParam::new(6, 7, 8),
-                info: "京都,名詞,固有名詞".to_string(),
+                feat: "京都,名詞,固有名詞".to_string(),
             }
         );
     }
