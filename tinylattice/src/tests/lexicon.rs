@@ -2,10 +2,14 @@ use crate::dictionary::lexicon::*;
 
 const LEX_TEXT: &str = include_str!("./resources/lex.csv");
 
+fn make_lexicon() -> Lexicon {
+    let entries = parser::entries_from_csv(LEX_TEXT.split('\n'));
+    Lexicon::from_raw_entries(&entries)
+}
+
 #[test]
 fn test_common_prefix_iterator_1() {
-    let entries = parser::entries_from_csv(LEX_TEXT.split('\n'));
-    let lexicon = Lexicon::from_raw_entries(&entries);
+    let lexicon = make_lexicon();
     let mut it = lexicon.common_prefix_iterator("東京都に行く".as_bytes());
     // 東
     assert_eq!(
@@ -27,8 +31,7 @@ fn test_common_prefix_iterator_1() {
 
 #[test]
 fn test_common_prefix_iterator_2() {
-    let entries = parser::entries_from_csv(LEX_TEXT.split('\n'));
-    let lexicon = Lexicon::from_raw_entries(&entries);
+    let lexicon = make_lexicon();
     let mut it = lexicon.common_prefix_iterator("X".as_bytes());
     for word_id in 40..46 {
         assert_eq!(
@@ -41,8 +44,7 @@ fn test_common_prefix_iterator_2() {
 
 #[test]
 fn test_get_word_feature() {
-    let entries = parser::entries_from_csv(LEX_TEXT.split('\n'));
-    let lexicon = Lexicon::from_raw_entries(&entries);
+    let lexicon = make_lexicon();
     assert_eq!(
         lexicon.get_word_feature(0),
         "た,助動詞,*,*,*,助動詞-タ,終止形-一般,タ,た,*,A,*,*,*,*"

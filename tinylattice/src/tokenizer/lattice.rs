@@ -7,7 +7,7 @@ const INVALID_IDX: u16 = u16::MAX;
 #[derive(Default)]
 pub struct Lattice {
     ends: Vec<Vec<EndNode>>,
-    eos_min_idx: Option<usize>,
+    eos: Option<EndNode>,
 }
 
 impl Lattice {
@@ -27,7 +27,7 @@ impl Lattice {
     // new_len is in characters
     pub fn reset(&mut self, new_len: usize) {
         Self::reset_vec(&mut self.ends, new_len + 1);
-        self.eos_min_idx = None;
+        self.eos = None;
         self.insert_bos();
     }
 
@@ -48,8 +48,14 @@ impl Lattice {
     }
 
     pub fn insert_eos(&mut self, matrix: &ConnectionMatrix) {
-        let (min_idx, _) = self.search_min_node(self.len(), 0, matrix).unwrap();
-        self.eos_min_idx = Some(min_idx as usize)
+        let (min_idx, min_cost) = self.search_min_node(self.len(), 0, matrix).unwrap();
+        self.eos = Some(EndNode {
+            word_id: u32::MAX,
+            begin: self.len() as u16,
+            right_id: i16::MAX,
+            min_idx,
+            min_cost,
+        });
     }
 
     pub fn insert_node(
@@ -104,7 +110,7 @@ impl Lattice {
 
     pub fn fill_best_path(&self, result: &mut Vec<(usize, EndNode)>) {
         let mut end_pos = self.len();
-        let mut min_idx = self.eos_min_idx.unwrap();
+        let mut min_idx = self.eos.as_ref().unwrap().min_idx();
         dbg!(end_pos, min_idx);
         while end_pos != 0 {
             let node = &self.ends[end_pos][min_idx];

@@ -8,8 +8,11 @@ where
     let (num_right, num_left) = parse_header(lines.next().unwrap().as_ref());
     let mut data = vec![0; num_right * num_left];
     for line in lines {
-        let (left, right, cost) = parse_body(line.as_ref());
-        data[right * num_left + left] = cost;
+        let line = line.as_ref();
+        if !line.is_empty() {
+            let (left, right, cost) = parse_body(line);
+            data[right * num_left + left] = cost;
+        }
     }
     ConnectionMatrix::new(data, num_left, num_right)
 }
@@ -22,7 +25,7 @@ fn parse_header(line: &str) -> (usize, usize) {
 
 fn parse_body(line: &str) -> (usize, usize, i16) {
     let items: Vec<_> = line.split(' ').collect();
-    assert_eq!(items.len(), 3);
+    assert_eq!(items.len(), 3, "{:?}", &items);
     (
         items[0].parse().unwrap(),
         items[1].parse().unwrap(),

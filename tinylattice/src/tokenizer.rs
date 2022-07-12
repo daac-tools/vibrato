@@ -82,11 +82,12 @@ impl Tokenizer {
         morphs.resize(self.best_path.len(), Morpheme::default());
 
         for (i, (end_pos, end_node)) in self.best_path.iter().rev().enumerate() {
+            let end_pos = *end_pos;
             morphs[i] = Morpheme {
-                begin_byte: self.sent.byte_position(end_node.begin()),
-                end_byte: self.sent.byte_position(*end_pos),
-                begin_char: end_node.begin(),
-                end_char: *end_pos,
+                byte_begin: self.sent.byte_position(end_node.begin()) as u16,
+                byte_end: self.sent.byte_position(end_pos) as u16,
+                char_begin: end_node.begin() as u16,
+                char_end: end_pos as u16,
                 word_id: end_node.word_id(),
                 total_cost: end_node.min_cost(),
             };
@@ -129,19 +130,19 @@ mod tests {
             vec![
                 // 自然
                 Morpheme {
-                    begin_byte: 0,
-                    end_byte: 6,
-                    begin_char: 0,
-                    end_char: 2,
+                    byte_begin: 0,
+                    byte_end: 6,
+                    char_begin: 0,
+                    char_end: 2,
                     word_id: 0,
                     total_cost: 1,
                 },
                 // 言語処理
                 Morpheme {
-                    begin_byte: 6,
-                    end_byte: 18,
-                    begin_char: 2,
-                    end_char: 6,
+                    byte_begin: 6,
+                    byte_end: 18,
+                    char_begin: 2,
+                    char_end: 6,
                     word_id: 4,
                     total_cost: 6,
                 },
