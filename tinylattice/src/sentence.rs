@@ -1,4 +1,4 @@
-use crate::category::{CategoryTable, CategoryTypes};
+use crate::dictionary::category::{CategoryTable, CategoryTypes};
 
 #[derive(Default, Clone)]
 pub struct Sentence {

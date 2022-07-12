@@ -1,5 +1,5 @@
-use crate::lexicon::WordParam;
-use crate::matrix::CostMatrix;
+use crate::dictionary::CostMatrix;
+use crate::dictionary::WordParam;
 
 const MAX_COST: i32 = i32::MAX;
 const INVALID_IDX: u16 = u16::MAX;
