@@ -9,4 +9,5 @@ pub mod utils;
 pub mod tests;
 
 pub use morpheme::Morpheme;
+pub use sentence::Sentence;
 pub use tokenizer::Tokenizer;

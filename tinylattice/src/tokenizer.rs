@@ -7,7 +7,6 @@ use lattice::{EndNode, Lattice};
 
 pub struct Tokenizer {
     dict: Dictionary,
-    sent: Sentence,
     lattice: Lattice,
     best_path: Vec<(usize, EndNode)>,
 }
@@ -16,17 +15,17 @@ impl Tokenizer {
     pub fn new(dict: Dictionary) -> Self {
         Self {
             dict,
-            sent: Sentence::default(),
             lattice: Lattice::default(),
             best_path: vec![],
         }
     }
 
     #[inline(always)]
-    pub fn tokenize(&mut self, sent: &str, morphs: &mut Vec<Morpheme>) {
-        self.sent.set_sentence(sent, self.dict.category_map());
-        self.build_lattice(sent);
-        self.resolve_best_path(morphs);
+    pub fn tokenize(&mut self, input: &str, morphs: &mut Vec<Morpheme>) {
+        let mut sent = Sentence::new();
+        sent.set_sentence(input, self.dict.category_map());
+        self.build_lattice(&sent);
+        self.resolve_best_path(&sent, morphs);
     }
 
     #[inline(always)]
@@ -34,11 +33,11 @@ impl Tokenizer {
         &self.dict
     }
 
-    fn build_lattice(&mut self, sent: &str) {
-        self.lattice.reset(self.sent.chars().len());
-        let input_bytes = sent.as_bytes();
+    fn build_lattice(&mut self, sent: &Sentence) {
+        self.lattice.reset(sent.chars().len());
+        let input_bytes = sent.bytes();
 
-        for (char_pos, &byte_pos) in self.sent.c2b().iter().enumerate() {
+        for (char_pos, &byte_pos) in sent.c2b().iter().enumerate() {
             if !self.lattice.has_previous_node(char_pos) {
                 continue;
             }
@@ -52,7 +51,7 @@ impl Tokenizer {
                 assert!(m.end_byte() + byte_pos <= input_bytes.len());
                 self.lattice.insert_node(
                     char_pos,
-                    self.sent.char_position(m.end_byte() + byte_pos),
+                    sent.char_position(m.end_byte() + byte_pos),
                     m.word_idx(),
                     m.word_param(),
                     &self.dict.connector(),
@@ -62,7 +61,7 @@ impl Tokenizer {
 
             if !matched {
                 if let Some(p) = self.dict.simple_oov_provider() {
-                    let oov = p.oov_word(&self.sent, char_pos);
+                    let oov = p.oov_word(sent, char_pos);
                     self.lattice.insert_node(
                         char_pos,
                         char_pos + oov.word_len(),
@@ -76,7 +75,7 @@ impl Tokenizer {
         self.lattice.insert_eos(self.dict.connector());
     }
 
-    fn resolve_best_path(&mut self, morphs: &mut Vec<Morpheme>) {
+    fn resolve_best_path(&mut self, sent: &Sentence, morphs: &mut Vec<Morpheme>) {
         self.best_path.clear();
         self.lattice.fill_best_path(&mut self.best_path);
 
@@ -86,8 +85,8 @@ impl Tokenizer {
         for (i, (end_pos, end_node)) in self.best_path.iter().rev().enumerate() {
             let end_pos = *end_pos;
             morphs[i] = Morpheme {
-                byte_begin: self.sent.byte_position(end_node.begin()) as u16,
-                byte_end: self.sent.byte_position(end_pos) as u16,
+                byte_begin: sent.byte_position(end_node.begin()) as u16,
+                byte_end: sent.byte_position(end_pos) as u16,
                 char_begin: end_node.begin() as u16,
                 char_end: end_pos as u16,
                 word_idx: end_node.word_idx(),

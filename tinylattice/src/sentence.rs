@@ -1,14 +1,15 @@
 use crate::dictionary::{CategoryMap, CategoryTypes};
 
 #[derive(Default, Clone)]
-pub struct Sentence {
+pub struct Sentence<'a> {
+    bytes: &'a [u8],
     chars: Vec<char>,
     c2b: Vec<usize>,
     b2c: Vec<usize>,
     bow: Vec<bool>,
 }
 
-impl Sentence {
+impl<'a> Sentence<'a> {
     pub fn new() -> Self {
         Self::default()
     }
@@ -21,9 +22,10 @@ impl Sentence {
         self.bow.clear();
     }
 
-    pub fn set_sentence(&mut self, input: &str, cate_map: &CategoryMap) {
+    pub fn set_sentence(&mut self, input: &'a str, cate_map: &CategoryMap) {
         self.clear();
 
+        self.bytes = input.as_bytes();
         self.b2c.resize(input.len() + 1, usize::MAX);
         self.bow.resize(input.len(), false);
 
@@ -62,6 +64,11 @@ impl Sentence {
 
         self.c2b.push(input.len());
         self.b2c[input.len()] = self.chars.len();
+    }
+
+    #[inline(always)]
+    pub fn bytes(&self) -> &[u8] {
+        &self.bytes
     }
 
     #[inline(always)]
