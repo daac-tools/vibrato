@@ -11,3 +11,4 @@ Cargo.lock
 
 target/
 sudachi-dict
+*.dic

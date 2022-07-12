@@ -1,3 +1,5 @@
+use crate::category::{CategoryTable, CategoryTypes};
+
 #[derive(Default, Clone)]
 pub struct Sentence {
     // Characters. Char-based indexing.
@@ -6,6 +8,8 @@ pub struct Sentence {
     c2b: Vec<usize>,
     // Byte-to-char mapping for the modified string. Byte-based indexing.
     b2c: Vec<usize>,
+    // Markers whether the byte can start new word or not
+    bow: Vec<bool>,
 }
 
 impl Sentence {
@@ -13,17 +17,52 @@ impl Sentence {
         Self::default()
     }
 
-    pub fn set_sentence(&mut self, input: &str) {
+    pub fn clear(&mut self) {
         self.chars.clear();
         self.c2b.clear();
         self.b2c.clear();
+        self.bow.clear();
+    }
+
+    pub fn set_sentence(&mut self, input: &str, cate_table: &CategoryTable) {
+        self.clear();
+
         self.b2c.resize(input.len() + 1, usize::MAX);
+        self.bow.resize(input.len(), false);
+
+        // Special cases for BOW logic
+        let non_starting = CategoryTypes::ALPHA | CategoryTypes::GREEK | CategoryTypes::CYRILLIC;
+        let mut prev_cate = CategoryTypes::empty();
+        let mut next_bow = true;
 
         for (ci, (bi, ch)) in input.char_indices().enumerate() {
             self.chars.push(ch);
             self.c2b.push(bi);
             self.b2c[bi] = ci;
+
+            let cate = cate_table.get_category_types(ch);
+            let can_bow = if !next_bow {
+                // this char was forbidden by the previous one
+                next_bow = true;
+                false
+            } else if cate.intersects(CategoryTypes::NOOOVBOW2) {
+                // this rule is stronger than the next one and must come before
+                // this and next are forbidden
+                next_bow = false;
+                false
+            } else if cate.intersects(CategoryTypes::NOOOVBOW) {
+                // this char is forbidden
+                false
+            } else if cate.intersects(non_starting) {
+                // the previous char is compatible
+                !cate.intersects(prev_cate)
+            } else {
+                true
+            };
+            self.bow[bi] = can_bow;
+            prev_cate = cate;
         }
+
         self.c2b.push(input.len());
         self.b2c[input.len()] = self.chars.len();
     }
@@ -57,7 +96,7 @@ mod tests {
     #[test]
     fn test_sentence() {
         let mut sent = Sentence::new();
-        sent.set_sentence("自然");
+        sent.set_sentence("自然", &CategoryTable::default());
         assert_eq!(sent.chars(), &['自', '然']);
         assert_eq!(sent.c2b_offsets(), &[0, 3, 6]);
         assert_eq!(sent.char_offset(0), 0);

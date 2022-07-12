@@ -1,5 +1,6 @@
 pub mod lattice;
 
+use crate::category::CategoryTable;
 use crate::lexicon::Lexicon;
 use crate::matrix::CostMatrix;
 use crate::sentence::Sentence;
@@ -9,6 +10,7 @@ use lattice::{EndNode, Lattice};
 pub struct Tokenizer {
     lexicon: Lexicon,
     matrix: CostMatrix,
+    cate_table: CategoryTable,
     input: Sentence,
     lattice: Lattice,
     best_path: Vec<(usize, EndNode)>,
@@ -19,6 +21,7 @@ impl Tokenizer {
         Self {
             lexicon,
             matrix,
+            cate_table: CategoryTable::default(),
             input: Sentence::default(),
             lattice: Lattice::default(),
             best_path: vec![],
@@ -26,7 +29,7 @@ impl Tokenizer {
     }
 
     pub fn tokenize(&mut self, input: &str, output: &mut Vec<Morpheme>) {
-        self.input.set_sentence(input);
+        self.input.set_sentence(input, &self.cate_table);
         self.build_lattice(input);
         self.resolve_best_path(output);
     }
