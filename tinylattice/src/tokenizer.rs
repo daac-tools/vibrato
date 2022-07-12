@@ -118,9 +118,8 @@ mod tests {
 1 0 0
 1 1 0";
 
-        let entries = lexicon::parser::entries_from_csv(lexicon_csv.split('\n'));
-        let lexicon = Lexicon::from_raw_entries(&entries);
-        let connector = connector::parser::matrix_from_text(matrix_def.split('\n'));
+        let lexicon = Lexicon::from_lines(lexicon_csv.split('\n'));
+        let connector = Connector::from_lines(matrix_def.split('\n'));
         let dict = Dictionary::new(lexicon, connector, CategoryMap::default(), None);
 
         let mut tokenizer = Tokenizer::new(dict);

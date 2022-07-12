@@ -6,12 +6,11 @@ const MATRIX_TEXT: &str = include_str!("./resources/matrix_10x10.def");
 const CATE_TEXT: &str = include_str!("./resources/char.def");
 
 fn make_lexicon() -> Lexicon {
-    let entries = lexicon::parser::entries_from_csv(LEX_TEXT.split('\n'));
-    Lexicon::from_raw_entries(&entries)
+    Lexicon::from_lines(LEX_TEXT.split('\n'))
 }
 
-fn make_matrix() -> Connector {
-    connector::parser::matrix_from_text(MATRIX_TEXT.split('\n'))
+fn make_connector() -> Connector {
+    Connector::from_lines(MATRIX_TEXT.split('\n'))
 }
 
 fn make_category_map() -> CategoryMap {
@@ -20,7 +19,7 @@ fn make_category_map() -> CategoryMap {
 
 #[test]
 fn test_tokenize_1() {
-    let dict = Dictionary::new(make_lexicon(), make_matrix(), make_category_map(), None);
+    let dict = Dictionary::new(make_lexicon(), make_connector(), make_category_map(), None);
     let mut tok = Tokenizer::new(dict);
 
     let mut morphs = vec![];
@@ -41,7 +40,7 @@ fn test_tokenize_1() {
 
 #[test]
 fn test_tokenize_2() {
-    let dict = Dictionary::new(make_lexicon(), make_matrix(), make_category_map(), None);
+    let dict = Dictionary::new(make_lexicon(), make_connector(), make_category_map(), None);
     let mut tok = Tokenizer::new(dict);
 
     let mut morphs = vec![];

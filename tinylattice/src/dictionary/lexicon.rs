@@ -21,13 +21,6 @@ impl Lexicon {
         Self { map, params, feats }
     }
 
-    pub fn from_raw_entries(entries: &[RawWordEntry]) -> Self {
-        let map = WordMap::from_iter(entries.iter().map(|e| &e.surface));
-        let params = WordParams::from_iter(entries.iter().map(|e| e.param));
-        let feats = WordFeats::from_iter(entries.iter().map(|e| &e.feat));
-        Self { map, params, feats }
-    }
-
     #[inline(always)]
     pub fn common_prefix_iterator<'a>(
         &'a self,

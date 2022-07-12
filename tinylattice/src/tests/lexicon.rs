@@ -3,8 +3,7 @@ use crate::dictionary::lexicon::*;
 const LEX_TEXT: &str = include_str!("./resources/lex.csv");
 
 fn make_lexicon() -> Lexicon {
-    let entries = parser::entries_from_csv(LEX_TEXT.split('\n'));
-    Lexicon::from_raw_entries(&entries)
+    Lexicon::from_lines(LEX_TEXT.split('\n'))
 }
 
 #[test]

@@ -1,35 +1,38 @@
-use super::{RawWordEntry, WordParam};
+use super::{Lexicon, RawWordEntry, WordFeats, WordMap, WordParam, WordParams};
 
-pub fn entries_from_csv<I, S>(lines: I) -> Vec<RawWordEntry>
-where
-    I: IntoIterator<Item = S>,
-    S: AsRef<str>,
-{
-    let mut entries = vec![];
-    for line in lines {
-        entries.push(parse_csv(line.as_ref()));
+impl Lexicon {
+    pub fn from_lines<I, S>(lines: I) -> Self
+    where
+        I: IntoIterator<Item = S>,
+        S: AsRef<str>,
+    {
+        let entries: Vec<_> = lines
+            .into_iter()
+            .map(|l| Self::parse_csv(l.as_ref()))
+            .collect();
+        let map = WordMap::from_iter(entries.iter().map(|e| &e.surface));
+        let params = WordParams::from_iter(entries.iter().map(|e| e.param));
+        let feats = WordFeats::from_iter(entries.iter().map(|e| &e.feat));
+        Self { map, params, feats }
     }
-    entries
-}
 
-fn parse_csv(line: &str) -> RawWordEntry {
-    let items: Vec<_> = line.split(',').collect();
-    assert!(4 <= items.len());
-
-    let feat = if 4 < items.len() {
-        items[4..].join(",")
-    } else {
-        String::new()
-    };
-
-    RawWordEntry {
-        surface: items[0].to_string(),
-        param: WordParam::new(
-            items[1].parse().unwrap(),
-            items[2].parse().unwrap(),
-            items[3].parse().unwrap(),
-        ),
-        feat,
+    fn parse_csv(line: &str) -> RawWordEntry {
+        let items: Vec<_> = line.split(',').collect();
+        assert!(4 <= items.len());
+        let feat = if 4 < items.len() {
+            items[4..].join(",")
+        } else {
+            String::new()
+        };
+        RawWordEntry {
+            surface: items[0].to_string(),
+            param: WordParam::new(
+                items[1].parse().unwrap(),
+                items[2].parse().unwrap(),
+                items[3].parse().unwrap(),
+            ),
+            feat,
+        }
     }
 }
 
@@ -39,65 +42,27 @@ mod tests {
 
     #[test]
     fn test_parse() {
-        let data = "京都,0,1,2
-東,3,4,5
-東京,6,7,8";
-        let entries = entries_from_csv(data.split('\n'));
-        assert_eq!(entries.len(), 3);
+        let line = "東京,1,2,3";
+        let entry = Lexicon::parse_csv(line);
         assert_eq!(
-            entries[0],
-            RawWordEntry {
-                surface: "京都".to_string(),
-                param: WordParam::new(0, 1, 2),
-                feat: String::new()
-            }
-        );
-        assert_eq!(
-            entries[1],
-            RawWordEntry {
-                surface: "東".to_string(),
-                param: WordParam::new(3, 4, 5),
-                feat: String::new()
-            }
-        );
-        assert_eq!(
-            entries[2],
+            entry,
             RawWordEntry {
                 surface: "東京".to_string(),
-                param: WordParam::new(6, 7, 8),
-                feat: String::new()
+                param: WordParam::new(1, 2, 3),
+                feat: "".to_string(),
             }
         );
     }
 
     #[test]
-    fn test_parse_with_info() {
-        let data = "京都,0,1,2,京都,名詞
-東,3,4,5,東,名詞
-東京,6,7,8,京都,名詞,固有名詞";
-        let entries = entries_from_csv(data.split('\n'));
-        assert_eq!(entries.len(), 3);
+    fn test_parse_with_feat() {
+        let line = "東京,1,2,3,京都,名詞,固有名詞";
+        let entry = Lexicon::parse_csv(line);
         assert_eq!(
-            entries[0],
-            RawWordEntry {
-                surface: "京都".to_string(),
-                param: WordParam::new(0, 1, 2),
-                feat: "京都,名詞".to_string(),
-            }
-        );
-        assert_eq!(
-            entries[1],
-            RawWordEntry {
-                surface: "東".to_string(),
-                param: WordParam::new(3, 4, 5),
-                feat: "東,名詞".to_string(),
-            }
-        );
-        assert_eq!(
-            entries[2],
+            entry,
             RawWordEntry {
                 surface: "東京".to_string(),
-                param: WordParam::new(6, 7, 8),
+                param: WordParam::new(1, 2, 3),
                 feat: "京都,名詞,固有名詞".to_string(),
             }
         );
