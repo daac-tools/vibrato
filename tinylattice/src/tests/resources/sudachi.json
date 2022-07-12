@@ -1,0 +1,24 @@
+{
+    "path" : "tests/resources/",
+    "systemDict" : "system.dic.test",
+    "userDict" : [ "user.dic.test" ],
+    "characterDefinitionFile" : "char.def",
+    "inputTextPlugin" : [
+        { "class" : "$exe/default_input_text" }
+    ],
+    "oovProviderPlugin" : [
+        { "class" : "$exe/simple_oov",
+          "oovPOS" : [ "名詞", "普通名詞", "一般", "*", "*", "*" ],
+          "leftId" : 8,
+          "rightId" : 8,
+          "cost" : 6000 }
+    ],
+    "pathRewritePlugin" : [
+        { "class" : "$exe/join_numeric",
+          "enableNormalize" : true },
+        { "class" : "$exe/join_katakana_oov",
+          "oovPOS" : [ "名詞", "普通名詞", "一般", "*", "*", "*" ],
+          "minLength" : 3
+        }
+    ]
+}

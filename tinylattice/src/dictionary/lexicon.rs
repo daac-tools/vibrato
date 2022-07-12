@@ -39,7 +39,7 @@ impl Lexicon {
     }
 
     #[inline(always)]
-    pub fn get_word_info(&self, word_id: u32) -> &str {
+    pub fn get_word_feature(&self, word_id: u32) -> &str {
         self.feats.get(word_id as usize)
     }
 }
