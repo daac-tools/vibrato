@@ -17,6 +17,14 @@ fn make_category_map() -> CategoryMap {
     CategoryMap::from_lines(CATE_TEXT.split('\n')).unwrap()
 }
 
+fn make_simple_oov_provider() -> SimpleOovProvider {
+    SimpleOovProvider::new(
+        1,
+        WordParam::new(8, 8, 6000),
+        "名詞,普通名詞,一般,*,*,*".to_string(),
+    )
+}
+
 #[test]
 fn test_tokenize_1() {
     let dict = Dictionary::new(make_lexicon(), make_connector(), make_category_map(), None);
@@ -70,9 +78,13 @@ fn test_tokenize_2() {
 }
 
 #[test]
-fn test_tokenize_oov_1() {
-    // let oov_gen = SimpleOovGenerator::new(word_id: u32, word_param: WordParam)
-    let dict = Dictionary::new(make_lexicon(), make_connector(), make_category_map(), None);
+fn test_tokenize_simple_oov_1() {
+    let dict = Dictionary::new(
+        make_lexicon(),
+        make_connector(),
+        make_category_map(),
+        Some(make_simple_oov_provider()),
+    );
     let mut tok = Tokenizer::new(dict);
 
     let mut morphs = vec![];
