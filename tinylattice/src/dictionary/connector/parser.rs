@@ -1,6 +1,11 @@
 use super::Connector;
 
 impl Connector {
+    // num_right, num_left
+    // r0 l0
+    // r0 l1
+    // r0 l2
+    // ...
     pub fn from_lines<I, L>(mut lines: I) -> Self
     where
         I: Iterator<Item = L>,
@@ -11,11 +16,11 @@ impl Connector {
         for line in lines {
             let line = line.as_ref();
             if !line.is_empty() {
-                let (left, right, cost) = Self::parse_body(line);
-                data[right * num_left + left] = cost;
+                let (right_id, left_id, cost) = Self::parse_body(line);
+                data[left_id * num_right + right_id] = cost;
             }
         }
-        Self::new(data, num_left, num_right)
+        Self::new(data, num_right, num_left)
     }
 
     fn parse_header(line: &str) -> (usize, usize) {
@@ -40,16 +45,34 @@ mod tests {
     use super::*;
 
     #[test]
-    fn parse_2x2() {
+    fn test_2x2() {
         let data = "2 2
 0 0 0
 0 1 1
-1 0 2
-1 1 3";
+1 0 -2
+1 1 -3";
         let conn = Connector::from_lines(data.split('\n'));
         assert_eq!(conn.cost(0, 0), 0);
         assert_eq!(conn.cost(0, 1), 1);
-        assert_eq!(conn.cost(1, 0), 2);
-        assert_eq!(conn.cost(1, 1), 3);
+        assert_eq!(conn.cost(1, 0), -2);
+        assert_eq!(conn.cost(1, 1), -3);
+    }
+
+    #[test]
+    fn test_2x3() {
+        let data = "2 3
+0 0 0
+0 1 1
+0 2 2
+1 0 -3
+1 1 -4
+1 2 -5";
+        let conn = Connector::from_lines(data.split('\n'));
+        assert_eq!(conn.cost(0, 0), 0);
+        assert_eq!(conn.cost(0, 1), 1);
+        assert_eq!(conn.cost(0, 2), 2);
+        assert_eq!(conn.cost(1, 0), -3);
+        assert_eq!(conn.cost(1, 1), -4);
+        assert_eq!(conn.cost(1, 2), -5);
     }
 }

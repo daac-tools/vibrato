@@ -2,32 +2,32 @@ pub mod parser;
 
 pub struct Connector {
     data: Vec<i16>,
-    num_left: usize,
     num_right: usize,
+    num_left: usize,
 }
 
 impl Connector {
-    pub fn new(data: Vec<i16>, num_left: usize, num_right: usize) -> Self {
+    pub fn new(data: Vec<i16>, num_right: usize, num_left: usize) -> Self {
         Self {
             data,
-            num_left,
             num_right,
+            num_left,
         }
     }
 
     #[inline(always)]
-    fn index(&self, left: usize, right: usize) -> usize {
-        debug_assert!(left < self.num_left);
-        debug_assert!(right < self.num_right);
-        let index = right * self.num_left + left;
+    fn index(&self, right_id: usize, left_id: usize) -> usize {
+        debug_assert!(right_id < self.num_right);
+        debug_assert!(left_id < self.num_left);
+        let index = left_id * self.num_right + right_id;
         debug_assert!(index < self.data.len());
         index
     }
 
     /// Gets the value of the connection matrix
     #[inline(always)]
-    pub fn cost(&self, left: usize, right: usize) -> i16 {
-        let index = self.index(left, right);
+    pub fn cost(&self, right_id: usize, left_id: usize) -> i16 {
+        let index = self.index(right_id, left_id);
         *unsafe { self.data.get_unchecked(index) }
     }
 
