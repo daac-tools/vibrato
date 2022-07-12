@@ -17,6 +17,7 @@ impl Sentence {
         Self::default()
     }
 
+    #[inline(always)]
     pub fn clear(&mut self) {
         self.chars.clear();
         self.c2b.clear();

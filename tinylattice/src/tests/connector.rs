@@ -1,4 +1,4 @@
-use crate::dictionary::connection::*;
+use crate::dictionary::connector::*;
 
 const MATRIX_TEXT: &str = include_str!("./resources/matrix_10x10.def");
 

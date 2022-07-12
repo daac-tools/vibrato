@@ -1,4 +1,4 @@
-use crate::dictionary::ConnectionMatrix;
+use crate::dictionary::Connector;
 use crate::dictionary::WordParam;
 
 const MAX_COST: i32 = i32::MAX;
@@ -47,8 +47,8 @@ impl Lattice {
         });
     }
 
-    pub fn insert_eos(&mut self, matrix: &ConnectionMatrix) {
-        let (min_idx, min_cost) = self.search_min_node(self.len(), 0, matrix).unwrap();
+    pub fn insert_eos(&mut self, connector: &Connector) {
+        let (min_idx, min_cost) = self.search_min_node(self.len(), 0, connector).unwrap();
         self.eos = Some(EndNode {
             word_id: u32::MAX,
             begin: self.len() as u16,
@@ -64,10 +64,10 @@ impl Lattice {
         end: usize,
         word_id: u32,
         param: WordParam,
-        matrix: &ConnectionMatrix,
+        connector: &Connector,
     ) {
         let (min_idx, min_cost) = self
-            .search_min_node(begin, param.left_id as usize, matrix)
+            .search_min_node(begin, param.left_id as usize, connector)
             .unwrap();
         self.ends[end].push(EndNode {
             word_id,
@@ -82,7 +82,7 @@ impl Lattice {
         &self,
         start: usize,
         left_id: usize,
-        matrix: &ConnectionMatrix,
+        connector: &Connector,
     ) -> Option<(u16, i32)> {
         if self.ends[start].is_empty() {
             return None;
@@ -91,7 +91,7 @@ impl Lattice {
         let mut min_cost = MAX_COST;
         for (i, l_node) in self.ends[start].iter().enumerate() {
             assert!(l_node.is_connected_to_bos());
-            let connect_cost = matrix.cost(l_node.right_id(), left_id) as i32;
+            let connect_cost = connector.cost(l_node.right_id(), left_id) as i32;
             let new_cost = l_node.min_cost() + connect_cost;
             if new_cost < min_cost {
                 min_idx = i as u16;

@@ -22,12 +22,14 @@ impl Tokenizer {
         }
     }
 
+    #[inline(always)]
     pub fn tokenize(&mut self, sent: &str, morphs: &mut Vec<Morpheme>) {
         self.sent.set_sentence(sent, self.dict.category_map());
         self.build_lattice(sent);
         self.resolve_best_path(morphs);
     }
 
+    #[inline(always)]
     pub fn dictionary(&self) -> &Dictionary {
         &self.dict
     }
@@ -53,7 +55,7 @@ impl Tokenizer {
                     self.sent.char_position(m.end_byte() + byte_pos),
                     m.word_id(),
                     m.word_param(),
-                    &self.dict.conn_matrix(),
+                    &self.dict.connector(),
                 );
                 matched = true;
             }
@@ -66,12 +68,12 @@ impl Tokenizer {
                         char_pos + oov.word_len(),
                         oov.word_id(),
                         oov.word_param(),
-                        self.dict.conn_matrix(),
+                        self.dict.connector(),
                     );
                 }
             }
         }
-        self.lattice.insert_eos(self.dict.conn_matrix());
+        self.lattice.insert_eos(self.dict.connector());
     }
 
     fn resolve_best_path(&mut self, morphs: &mut Vec<Morpheme>) {
@@ -118,8 +120,8 @@ mod tests {
 
         let entries = lexicon::parser::entries_from_csv(lexicon_csv.split('\n'));
         let lexicon = Lexicon::from_raw_entries(&entries);
-        let matrix = connection::parser::matrix_from_text(matrix_def.split('\n'));
-        let dict = Dictionary::new(lexicon, matrix, CategoryMap::default(), None);
+        let connector = connector::parser::matrix_from_text(matrix_def.split('\n'));
+        let dict = Dictionary::new(lexicon, connector, CategoryMap::default(), None);
 
         let mut tokenizer = Tokenizer::new(dict);
         let mut morphs = vec![];

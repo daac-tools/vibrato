@@ -10,8 +10,8 @@ fn make_lexicon() -> Lexicon {
     Lexicon::from_raw_entries(&entries)
 }
 
-fn make_matrix() -> ConnectionMatrix {
-    connection::parser::matrix_from_text(MATRIX_TEXT.split('\n'))
+fn make_matrix() -> Connector {
+    connector::parser::matrix_from_text(MATRIX_TEXT.split('\n'))
 }
 
 fn make_category_map() -> CategoryMap {
@@ -34,8 +34,8 @@ fn test_tokenize_1() {
     //   c=0      c=5320       c=0
     //  [BOS] -- [東京都] -- [EOS]
     //     r=0  l=6   r=8  l=0
-    let matrix = tok.dictionary().conn_matrix();
-    assert_eq!(matrix.cost(0, 6), -79);
+    let connector = tok.dictionary().connector();
+    assert_eq!(connector.cost(0, 6), -79);
     assert_eq!(morphs[0].total_cost(), -79 + 5320);
 }
 
@@ -61,10 +61,10 @@ fn test_tokenize_2() {
     //   c=0     c=5293    c=5320    c=5293    c=0
     //  [BOS] -- [京都] -- [東京都] -- [京都] -- [EOS]
     //     r=0  l=6  r=6  l=6  r=8  l=6  r=6  l=0
-    let matrix = tok.dictionary().conn_matrix();
-    assert_eq!(matrix.cost(0, 6), -79);
-    assert_eq!(matrix.cost(6, 6), 569);
-    assert_eq!(matrix.cost(8, 6), -352);
+    let connector = tok.dictionary().connector();
+    assert_eq!(connector.cost(0, 6), -79);
+    assert_eq!(connector.cost(6, 6), 569);
+    assert_eq!(connector.cost(8, 6), -352);
     assert_eq!(morphs[0].total_cost(), -79 + 5293);
     assert_eq!(morphs[1].total_cost(), morphs[0].total_cost() + 569 + 5320);
     assert_eq!(morphs[2].total_cost(), morphs[1].total_cost() - 352 + 5293);
