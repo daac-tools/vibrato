@@ -1,5 +1,5 @@
 use crate::dictionary::*;
-use crate::Tokenizer;
+use crate::{Sentence, Tokenizer};
 
 const LEX_TEXT: &str = include_str!("./resources/lex.csv");
 const MATRIX_TEXT: &str = include_str!("./resources/matrix_10x10.def");
@@ -33,11 +33,14 @@ fn test_tokenize_tokyo() {
         make_category_map(),
         Some(make_simple_oov_provider(1)),
     );
-    let mut tok = Tokenizer::new(dict);
 
-    let mut morphs = vec![];
-    tok.tokenize("東京都", &mut morphs);
+    let mut tokenizer = Tokenizer::new(dict);
+    let mut sentence = Sentence::new();
 
+    sentence.set_sentence("東京都");
+    tokenizer.tokenize(&mut sentence);
+
+    let morphs = sentence.morphs();
     assert_eq!(morphs.len(), 1);
     assert_eq!(morphs[0].byte_range(), 0..9);
     assert_eq!(morphs[0].char_range(), 0..3);
@@ -46,7 +49,7 @@ fn test_tokenize_tokyo() {
     //   c=0      c=5320       c=0
     //  [BOS] -- [東京都] -- [EOS]
     //     r=0  l=6   r=8  l=0
-    let connector = tok.dictionary().connector();
+    let connector = tokenizer.dictionary().connector();
     assert_eq!(connector.cost(0, 6), -79);
     assert_eq!(morphs[0].total_cost(), -79 + 5320);
 }
@@ -59,11 +62,13 @@ fn test_tokenize_kyotokyo() {
         make_category_map(),
         Some(make_simple_oov_provider(1)),
     );
-    let mut tok = Tokenizer::new(dict);
+    let mut tokenizer = Tokenizer::new(dict);
+    let mut sentence = Sentence::new();
 
-    let mut morphs = vec![];
-    tok.tokenize("京都東京都京都", &mut morphs);
+    sentence.set_sentence("京都東京都京都");
+    tokenizer.tokenize(&mut sentence);
 
+    let morphs = sentence.morphs();
     assert_eq!(morphs.len(), 3);
     assert_eq!(morphs[0].byte_range(), 0..6);
     assert_eq!(morphs[0].char_range(), 0..2);
@@ -78,7 +83,7 @@ fn test_tokenize_kyotokyo() {
     //   c=0     c=5293    c=5320    c=5293    c=0
     //  [BOS] -- [京都] -- [東京都] -- [京都] -- [EOS]
     //     r=0  l=6  r=6  l=6  r=8  l=6  r=6  l=0
-    let connector = tok.dictionary().connector();
+    let connector = tokenizer.dictionary().connector();
     assert_eq!(connector.cost(0, 6), -79);
     assert_eq!(connector.cost(6, 6), 569);
     assert_eq!(connector.cost(8, 6), -352);
@@ -95,11 +100,14 @@ fn test_tokenize_kampersanda() {
         make_category_map(),
         Some(make_simple_oov_provider(1)),
     );
-    let mut tok = Tokenizer::new(dict);
 
-    let mut morphs = vec![];
-    tok.tokenize("kampersanda", &mut morphs);
+    let mut tokenizer = Tokenizer::new(dict);
+    let mut sentence = Sentence::new();
 
+    sentence.set_sentence("kampersanda");
+    tokenizer.tokenize(&mut sentence);
+
+    let morphs = sentence.morphs();
     assert_eq!(morphs.len(), 1);
     assert_eq!(morphs[0].byte_range(), 0..11);
     assert_eq!(morphs[0].char_range(), 0..11);
@@ -108,7 +116,7 @@ fn test_tokenize_kampersanda() {
     //   c=0        c=6000         c=0
     //  [BOS] -- [kampersanda] -- [EOS]
     //     r=0  l=8         r=8  l=0
-    let connector = tok.dictionary().connector();
+    let connector = tokenizer.dictionary().connector();
     assert_eq!(connector.cost(0, 8), 447);
     assert_eq!(morphs[0].total_cost(), 447 + 6000);
 }
@@ -121,10 +129,13 @@ fn test_tokenize_tokyoken() {
         make_category_map(),
         Some(make_simple_oov_provider(1)),
     );
-    let mut tok = Tokenizer::new(dict);
 
-    let mut morphs = vec![];
-    tok.tokenize("東京県に行く", &mut morphs);
+    let mut tokenizer = Tokenizer::new(dict);
+    let mut sentence = Sentence::new();
 
+    sentence.set_sentence("東京県に行く");
+    tokenizer.tokenize(&mut sentence);
+
+    let morphs = sentence.morphs();
     assert_eq!(morphs.len(), 4);
 }

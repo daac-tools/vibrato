@@ -1,4 +1,5 @@
 use crate::dictionary::{CategoryMap, CategoryTypes};
+use crate::Morpheme;
 
 #[derive(Default, Clone)]
 pub struct Sentence<'a> {
@@ -7,6 +8,7 @@ pub struct Sentence<'a> {
     c2b: Vec<usize>,
     b2c: Vec<usize>,
     bow: Vec<bool>,
+    morphs: Vec<Morpheme>,
 }
 
 impl<'a> Sentence<'a> {
@@ -20,25 +22,34 @@ impl<'a> Sentence<'a> {
         self.c2b.clear();
         self.b2c.clear();
         self.bow.clear();
+        self.morphs.clear();
     }
 
-    pub fn set_sentence(&mut self, input: &'a str, cate_map: &CategoryMap) {
+    pub fn set_sentence(&mut self, input: &'a str) {
         self.clear();
 
         self.bytes = input.as_bytes();
         self.b2c.resize(input.len() + 1, usize::MAX);
-        self.bow.resize(input.len(), false);
-
-        // Special cases for BOW logic
-        let non_starting = CategoryTypes::ALPHA | CategoryTypes::GREEK | CategoryTypes::CYRILLIC;
-        let mut prev_cate = CategoryTypes::empty();
-        let mut next_bow = true;
 
         for (ci, (bi, ch)) in input.char_indices().enumerate() {
             self.chars.push(ch);
             self.c2b.push(bi);
             self.b2c[bi] = ci;
+        }
+        self.c2b.push(input.len());
+        self.b2c[input.len()] = self.chars.len();
+    }
 
+    pub fn compute_bow(&mut self, cate_map: &CategoryMap) {
+        debug_assert!(self.bow.is_empty());
+
+        self.bow.resize(self.bytes.len(), false);
+
+        let non_starting = CategoryTypes::ALPHA | CategoryTypes::GREEK | CategoryTypes::CYRILLIC;
+        let mut prev_cate = CategoryTypes::empty();
+        let mut next_bow = true;
+
+        for (&ch, &bi) in self.chars.iter().zip(self.c2b.iter()) {
             let cate = cate_map.get_category_types(ch);
             let can_bow = if !next_bow {
                 // this char was forbidden by the previous one
@@ -61,9 +72,6 @@ impl<'a> Sentence<'a> {
             self.bow[bi] = can_bow;
             prev_cate = cate;
         }
-
-        self.c2b.push(input.len());
-        self.b2c[input.len()] = self.chars.len();
     }
 
     #[inline(always)]
@@ -76,10 +84,30 @@ impl<'a> Sentence<'a> {
         &self.chars
     }
 
+    #[inline(always)]
+    pub fn morphs(&self) -> &[Morpheme] {
+        &self.morphs
+    }
+
+    #[inline(always)]
+    pub fn take_morphs(&mut self) -> Vec<Morpheme> {
+        std::mem::take(&mut self.morphs)
+    }
+
+    #[inline(always)]
+    pub fn set_morphs(&mut self, morphs: Vec<Morpheme>) {
+        self.morphs = morphs;
+    }
+
     /// Returns byte offsets of current chars
     #[inline(always)]
     pub fn c2b(&self) -> &[usize] {
         &self.c2b
+    }
+
+    #[inline(always)]
+    pub fn b2c(&self) -> &[usize] {
+        &self.b2c
     }
 
     #[inline(always)]
@@ -121,7 +149,7 @@ mod tests {
     #[test]
     fn test_sentence() {
         let mut sent = Sentence::new();
-        sent.set_sentence("自然", &CategoryMap::default());
+        sent.set_sentence("自然");
         assert_eq!(sent.chars(), &['自', '然']);
         assert_eq!(sent.c2b(), &[0, 3, 6]);
         assert_eq!(sent.char_position(0), 0);

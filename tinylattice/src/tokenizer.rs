@@ -21,11 +21,10 @@ impl Tokenizer {
     }
 
     #[inline(always)]
-    pub fn tokenize(&mut self, input: &str, morphs: &mut Vec<Morpheme>) {
-        let mut sent = Sentence::new();
-        sent.set_sentence(input, self.dict.category_map());
-        self.build_lattice(&sent);
-        self.resolve_best_path(&sent, morphs);
+    pub fn tokenize(&mut self, sent: &mut Sentence) {
+        sent.compute_bow(self.dict.category_map());
+        self.build_lattice(sent);
+        self.resolve_best_path(sent);
     }
 
     #[inline(always)]
@@ -75,9 +74,11 @@ impl Tokenizer {
         self.lattice.insert_eos(self.dict.connector());
     }
 
-    fn resolve_best_path(&mut self, sent: &Sentence, morphs: &mut Vec<Morpheme>) {
+    fn resolve_best_path(&mut self, sent: &mut Sentence) {
         self.best_path.clear();
         self.lattice.fill_best_path(&mut self.best_path);
+
+        let mut morphs = sent.take_morphs();
 
         morphs.clear();
         morphs.resize(self.best_path.len(), Morpheme::default());
@@ -93,6 +94,8 @@ impl Tokenizer {
                 total_cost: end_node.min_cost(),
             };
         }
+
+        sent.set_morphs(morphs);
     }
 }
 
@@ -122,11 +125,13 @@ mod tests {
         let dict = Dictionary::new(lexicon, connector, CategoryMap::default(), None);
 
         let mut tokenizer = Tokenizer::new(dict);
-        let mut morphs = vec![];
-        tokenizer.tokenize("自然言語処理", &mut morphs);
+        let mut sentence = Sentence::new();
+
+        sentence.set_sentence("自然言語処理");
+        tokenizer.tokenize(&mut sentence);
 
         assert_eq!(
-            morphs,
+            sentence.morphs(),
             vec![
                 // 自然
                 Morpheme {
