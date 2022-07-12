@@ -74,18 +74,18 @@ impl Sentence {
 
     /// Returns byte offsets of current chars
     #[inline(always)]
-    pub fn c2b_offsets(&self) -> &[usize] {
+    pub fn c2b(&self) -> &[usize] {
         &self.c2b
     }
 
     #[inline(always)]
-    pub fn byte_offset(&self, char_offset: usize) -> usize {
-        self.c2b[char_offset]
+    pub fn byte_position(&self, char_pos: usize) -> usize {
+        self.c2b[char_pos]
     }
 
     #[inline(always)]
-    pub fn char_offset(&self, byte_offset: usize) -> usize {
-        self.b2c[byte_offset]
+    pub fn char_position(&self, byte_pos: usize) -> usize {
+        self.b2c[byte_pos]
     }
 
     /// Whether the byte can start a new word.
@@ -119,9 +119,9 @@ mod tests {
         let mut sent = Sentence::new();
         sent.set_sentence("自然", &CategoryMap::default());
         assert_eq!(sent.chars(), &['自', '然']);
-        assert_eq!(sent.c2b_offsets(), &[0, 3, 6]);
-        assert_eq!(sent.char_offset(0), 0);
-        assert_eq!(sent.char_offset(3), 1);
-        assert_eq!(sent.char_offset(6), 2);
+        assert_eq!(sent.c2b(), &[0, 3, 6]);
+        assert_eq!(sent.char_position(0), 0);
+        assert_eq!(sent.char_position(3), 1);
+        assert_eq!(sent.char_position(6), 2);
     }
 }

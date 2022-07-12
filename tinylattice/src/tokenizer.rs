@@ -28,7 +28,7 @@ impl Tokenizer {
         self.resolve_best_path(morphs);
     }
 
-    pub fn dict_ref(&self) -> &Dictionary {
+    pub fn dictionary(&self) -> &Dictionary {
         &self.dict
     }
 
@@ -36,7 +36,7 @@ impl Tokenizer {
         self.lattice.reset(self.sent.chars().len());
         let input_bytes = sent.as_bytes();
 
-        for (char_pos, &byte_pos) in self.sent.c2b_offsets().iter().enumerate() {
+        for (char_pos, &byte_pos) in self.sent.c2b().iter().enumerate() {
             if !self.lattice.has_previous_node(char_pos) {
                 continue;
             }
@@ -50,7 +50,7 @@ impl Tokenizer {
                 assert!(m.end_byte() + byte_pos <= input_bytes.len());
                 self.lattice.insert_node(
                     char_pos,
-                    self.sent.char_offset(m.end_byte() + byte_pos),
+                    self.sent.char_position(m.end_byte() + byte_pos),
                     m.word_id(),
                     m.word_param(),
                     &self.dict.conn_matrix(),
@@ -83,8 +83,8 @@ impl Tokenizer {
 
         for (i, (end_pos, end_node)) in self.best_path.iter().rev().enumerate() {
             morphs[i] = Morpheme {
-                begin_byte: self.sent.byte_offset(end_node.begin()),
-                end_byte: self.sent.byte_offset(*end_pos),
+                begin_byte: self.sent.byte_position(end_node.begin()),
+                end_byte: self.sent.byte_position(*end_pos),
                 begin_char: end_node.begin(),
                 end_char: *end_pos,
                 word_id: end_node.word_id(),
