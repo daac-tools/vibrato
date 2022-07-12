@@ -1,7 +1,10 @@
+pub mod id_lists;
+pub mod trie;
+
 use std::collections::BTreeMap;
 
-use super::id_lists::{IdLists, IdListsBuilder};
-use super::trie::Trie;
+use id_lists::{IdLists, IdListsBuilder};
+use trie::Trie;
 
 pub struct WordMap {
     trie: Trie,

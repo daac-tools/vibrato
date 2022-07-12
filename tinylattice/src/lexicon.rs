@@ -1,33 +1,31 @@
-pub mod id_lists;
 pub mod parser;
-pub mod trie;
-pub mod word_infos;
+pub mod word_feats;
 pub mod word_map;
 pub mod word_params;
 
-pub use word_infos::WordInfos;
+pub use word_feats::WordFeats;
 pub use word_map::WordMap;
 pub use word_params::{WordParam, WordParams};
 
 pub struct Lexicon {
     map: WordMap,
     params: WordParams,
-    infos: WordInfos,
+    feats: WordFeats,
 }
 
 impl Lexicon {
     pub fn new(entries: &[(&str, WordParam, &str)]) -> Self {
         let map = WordMap::from_iter(entries.iter().map(|e| e.0));
         let params = WordParams::from_iter(entries.iter().map(|e| e.1));
-        let infos = WordInfos::from_iter(entries.iter().map(|e| e.2));
-        Self { map, params, infos }
+        let feats = WordFeats::from_iter(entries.iter().map(|e| e.2));
+        Self { map, params, feats }
     }
 
     pub fn from_raw_entries(entries: &[RawWordEntry]) -> Self {
         let map = WordMap::from_iter(entries.iter().map(|e| &e.surface));
         let params = WordParams::from_iter(entries.iter().map(|e| e.param));
-        let infos = WordInfos::from_iter(entries.iter().map(|e| &e.info));
-        Self { map, params, infos }
+        let feats = WordFeats::from_iter(entries.iter().map(|e| &e.info));
+        Self { map, params, feats }
     }
 
     #[inline(always)]
@@ -42,7 +40,7 @@ impl Lexicon {
 
     #[inline(always)]
     pub fn get_word_info(&self, word_id: u32) -> &str {
-        self.infos.get(word_id as usize)
+        self.feats.get(word_id as usize)
     }
 }
 
