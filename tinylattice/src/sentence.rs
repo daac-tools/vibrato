@@ -2,13 +2,9 @@ use crate::dictionary::{CategoryMap, CategoryTypes};
 
 #[derive(Default, Clone)]
 pub struct Sentence {
-    // Characters. Char-based indexing.
     chars: Vec<char>,
-    // Char-to-byte mapping for the modified string. Char-based indexing.
     c2b: Vec<usize>,
-    // Byte-to-char mapping for the modified string. Byte-based indexing.
     b2c: Vec<usize>,
-    // Markers whether the byte can start new word or not
     bow: Vec<bool>,
 }
 
