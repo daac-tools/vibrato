@@ -1,5 +1,4 @@
-use crate::dictionary::Connector;
-use crate::dictionary::WordParam;
+use crate::dictionary::{Connector, WordIdx, WordParam};
 
 const MAX_COST: i32 = i32::MAX;
 const INVALID_IDX: u16 = u16::MAX;
@@ -39,7 +38,7 @@ impl Lattice {
 
     fn insert_bos(&mut self) {
         self.ends[0].push(EndNode {
-            word_id: u32::MAX,
+            word_idx: WordIdx::default(),
             begin: u16::MAX,
             right_id: 0,
             min_idx: INVALID_IDX,
@@ -50,7 +49,7 @@ impl Lattice {
     pub fn insert_eos(&mut self, connector: &Connector) {
         let (min_idx, min_cost) = self.search_min_node(self.len(), 0, connector).unwrap();
         self.eos = Some(EndNode {
-            word_id: u32::MAX,
+            word_idx: WordIdx::default(),
             begin: self.len() as u16,
             right_id: i16::MAX,
             min_idx,
@@ -62,7 +61,7 @@ impl Lattice {
         &mut self,
         begin: usize,
         end: usize,
-        word_id: u32,
+        word_idx: WordIdx,
         param: WordParam,
         connector: &Connector,
     ) {
@@ -70,7 +69,7 @@ impl Lattice {
             .search_min_node(begin, param.left_id as usize, connector)
             .unwrap();
         self.ends[end].push(EndNode {
-            word_id,
+            word_idx,
             begin: begin as u16,
             right_id: param.right_id,
             min_idx,
@@ -122,7 +121,7 @@ impl Lattice {
 
 #[derive(Default, Debug, Clone)]
 pub struct EndNode {
-    word_id: u32,
+    word_idx: WordIdx,
     begin: u16,
     right_id: i16,
     min_idx: u16,
@@ -131,8 +130,8 @@ pub struct EndNode {
 
 impl EndNode {
     #[inline(always)]
-    pub fn word_id(&self) -> u32 {
-        self.word_id
+    pub fn word_idx(&self) -> WordIdx {
+        self.word_idx
     }
 
     #[inline(always)]

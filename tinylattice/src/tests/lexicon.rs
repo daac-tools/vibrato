@@ -13,17 +13,29 @@ fn test_common_prefix_iterator_1() {
     // 東
     assert_eq!(
         it.next(),
-        Some(LexiconMatch::new(4, WordParam::new(7, 7, 4675), 3))
+        Some(LexiconMatch::new(
+            WordIdx::new(0, 4),
+            WordParam::new(7, 7, 4675),
+            3
+        ))
     );
     // 東京
     assert_eq!(
         it.next(),
-        Some(LexiconMatch::new(5, WordParam::new(6, 6, 2816), 6))
+        Some(LexiconMatch::new(
+            WordIdx::new(0, 5),
+            WordParam::new(6, 6, 2816),
+            6
+        ))
     );
     // 東京都
     assert_eq!(
         it.next(),
-        Some(LexiconMatch::new(6, WordParam::new(6, 8, 5320), 9))
+        Some(LexiconMatch::new(
+            WordIdx::new(0, 6),
+            WordParam::new(6, 8, 5320),
+            9
+        ))
     );
     assert_eq!(it.next(), None);
 }
@@ -35,7 +47,11 @@ fn test_common_prefix_iterator_2() {
     for word_id in 40..46 {
         assert_eq!(
             it.next(),
-            Some(LexiconMatch::new(word_id, WordParam::new(8, 8, -20000), 1))
+            Some(LexiconMatch::new(
+                WordIdx::new(0, word_id),
+                WordParam::new(8, 8, -20000),
+                1
+            ))
         );
     }
     assert_eq!(it.next(), None);

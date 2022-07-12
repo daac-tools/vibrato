@@ -3,6 +3,7 @@ pub mod word_feats;
 pub mod word_map;
 pub mod word_params;
 
+pub use super::WordIdx;
 pub use word_feats::WordFeats;
 pub use word_map::WordMap;
 pub use word_params::{WordParam, WordParams};
@@ -27,7 +28,11 @@ impl Lexicon {
         input: &'a [u8],
     ) -> impl Iterator<Item = LexiconMatch> + 'a {
         self.map.common_prefix_iterator(input).map(move |e| {
-            LexiconMatch::new(e.word_id, self.params.get(e.word_id as usize), e.end_byte)
+            LexiconMatch::new(
+                WordIdx::new(0, e.word_id),
+                self.params.get(e.word_id as usize),
+                e.end_byte,
+            )
         })
     }
 
@@ -40,15 +45,15 @@ impl Lexicon {
 #[derive(Eq, PartialEq, Debug)]
 pub struct LexiconMatch {
     end_byte: u32,
-    word_id: u32,
+    word_idx: WordIdx,
     word_param: WordParam,
 }
 
 impl LexiconMatch {
     #[inline(always)]
-    pub fn new(word_id: u32, word_param: WordParam, end_byte: u32) -> Self {
+    pub fn new(word_idx: WordIdx, word_param: WordParam, end_byte: u32) -> Self {
         Self {
-            word_id,
+            word_idx,
             word_param,
             end_byte,
         }
@@ -60,8 +65,8 @@ impl LexiconMatch {
     }
 
     #[inline(always)]
-    pub fn word_id(&self) -> u32 {
-        self.word_id
+    pub fn word_idx(&self) -> WordIdx {
+        self.word_idx
     }
 
     #[inline(always)]
@@ -95,7 +100,7 @@ mod tests {
             it.next().unwrap(),
             LexiconMatch {
                 end_byte: 6,
-                word_id: 0,
+                word_idx: WordIdx::new(0, 0),
                 word_param: WordParam::new(1, 2, 3),
             }
         );
@@ -103,7 +108,7 @@ mod tests {
             it.next().unwrap(),
             LexiconMatch {
                 end_byte: 6,
-                word_id: 2,
+                word_idx: WordIdx::new(0, 2),
                 word_param: WordParam::new(7, 8, 9),
             }
         );
@@ -111,7 +116,7 @@ mod tests {
             it.next().unwrap(),
             LexiconMatch {
                 end_byte: 9,
-                word_id: 1,
+                word_idx: WordIdx::new(0, 1),
                 word_param: WordParam::new(4, 5, 6),
             }
         );

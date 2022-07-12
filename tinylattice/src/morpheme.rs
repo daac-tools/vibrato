@@ -1,12 +1,14 @@
 use std::ops::Range;
 
+use crate::dictionary::WordIdx;
+
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
 pub struct Morpheme {
     pub(crate) byte_begin: u16,
     pub(crate) byte_end: u16,
     pub(crate) char_begin: u16,
     pub(crate) char_end: u16,
-    pub(crate) word_id: u32,
+    pub(crate) word_idx: WordIdx,
     pub(crate) total_cost: i32,
 }
 
@@ -22,8 +24,8 @@ impl Morpheme {
     }
 
     #[inline(always)]
-    pub fn word_id(&self) -> u32 {
-        self.word_id
+    pub fn word_idx(&self) -> WordIdx {
+        self.word_idx
     }
 
     #[inline(always)]

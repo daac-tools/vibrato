@@ -28,7 +28,7 @@ fn test_tokenize_1() {
     assert_eq!(morphs.len(), 1);
     assert_eq!(morphs[0].byte_range(), 0..9);
     assert_eq!(morphs[0].char_range(), 0..3);
-    assert_eq!(morphs[0].word_id(), 6);
+    assert_eq!(morphs[0].word_idx(), WordIdx::new(0, 6));
 
     //   c=0      c=5320       c=0
     //  [BOS] -- [東京都] -- [EOS]
@@ -49,13 +49,13 @@ fn test_tokenize_2() {
     assert_eq!(morphs.len(), 3);
     assert_eq!(morphs[0].byte_range(), 0..6);
     assert_eq!(morphs[0].char_range(), 0..2);
-    assert_eq!(morphs[0].word_id(), 3);
+    assert_eq!(morphs[0].word_idx(), WordIdx::new(0, 3));
     assert_eq!(morphs[1].byte_range(), 6..15);
     assert_eq!(morphs[1].char_range(), 2..5);
-    assert_eq!(morphs[1].word_id(), 6);
+    assert_eq!(morphs[1].word_idx(), WordIdx::new(0, 6));
     assert_eq!(morphs[2].byte_range(), 15..21);
     assert_eq!(morphs[2].char_range(), 5..7);
-    assert_eq!(morphs[2].word_id(), 3);
+    assert_eq!(morphs[2].word_idx(), WordIdx::new(0, 3));
 
     //   c=0     c=5293    c=5320    c=5293    c=0
     //  [BOS] -- [京都] -- [東京都] -- [京都] -- [EOS]
@@ -67,4 +67,26 @@ fn test_tokenize_2() {
     assert_eq!(morphs[0].total_cost(), -79 + 5293);
     assert_eq!(morphs[1].total_cost(), morphs[0].total_cost() + 569 + 5320);
     assert_eq!(morphs[2].total_cost(), morphs[1].total_cost() - 352 + 5293);
+}
+
+#[test]
+fn test_tokenize_oov_1() {
+    // let oov_gen = SimpleOovGenerator::new(word_id: u32, word_param: WordParam)
+    let dict = Dictionary::new(make_lexicon(), make_connector(), make_category_map(), None);
+    let mut tok = Tokenizer::new(dict);
+
+    let mut morphs = vec![];
+    tok.tokenize("東京都", &mut morphs);
+
+    assert_eq!(morphs.len(), 1);
+    assert_eq!(morphs[0].byte_range(), 0..9);
+    assert_eq!(morphs[0].char_range(), 0..3);
+    assert_eq!(morphs[0].word_idx(), WordIdx::new(0, 6));
+
+    //   c=0      c=5320       c=0
+    //  [BOS] -- [東京都] -- [EOS]
+    //     r=0  l=6   r=8  l=0
+    let connector = tok.dictionary().connector();
+    assert_eq!(connector.cost(0, 6), -79);
+    assert_eq!(morphs[0].total_cost(), -79 + 5320);
 }

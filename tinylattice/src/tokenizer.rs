@@ -53,7 +53,7 @@ impl Tokenizer {
                 self.lattice.insert_node(
                     char_pos,
                     self.sent.char_position(m.end_byte() + byte_pos),
-                    m.word_id(),
+                    m.word_idx(),
                     m.word_param(),
                     &self.dict.connector(),
                 );
@@ -66,7 +66,7 @@ impl Tokenizer {
                     self.lattice.insert_node(
                         char_pos,
                         char_pos + oov.word_len(),
-                        oov.word_id(),
+                        oov.word_idx(),
                         oov.word_param(),
                         self.dict.connector(),
                     );
@@ -90,7 +90,7 @@ impl Tokenizer {
                 byte_end: self.sent.byte_position(end_pos) as u16,
                 char_begin: end_node.begin() as u16,
                 char_end: end_pos as u16,
-                word_id: end_node.word_id(),
+                word_idx: end_node.word_idx(),
                 total_cost: end_node.min_cost(),
             };
         }
@@ -135,7 +135,7 @@ mod tests {
                     byte_end: 6,
                     char_begin: 0,
                     char_end: 2,
-                    word_id: 0,
+                    word_idx: WordIdx::new(0, 0),
                     total_cost: 1,
                 },
                 // 言語処理
@@ -144,7 +144,7 @@ mod tests {
                     byte_end: 18,
                     char_begin: 2,
                     char_end: 6,
-                    word_id: 4,
+                    word_idx: WordIdx::new(0, 4),
                     total_cost: 6,
                 },
             ]
