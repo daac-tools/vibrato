@@ -61,19 +61,19 @@ fn test_common_prefix_iterator_2() {
 fn test_get_word_feature() {
     let lexicon = make_lexicon();
     assert_eq!(
-        lexicon.get_word_feature(0),
+        lexicon.word_feature(WordIdx::new(0, 0)),
         "た,助動詞,*,*,*,助動詞-タ,終止形-一般,タ,た,*,A,*,*,*,*"
     );
     assert_eq!(
-        lexicon.get_word_feature(2),
+        lexicon.word_feature(WordIdx::new(0, 2)),
         "に,助詞,格助詞,*,*,*,*,ニ,に,*,A,*,*,*,*"
     );
     assert_eq!(
-        lexicon.get_word_feature(39),
+        lexicon.word_feature(WordIdx::new(0, 39)),
         " ,空白,*,*,*,*,*, , ,*,A,*,*,*,*"
     );
     assert_eq!(
-        lexicon.get_word_feature(45),
+        lexicon.word_feature(WordIdx::new(0, 45)),
         "X,名詞,固有名詞,地名,一般,*,*,X,X,*,A,*,*,*,*"
     );
 }

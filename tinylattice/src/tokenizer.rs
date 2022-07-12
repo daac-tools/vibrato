@@ -61,8 +61,8 @@ impl Tokenizer {
             }
 
             if !matched {
-                if let Some(gen) = self.dict.simple_oov_generator() {
-                    let oov = gen.gen_oov_word(&self.sent, char_pos);
+                if let Some(p) = self.dict.simple_oov_provider() {
+                    let oov = p.oov_word(&self.sent, char_pos);
                     self.lattice.insert_node(
                         char_pos,
                         char_pos + oov.word_len(),

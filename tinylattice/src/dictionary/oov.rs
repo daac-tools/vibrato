@@ -1,6 +1,6 @@
 pub mod simple;
 
-pub use simple::SimpleOovGenerator;
+pub use simple::SimpleOovProvider;
 
 use crate::dictionary::{WordIdx, WordParam};
 

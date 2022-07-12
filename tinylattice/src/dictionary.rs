@@ -6,7 +6,7 @@ pub mod oov;
 pub use category::{CategoryMap, CategoryTypes};
 pub use connector::Connector;
 pub use lexicon::{Lexicon, WordParam};
-pub use oov::SimpleOovGenerator;
+pub use oov::SimpleOovProvider;
 
 #[derive(Clone, Copy, Eq, PartialEq, Debug)]
 pub struct WordIdx {
@@ -41,7 +41,7 @@ pub struct Dictionary {
     lexicon: Lexicon,
     connector: Connector,
     category_map: CategoryMap,
-    simple_oov: Option<SimpleOovGenerator>,
+    simple_oov_provider: Option<SimpleOovProvider>,
 }
 
 impl Dictionary {
@@ -49,13 +49,13 @@ impl Dictionary {
         lexicon: Lexicon,
         connector: Connector,
         category_map: CategoryMap,
-        simple_oov: Option<SimpleOovGenerator>,
+        simple_oov_provider: Option<SimpleOovProvider>,
     ) -> Self {
         Self {
             lexicon,
             connector,
             category_map,
-            simple_oov,
+            simple_oov_provider,
         }
     }
 
@@ -75,7 +75,7 @@ impl Dictionary {
     }
 
     #[inline(always)]
-    pub fn simple_oov_generator(&self) -> Option<&SimpleOovGenerator> {
-        self.simple_oov.as_ref()
+    pub fn simple_oov_provider(&self) -> Option<&SimpleOovProvider> {
+        self.simple_oov_provider.as_ref()
     }
 }

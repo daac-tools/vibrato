@@ -37,8 +37,9 @@ impl Lexicon {
     }
 
     #[inline(always)]
-    pub fn get_word_feature(&self, word_id: u32) -> &str {
-        self.feats.get(word_id as usize)
+    pub fn word_feature(&self, word_idx: WordIdx) -> &str {
+        debug_assert_eq!(word_idx.lex_id(), 0);
+        self.feats.get(word_idx.word_id() as usize)
     }
 }
 
