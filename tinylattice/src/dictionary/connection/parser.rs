@@ -1,6 +1,6 @@
-use super::CostMatrix;
+use super::ConnectionMatrix;
 
-pub fn matrix_from_text<I, L>(mut lines: I) -> CostMatrix
+pub fn matrix_from_text<I, L>(mut lines: I) -> ConnectionMatrix
 where
     I: Iterator<Item = L>,
     L: AsRef<str>,
@@ -11,7 +11,7 @@ where
         let (left, right, cost) = parse_body(line.as_ref());
         data[right * num_left + left] = cost;
     }
-    CostMatrix::new(data, num_left, num_right)
+    ConnectionMatrix::new(data, num_left, num_right)
 }
 
 fn parse_header(line: &str) -> (usize, usize) {

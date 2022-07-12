@@ -1,5 +1,5 @@
-pub mod table;
+pub mod map;
 pub mod types;
 
-pub use table::CategoryTable;
+pub use map::CategoryMap;
 pub use types::CategoryTypes;

@@ -1,4 +1,4 @@
-use crate::dictionary::category::{CategoryTable, CategoryTypes};
+use crate::dictionary::{CategoryMap, CategoryTypes};
 
 #[derive(Default, Clone)]
 pub struct Sentence {
@@ -24,7 +24,7 @@ impl Sentence {
         self.bow.clear();
     }
 
-    pub fn set_sentence(&mut self, input: &str, cate_table: &CategoryTable) {
+    pub fn set_sentence(&mut self, input: &str, cate_map: &CategoryMap) {
         self.clear();
 
         self.b2c.resize(input.len() + 1, usize::MAX);
@@ -40,7 +40,7 @@ impl Sentence {
             self.c2b.push(bi);
             self.b2c[bi] = ci;
 
-            let cate = cate_table.get_category_types(ch);
+            let cate = cate_map.get_category_types(ch);
             let can_bow = if !next_bow {
                 // this char was forbidden by the previous one
                 next_bow = true;
@@ -117,7 +117,7 @@ mod tests {
     #[test]
     fn test_sentence() {
         let mut sent = Sentence::new();
-        sent.set_sentence("自然", &CategoryTable::default());
+        sent.set_sentence("自然", &CategoryMap::default());
         assert_eq!(sent.chars(), &['自', '然']);
         assert_eq!(sent.c2b_offsets(), &[0, 3, 6]);
         assert_eq!(sent.char_offset(0), 0);

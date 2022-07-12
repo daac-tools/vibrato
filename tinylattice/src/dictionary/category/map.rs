@@ -11,9 +11,9 @@ struct CategoryRange {
     categories: CategoryTypes,
 }
 
-/// CategoryTable holds mapping from character to character category type
+/// CategoryMap holds mapping from character to character category type
 #[derive(Debug, Clone)]
-pub struct CategoryTable {
+pub struct CategoryMap {
     /// Split the whole domain of codepoints into ranges,
     /// limited by boundaries.
     ///
@@ -30,16 +30,16 @@ pub struct CategoryTable {
     categories: Vec<CategoryTypes>,
 }
 
-impl Default for CategoryTable {
+impl Default for CategoryMap {
     fn default() -> Self {
-        CategoryTable {
+        CategoryMap {
             boundaries: Vec::new(),
             categories: vec![CategoryTypes::DEFAULT],
         }
     }
 }
 
-impl CategoryTable {
+impl CategoryMap {
     /// Creates a character category from file
     pub fn from_lines<I, L>(lines: I) -> Result<Self>
     where
@@ -229,16 +229,16 @@ impl CategoryTable {
 //     #[test]
 //     fn get_category_types() {
 //         let path = PathBuf::from(TEST_RESOURCE_DIR).join(TEST_CHAR_DEF_FILE);
-//         let cat = CategoryTable::from_file(&path).expect("failed to load char.def for test");
+//         let cat = CategoryMap::from_file(&path).expect("failed to load char.def for test");
 //         let cats = cat.get_category_types('熙');
 //         assert_eq!(1, cats.count());
 //         assert!(cats.contains(CategoryType::KANJI));
 //     }
 
-//     fn read_categories(data: &str) -> CategoryTable {
-//         let ranges = CategoryTable::read_character_definition(data.as_bytes())
+//     fn read_categories(data: &str) -> CategoryMap {
+//         let ranges = CategoryMap::read_character_definition(data.as_bytes())
 //             .expect("error when parsing character categories");
-//         CategoryTable::compile(&ranges)
+//         CategoryMap::compile(&ranges)
 //     }
 
 //     type CT = CategoryType;
@@ -385,10 +385,10 @@ impl CategoryTable {
 //     #[test]
 //     fn read_character_definition_with_invalid_format() {
 //         let data = "0x0030..0x0039";
-//         let result = CategoryTable::read_character_definition(data.as_bytes());
+//         let result = CategoryMap::read_character_definition(data.as_bytes());
 //         assert_matches!(
 //             result,
-//             Err(SudachiError::InvalidCategoryTable(
+//             Err(SudachiError::InvalidCategoryMap(
 //                 Error::InvalidFormat(0)
 //             ))
 //         );
@@ -397,10 +397,10 @@ impl CategoryTable {
 //     #[test]
 //     fn read_character_definition_with_invalid_range() {
 //         let data = "0x0030..0x0029 NUMERIC";
-//         let result = CategoryTable::read_character_definition(data.as_bytes());
+//         let result = CategoryMap::read_character_definition(data.as_bytes());
 //         assert_matches!(
 //             result,
-//             Err(SudachiError::InvalidCategoryTable(
+//             Err(SudachiError::InvalidCategoryMap(
 //                 Error::InvalidFormat(0)
 //             ))
 //         );
@@ -409,14 +409,14 @@ impl CategoryTable {
 //     #[test]
 //     fn read_character_definition_with_invalid_type() {
 //         let data = "0x0030..0x0039 FOO";
-//         let result = CategoryTable::read_character_definition(data.as_bytes());
-//         assert_matches!(result, Err(SudachiError::InvalidCategoryTable(Error::InvalidCategoryType(0, s))) if s == "FOO");
+//         let result = CategoryMap::read_character_definition(data.as_bytes());
+//         assert_matches!(result, Err(SudachiError::InvalidCategoryMap(Error::InvalidCategoryType(0, s))) if s == "FOO");
 //     }
 
 //     #[test]
 //     fn check_test_cdef() {
 //         let data: &[u8] = include_bytes!("../../tests/resources/char.def");
-//         let c = CategoryTable::from_reader(data).expect("failed to read chars");
+//         let c = CategoryMap::from_reader(data).expect("failed to read chars");
 //         assert_eq!(c.get_category_types('â'), CT::ALPHA);
 //         assert_eq!(c.get_category_types('ｂ'), CT::ALPHA);
 //         assert_eq!(c.get_category_types('C'), CT::ALPHA);

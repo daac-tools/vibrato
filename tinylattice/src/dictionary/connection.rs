@@ -1,12 +1,12 @@
 pub mod parser;
 
-pub struct CostMatrix {
+pub struct ConnectionMatrix {
     data: Vec<i16>,
     num_left: usize,
     num_right: usize,
 }
 
-impl CostMatrix {
+impl ConnectionMatrix {
     pub fn new(data: Vec<i16>, num_left: usize, num_right: usize) -> Self {
         Self {
             data,

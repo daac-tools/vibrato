@@ -1,4 +1,4 @@
-use crate::dictionary::CostMatrix;
+use crate::dictionary::ConnectionMatrix;
 use crate::dictionary::WordParam;
 
 const MAX_COST: i32 = i32::MAX;
@@ -47,7 +47,7 @@ impl Lattice {
         });
     }
 
-    pub fn insert_eos(&mut self, matrix: &CostMatrix) {
+    pub fn insert_eos(&mut self, matrix: &ConnectionMatrix) {
         let (min_idx, _) = self.search_min_node(self.len(), 0, matrix).unwrap();
         self.eos_min_idx = Some(min_idx as usize)
     }
@@ -58,7 +58,7 @@ impl Lattice {
         end: usize,
         word_id: u32,
         param: WordParam,
-        matrix: &CostMatrix,
+        matrix: &ConnectionMatrix,
     ) {
         let (min_idx, min_cost) = self
             .search_min_node(begin, param.left_id as usize, matrix)
@@ -76,7 +76,7 @@ impl Lattice {
         &self,
         start: usize,
         left_id: usize,
-        matrix: &CostMatrix,
+        matrix: &ConnectionMatrix,
     ) -> Option<(u16, i32)> {
         if self.ends[start].is_empty() {
             return None;

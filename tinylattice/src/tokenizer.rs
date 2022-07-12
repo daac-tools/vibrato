@@ -7,7 +7,7 @@ use lattice::{EndNode, Lattice};
 
 pub struct Tokenizer {
     dict: Dictionary,
-    input: Sentence,
+    sent: Sentence,
     lattice: Lattice,
     best_path: Vec<(usize, EndNode)>,
 }
@@ -16,74 +16,75 @@ impl Tokenizer {
     pub fn new(dict: Dictionary) -> Self {
         Self {
             dict,
-            input: Sentence::default(),
+            sent: Sentence::default(),
             lattice: Lattice::default(),
             best_path: vec![],
         }
     }
 
-    pub fn tokenize(&mut self, input: &str, output: &mut Vec<Morpheme>) {
-        self.input.set_sentence(input, &self.dict.cate_table);
-        self.build_lattice(input);
-        self.resolve_best_path(output);
+    pub fn tokenize(&mut self, sent: &str, morphs: &mut Vec<Morpheme>) {
+        self.sent.set_sentence(sent, self.dict.category_map());
+        self.build_lattice(sent);
+        self.resolve_best_path(morphs);
     }
 
     pub fn dict_ref(&self) -> &Dictionary {
         &self.dict
     }
 
-    fn build_lattice(&mut self, input: &str) {
-        self.lattice.reset(self.input.chars().len());
-        let input_bytes = input.as_bytes();
+    fn build_lattice(&mut self, sent: &str) {
+        self.lattice.reset(self.sent.chars().len());
+        let input_bytes = sent.as_bytes();
 
-        for (char_pos, &byte_pos) in self.input.c2b_offsets().iter().enumerate() {
+        for (char_pos, &byte_pos) in self.sent.c2b_offsets().iter().enumerate() {
             if !self.lattice.has_previous_node(char_pos) {
                 continue;
             }
 
             let mut matched = false;
-
             for m in self
                 .dict
-                .lexicon
+                .lexicon()
                 .common_prefix_iterator(&input_bytes[byte_pos..])
             {
                 assert!(m.end_byte() + byte_pos <= input_bytes.len());
                 self.lattice.insert_node(
                     char_pos,
-                    self.input.char_offset(m.end_byte() + byte_pos),
+                    self.sent.char_offset(m.end_byte() + byte_pos),
                     m.word_id(),
                     m.word_param(),
-                    &self.dict.matrix,
+                    &self.dict.conn_matrix(),
                 );
                 matched = true;
             }
 
-            if matched {
-                let oov = self.dict.oov_generator.gen_oov_word(&self.input, char_pos);
-                self.lattice.insert_node(
-                    char_pos,
-                    char_pos + oov.word_len(),
-                    oov.word_id(),
-                    oov.word_param(),
-                    &self.dict.matrix,
-                );
+            if !matched {
+                if let Some(gen) = self.dict.simple_oov_generator() {
+                    let oov = gen.gen_oov_word(&self.sent, char_pos);
+                    self.lattice.insert_node(
+                        char_pos,
+                        char_pos + oov.word_len(),
+                        oov.word_id(),
+                        oov.word_param(),
+                        self.dict.conn_matrix(),
+                    );
+                }
             }
         }
-        self.lattice.insert_eos(&self.dict.matrix);
+        self.lattice.insert_eos(self.dict.conn_matrix());
     }
 
-    fn resolve_best_path(&mut self, output: &mut Vec<Morpheme>) {
+    fn resolve_best_path(&mut self, morphs: &mut Vec<Morpheme>) {
         self.best_path.clear();
         self.lattice.fill_best_path(&mut self.best_path);
 
-        output.clear();
-        output.resize(self.best_path.len(), Morpheme::default());
+        morphs.clear();
+        morphs.resize(self.best_path.len(), Morpheme::default());
 
         for (i, (end_pos, end_node)) in self.best_path.iter().rev().enumerate() {
-            output[i] = Morpheme {
-                begin_byte: self.input.byte_offset(end_node.begin()),
-                end_byte: self.input.byte_offset(*end_pos),
+            morphs[i] = Morpheme {
+                begin_byte: self.sent.byte_offset(end_node.begin()),
+                end_byte: self.sent.byte_offset(*end_pos),
                 begin_char: end_node.begin(),
                 end_char: *end_pos,
                 word_id: end_node.word_id(),
