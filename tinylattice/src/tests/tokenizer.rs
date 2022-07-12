@@ -17,17 +17,22 @@ fn make_category_map() -> CategoryMap {
     CategoryMap::from_lines(CATE_TEXT.split('\n')).unwrap()
 }
 
-fn make_simple_oov_provider() -> SimpleOovProvider {
+fn make_simple_oov_provider(lex_id: u32) -> SimpleOovProvider {
     SimpleOovProvider::new(
-        1,
+        lex_id,
         WordParam::new(8, 8, 6000),
         "名詞,普通名詞,一般,*,*,*".to_string(),
     )
 }
 
 #[test]
-fn test_tokenize_1() {
-    let dict = Dictionary::new(make_lexicon(), make_connector(), make_category_map(), None);
+fn test_tokenize_tokyo() {
+    let dict = Dictionary::new(
+        make_lexicon(),
+        make_connector(),
+        make_category_map(),
+        Some(make_simple_oov_provider(1)),
+    );
     let mut tok = Tokenizer::new(dict);
 
     let mut morphs = vec![];
@@ -47,8 +52,13 @@ fn test_tokenize_1() {
 }
 
 #[test]
-fn test_tokenize_2() {
-    let dict = Dictionary::new(make_lexicon(), make_connector(), make_category_map(), None);
+fn test_tokenize_kyotokyo() {
+    let dict = Dictionary::new(
+        make_lexicon(),
+        make_connector(),
+        make_category_map(),
+        Some(make_simple_oov_provider(1)),
+    );
     let mut tok = Tokenizer::new(dict);
 
     let mut morphs = vec![];
@@ -78,27 +88,43 @@ fn test_tokenize_2() {
 }
 
 #[test]
-fn test_tokenize_simple_oov_1() {
+fn test_tokenize_kampersanda() {
     let dict = Dictionary::new(
         make_lexicon(),
         make_connector(),
         make_category_map(),
-        Some(make_simple_oov_provider()),
+        Some(make_simple_oov_provider(1)),
     );
     let mut tok = Tokenizer::new(dict);
 
     let mut morphs = vec![];
-    tok.tokenize("東京都", &mut morphs);
+    tok.tokenize("kampersanda", &mut morphs);
 
     assert_eq!(morphs.len(), 1);
-    assert_eq!(morphs[0].byte_range(), 0..9);
-    assert_eq!(morphs[0].char_range(), 0..3);
-    assert_eq!(morphs[0].word_idx(), WordIdx::new(0, 6));
+    assert_eq!(morphs[0].byte_range(), 0..11);
+    assert_eq!(morphs[0].char_range(), 0..11);
+    assert_eq!(morphs[0].word_idx(), WordIdx::new(1, 0));
 
-    //   c=0      c=5320       c=0
-    //  [BOS] -- [東京都] -- [EOS]
-    //     r=0  l=6   r=8  l=0
+    //   c=0        c=6000         c=0
+    //  [BOS] -- [kampersanda] -- [EOS]
+    //     r=0  l=8         r=8  l=0
     let connector = tok.dictionary().connector();
-    assert_eq!(connector.cost(0, 6), -79);
-    assert_eq!(morphs[0].total_cost(), -79 + 5320);
+    assert_eq!(connector.cost(0, 8), 447);
+    assert_eq!(morphs[0].total_cost(), 447 + 6000);
+}
+
+#[test]
+fn test_tokenize_tokyoken() {
+    let dict = Dictionary::new(
+        make_lexicon(),
+        make_connector(),
+        make_category_map(),
+        Some(make_simple_oov_provider(1)),
+    );
+    let mut tok = Tokenizer::new(dict);
+
+    let mut morphs = vec![];
+    tok.tokenize("東京県に行く", &mut morphs);
+
+    assert_eq!(morphs.len(), 4);
 }

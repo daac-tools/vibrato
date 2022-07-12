@@ -110,7 +110,6 @@ impl Lattice {
     pub fn fill_best_path(&self, result: &mut Vec<(usize, EndNode)>) {
         let mut end_pos = self.len();
         let mut min_idx = self.eos.as_ref().unwrap().min_idx();
-        dbg!(end_pos, min_idx);
         while end_pos != 0 {
             let node = &self.ends[end_pos][min_idx];
             result.push((end_pos, node.clone()));
