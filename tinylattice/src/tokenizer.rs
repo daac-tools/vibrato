@@ -97,53 +97,55 @@ impl Tokenizer {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::dictionary::*;
 
-    //     #[test]
-    //     fn test_tokenize_1() {
-    //         // surface,left_id,right_id,cost
-    //         let lexicon_csv = "自然,1,1,1
-    // 言語,1,1,2
-    // 処理,1,1,3
-    // 自然言語,1,1,4
-    // 言語処理,1,1,5";
+    #[test]
+    fn test_tokenize_1() {
+        // surface,left_id,right_id,cost
+        let lexicon_csv = "自然,1,1,1
+言語,1,1,2
+処理,1,1,3
+自然言語,1,1,4
+言語処理,1,1,5";
 
-    //         // All costs are zero
-    //         let matrix_def = "2 2
-    // 0 0 0
-    // 0 1 0
-    // 1 0 0
-    // 1 1 0";
+        // All costs are zero
+        let matrix_def = "2 2
+0 0 0
+0 1 0
+1 0 0
+1 1 0";
 
-    //         let entries = crate::lexicon::parser::entries_from_csv(lexicon_csv.split('\n'));
-    //         let lexicon = Lexicon::from_raw_entries(&entries);
-    //         let matrix = crate::matrix::parser::matrix_from_text(matrix_def.split('\n'));
+        let entries = lexicon::parser::entries_from_csv(lexicon_csv.split('\n'));
+        let lexicon = Lexicon::from_raw_entries(&entries);
+        let matrix = connection::parser::matrix_from_text(matrix_def.split('\n'));
+        let dict = Dictionary::new(lexicon, matrix, CategoryMap::default(), None);
 
-    //         let mut tokenizer = Tokenizer::new(lexicon, matrix);
-    //         let mut morphs = vec![];
-    //         tokenizer.tokenize("自然言語処理", &mut morphs);
+        let mut tokenizer = Tokenizer::new(dict);
+        let mut morphs = vec![];
+        tokenizer.tokenize("自然言語処理", &mut morphs);
 
-    //         assert_eq!(
-    //             morphs,
-    //             vec![
-    //                 // 自然
-    //                 Morpheme {
-    //                     begin_byte: 0,
-    //                     end_byte: 6,
-    //                     begin_char: 0,
-    //                     end_char: 2,
-    //                     word_id: 0,
-    //                     total_cost: 1,
-    //                 },
-    //                 // 言語処理
-    //                 Morpheme {
-    //                     begin_byte: 6,
-    //                     end_byte: 18,
-    //                     begin_char: 2,
-    //                     end_char: 6,
-    //                     word_id: 4,
-    //                     total_cost: 6,
-    //                 },
-    //             ]
-    //         );
-    //     }
+        assert_eq!(
+            morphs,
+            vec![
+                // 自然
+                Morpheme {
+                    begin_byte: 0,
+                    end_byte: 6,
+                    begin_char: 0,
+                    end_char: 2,
+                    word_id: 0,
+                    total_cost: 1,
+                },
+                // 言語処理
+                Morpheme {
+                    begin_byte: 6,
+                    end_byte: 18,
+                    begin_char: 2,
+                    end_char: 6,
+                    word_id: 4,
+                    total_cost: 6,
+                },
+            ]
+        );
+    }
 }

@@ -16,6 +16,20 @@ pub struct Dictionary {
 }
 
 impl Dictionary {
+    pub fn new(
+        lexicon: Lexicon,
+        conn_matrix: ConnectionMatrix,
+        cate_map: CategoryMap,
+        simple_oov: Option<SimpleOovGenerator>,
+    ) -> Self {
+        Self {
+            lexicon,
+            conn_matrix,
+            cate_map,
+            simple_oov,
+        }
+    }
+
     pub fn lexicon(&self) -> &Lexicon {
         &self.lexicon
     }
