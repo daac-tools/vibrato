@@ -8,6 +8,8 @@ pub struct Sentence<'a> {
     c2b: Vec<usize>,
     b2c: Vec<usize>,
     bow: Vec<bool>,
+    categories: Vec<CategoryTypes>,
+    concatable: Vec<usize>,
     morphs: Vec<Morpheme>,
 }
 
@@ -22,6 +24,8 @@ impl<'a> Sentence<'a> {
         self.c2b.clear();
         self.b2c.clear();
         self.bow.clear();
+        self.categories.clear();
+        self.concatable.clear();
         self.morphs.clear();
     }
 
@@ -74,6 +78,25 @@ impl<'a> Sentence<'a> {
         }
     }
 
+    pub fn compute_concatable(&mut self) {
+        debug_assert!(!self.chars.is_empty());
+        debug_assert_eq!(self.chars.len(), self.categories.len());
+
+        self.concatable.resize(self.chars.len(), 1);
+        let mut rhs = self.categories.last().cloned().unwrap();
+
+        for i in (1..self.chars.len()).rev() {
+            let lhs = self.categories[i - 1];
+            let and = lhs & rhs;
+            if !and.is_empty() {
+                self.concatable[i - 1] = self.concatable[i] + 1;
+                rhs = and;
+            } else {
+                rhs = lhs;
+            }
+        }
+    }
+
     #[inline(always)]
     pub fn bytes(&self) -> &[u8] {
         &self.bytes
@@ -118,6 +141,16 @@ impl<'a> Sentence<'a> {
     #[inline(always)]
     pub fn char_position(&self, byte_pos: usize) -> usize {
         self.b2c[byte_pos]
+    }
+
+    #[inline(always)]
+    pub fn category(&self, char_pos: usize) -> CategoryTypes {
+        self.categories[char_pos]
+    }
+
+    #[inline(always)]
+    pub fn concatable(&self, char_pos: usize) -> usize {
+        self.concatable[char_pos]
     }
 
     /// Whether the byte can start a new word.

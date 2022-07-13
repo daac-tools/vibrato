@@ -2,6 +2,7 @@ pub mod category;
 pub mod connector;
 pub mod lexicon;
 pub mod oov;
+pub mod unknown;
 
 pub use category::{CategoryMap, CategoryTypes};
 pub use connector::Connector;
