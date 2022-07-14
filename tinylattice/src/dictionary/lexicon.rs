@@ -16,18 +16,6 @@ pub struct Lexicon {
 }
 
 impl Lexicon {
-    pub fn new(entries: &[(&str, WordParam, &str)], lex_type: LexType) -> Self {
-        let map = WordMap::from_iter(entries.iter().map(|e| e.0));
-        let params = WordParams::from_iter(entries.iter().map(|e| e.1));
-        let features = WordFeatures::from_iter(entries.iter().map(|e| e.2));
-        Self {
-            map,
-            params,
-            features,
-            lex_type,
-        }
-    }
-
     #[inline(always)]
     pub fn common_prefix_iterator<'a>(
         &'a self,
@@ -97,13 +85,17 @@ mod tests {
 
     #[test]
     fn test_common_prefix_iterator() {
-        let entries = vec![
-            ("東京", WordParam::new(1, 2, 3), ""),
-            ("東京都", WordParam::new(4, 5, 6), ""),
-            ("東京", WordParam::new(7, 8, 9), ""),
-            ("京都", WordParam::new(10, 11, 12), ""),
-        ];
-        let lexicon = Lexicon::new(&entries, LexType::System);
+        let lexicon = Lexicon {
+            map: WordMap::from_iter(["東京", "東京都", "東京", "京都"]),
+            params: WordParams::from_iter([
+                WordParam::new(1, 2, 3),
+                WordParam::new(4, 5, 6),
+                WordParam::new(7, 8, 9),
+                WordParam::new(10, 11, 12),
+            ]),
+            features: WordFeatures::default(),
+            lex_type: LexType::System,
+        };
         let mut it = lexicon.common_prefix_iterator("東京都".as_bytes());
         assert_eq!(
             it.next().unwrap(),
