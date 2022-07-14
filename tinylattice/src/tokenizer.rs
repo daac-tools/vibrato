@@ -3,12 +3,12 @@ pub mod lattice;
 use crate::dictionary::Dictionary;
 use crate::sentence::Sentence;
 use crate::Morpheme;
-use lattice::{EndNode, Lattice};
+use lattice::{Lattice, Node};
 
 pub struct Tokenizer {
     dict: Dictionary,
     lattice: Lattice,
-    best_path: Vec<(usize, EndNode)>,
+    best_path: Vec<(usize, Node)>,
 }
 
 impl Tokenizer {
@@ -83,15 +83,15 @@ impl Tokenizer {
         morphs.clear();
         morphs.resize(self.best_path.len(), Morpheme::default());
 
-        for (i, (char_end, end_node)) in self.best_path.iter().rev().enumerate() {
+        for (i, (char_end, node)) in self.best_path.iter().rev().enumerate() {
             let char_end = *char_end;
             morphs[i] = Morpheme {
-                byte_begin: sent.byte_position(end_node.begin()) as u16,
-                byte_end: sent.byte_position(char_end) as u16,
-                char_begin: end_node.begin() as u16,
-                char_end: char_end as u16,
-                word_idx: end_node.word_idx(),
-                total_cost: end_node.min_cost(),
+                begin_byte: sent.byte_position(node.begin_char()) as u16,
+                end_byte: sent.byte_position(char_end) as u16,
+                begin_char: node.begin_char() as u16,
+                end_char: char_end as u16,
+                word_idx: node.word_idx(),
+                total_cost: node.min_cost(),
             };
         }
 
@@ -146,19 +146,19 @@ mod tests {
             vec![
                 // 自然
                 Morpheme {
-                    byte_begin: 0,
-                    byte_end: 6,
-                    char_begin: 0,
-                    char_end: 2,
+                    begin_byte: 0,
+                    end_byte: 6,
+                    begin_char: 0,
+                    end_char: 2,
                     word_idx: WordIdx::new(LexType::System, 0),
                     total_cost: 1,
                 },
                 // 言語処理
                 Morpheme {
-                    byte_begin: 6,
-                    byte_end: 18,
-                    char_begin: 2,
-                    char_end: 6,
+                    begin_byte: 6,
+                    end_byte: 18,
+                    begin_char: 2,
+                    end_char: 6,
                     word_idx: WordIdx::new(LexType::System, 4),
                     total_cost: 6,
                 },

@@ -4,23 +4,23 @@ use crate::dictionary::WordIdx;
 
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
 pub struct Morpheme {
-    pub(crate) byte_begin: u16,
-    pub(crate) byte_end: u16,
-    pub(crate) char_begin: u16,
-    pub(crate) char_end: u16,
+    pub(crate) begin_byte: u16,
+    pub(crate) end_byte: u16,
+    pub(crate) begin_char: u16,
+    pub(crate) end_char: u16,
     pub(crate) word_idx: WordIdx,
     pub(crate) total_cost: i32,
 }
 
 impl Morpheme {
     #[inline(always)]
-    pub fn byte_range(&self) -> Range<usize> {
-        usize::from(self.byte_begin)..usize::from(self.byte_end)
+    pub fn range_byte(&self) -> Range<usize> {
+        usize::from(self.begin_byte)..usize::from(self.end_byte)
     }
 
     #[inline(always)]
-    pub fn char_range(&self) -> Range<usize> {
-        usize::from(self.char_begin)..usize::from(self.char_end)
+    pub fn range_char(&self) -> Range<usize> {
+        usize::from(self.begin_char)..usize::from(self.end_char)
     }
 
     #[inline(always)]

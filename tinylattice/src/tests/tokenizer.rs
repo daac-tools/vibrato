@@ -48,8 +48,8 @@ fn test_tokenize_tokyo() {
 
     let morphs = sentence.morphs();
     assert_eq!(morphs.len(), 1);
-    assert_eq!(morphs[0].byte_range(), 0..9);
-    assert_eq!(morphs[0].char_range(), 0..3);
+    assert_eq!(morphs[0].range_byte(), 0..9);
+    assert_eq!(morphs[0].range_char(), 0..3);
     assert_eq!(morphs[0].word_idx(), WordIdx::new(LexType::System, 6));
 
     //   c=0      c=5320       c=0
@@ -76,14 +76,14 @@ fn test_tokenize_kyotokyo() {
 
     let morphs = sentence.morphs();
     assert_eq!(morphs.len(), 3);
-    assert_eq!(morphs[0].byte_range(), 0..6);
-    assert_eq!(morphs[0].char_range(), 0..2);
+    assert_eq!(morphs[0].range_byte(), 0..6);
+    assert_eq!(morphs[0].range_char(), 0..2);
     assert_eq!(morphs[0].word_idx(), WordIdx::new(LexType::System, 3));
-    assert_eq!(morphs[1].byte_range(), 6..15);
-    assert_eq!(morphs[1].char_range(), 2..5);
+    assert_eq!(morphs[1].range_byte(), 6..15);
+    assert_eq!(morphs[1].range_char(), 2..5);
     assert_eq!(morphs[1].word_idx(), WordIdx::new(LexType::System, 6));
-    assert_eq!(morphs[2].byte_range(), 15..21);
-    assert_eq!(morphs[2].char_range(), 5..7);
+    assert_eq!(morphs[2].range_byte(), 15..21);
+    assert_eq!(morphs[2].range_char(), 5..7);
     assert_eq!(morphs[2].word_idx(), WordIdx::new(LexType::System, 3));
 
     //   c=0     c=5293    c=5320    c=5293    c=0
@@ -115,8 +115,8 @@ fn test_tokenize_kampersanda() {
 
     let morphs = sentence.morphs();
     assert_eq!(morphs.len(), 1);
-    assert_eq!(morphs[0].byte_range(), 0..11);
-    assert_eq!(morphs[0].char_range(), 0..11);
+    assert_eq!(morphs[0].range_byte(), 0..11);
+    assert_eq!(morphs[0].range_char(), 0..11);
     assert_eq!(morphs[0].word_idx(), WordIdx::new(LexType::Unknown, 0));
 
     //   c=0        c=3857         c=0

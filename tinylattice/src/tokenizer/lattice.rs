@@ -5,8 +5,8 @@ const INVALID_IDX: u16 = u16::MAX;
 
 #[derive(Default)]
 pub struct Lattice {
-    ends: Vec<Vec<EndNode>>,
-    eos: Option<EndNode>,
+    ends: Vec<Vec<Node>>,
+    eos: Option<Node>,
 }
 
 impl Lattice {
@@ -24,22 +24,22 @@ impl Lattice {
     }
 
     // new_len is in characters
-    pub fn reset(&mut self, new_len: usize) {
-        Self::reset_vec(&mut self.ends, new_len + 1);
+    pub fn reset(&mut self, new_len_char: usize) {
+        Self::reset_vec(&mut self.ends, new_len_char + 1);
         self.eos = None;
         self.insert_bos();
     }
 
     /// Number of characters of the input sentence.
     #[inline(always)]
-    pub fn len(&self) -> usize {
+    pub fn len_char(&self) -> usize {
         self.ends.len() - 1
     }
 
     fn insert_bos(&mut self) {
-        self.ends[0].push(EndNode {
+        self.ends[0].push(Node {
             word_idx: WordIdx::default(),
-            begin: u16::MAX,
+            begin_char: u16::MAX,
             right_id: 0,
             min_idx: INVALID_IDX,
             min_cost: 0,
@@ -47,10 +47,10 @@ impl Lattice {
     }
 
     pub fn insert_eos(&mut self, connector: &Connector) {
-        let (min_idx, min_cost) = self.search_min_node(self.len(), 0, connector).unwrap();
-        self.eos = Some(EndNode {
+        let (min_idx, min_cost) = self.search_min_node(self.len_char(), 0, connector).unwrap();
+        self.eos = Some(Node {
             word_idx: WordIdx::default(),
-            begin: self.len() as u16,
+            begin_char: self.len_char() as u16,
             right_id: i16::MAX,
             min_idx,
             min_cost,
@@ -59,39 +59,39 @@ impl Lattice {
 
     pub fn insert_node(
         &mut self,
-        begin: usize,
-        end: usize,
+        begin_char: usize,
+        end_char: usize,
         word_idx: WordIdx,
-        param: WordParam,
+        word_param: WordParam,
         connector: &Connector,
     ) {
         let (min_idx, min_cost) = self
-            .search_min_node(begin, param.left_id as usize, connector)
+            .search_min_node(begin_char, word_param.left_id as usize, connector)
             .unwrap();
-        self.ends[end].push(EndNode {
+        self.ends[end_char].push(Node {
             word_idx,
-            begin: begin as u16,
-            right_id: param.right_id,
+            begin_char: begin_char as u16,
+            right_id: word_param.right_id,
             min_idx,
-            min_cost: min_cost + param.word_cost as i32,
+            min_cost: min_cost + word_param.word_cost as i32,
         });
     }
 
     fn search_min_node(
         &self,
-        start: usize,
+        begin_char: usize,
         left_id: usize,
         connector: &Connector,
     ) -> Option<(u16, i32)> {
-        if self.ends[start].is_empty() {
+        if self.ends[begin_char].is_empty() {
             return None;
         }
         let mut min_idx = INVALID_IDX;
         let mut min_cost = MAX_COST;
-        for (i, l_node) in self.ends[start].iter().enumerate() {
-            assert!(l_node.is_connected_to_bos());
-            let connect_cost = connector.cost(l_node.right_id(), left_id) as i32;
-            let new_cost = l_node.min_cost() + connect_cost;
+        for (i, left_node) in self.ends[begin_char].iter().enumerate() {
+            assert!(left_node.is_connected_to_bos());
+            let conn_cost = connector.cost(left_node.right_id(), left_id) as i32;
+            let new_cost = left_node.min_cost() + conn_cost;
             if new_cost < min_cost {
                 min_idx = i as u16;
                 min_cost = new_cost;
@@ -107,35 +107,35 @@ impl Lattice {
         self.ends.get(i).map(|d| !d.is_empty()).unwrap_or(false)
     }
 
-    pub fn fill_best_path(&self, result: &mut Vec<(usize, EndNode)>) {
-        let mut end_pos = self.len();
+    pub fn fill_best_path(&self, result: &mut Vec<(usize, Node)>) {
+        let mut pos_char = self.len_char();
         let mut min_idx = self.eos.as_ref().unwrap().min_idx();
-        while end_pos != 0 {
-            let node = &self.ends[end_pos][min_idx];
-            result.push((end_pos, node.clone()));
-            (end_pos, min_idx) = (node.begin(), node.min_idx());
+        while pos_char != 0 {
+            let node = &self.ends[pos_char][min_idx];
+            result.push((pos_char, node.clone()));
+            (pos_char, min_idx) = (node.begin_char(), node.min_idx());
         }
     }
 }
 
 #[derive(Default, Debug, Clone)]
-pub struct EndNode {
+pub struct Node {
     word_idx: WordIdx,
-    begin: u16,
+    begin_char: u16,
     right_id: i16,
     min_idx: u16,
     min_cost: i32,
 }
 
-impl EndNode {
+impl Node {
     #[inline(always)]
     pub fn word_idx(&self) -> WordIdx {
         self.word_idx
     }
 
     #[inline(always)]
-    pub fn begin(&self) -> usize {
-        self.begin as usize
+    pub fn begin_char(&self) -> usize {
+        self.begin_char as usize
     }
 
     #[inline(always)]
