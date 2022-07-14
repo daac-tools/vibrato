@@ -21,6 +21,7 @@ pub struct WordParams {
 }
 
 impl WordParams {
+    // (left_id, right_id, word_cost)
     pub fn from_iter<I>(params: I) -> Self
     where
         I: IntoIterator<Item = WordParam>,
@@ -31,7 +32,7 @@ impl WordParams {
     }
 
     #[inline(always)]
-    pub fn get(&self, word_id: usize) -> WordParam {
+    pub fn param(&self, word_id: usize) -> WordParam {
         self.params[word_id]
     }
 }

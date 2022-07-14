@@ -1,17 +1,17 @@
 pub mod parser;
-pub mod word_feats;
+pub mod word_feature;
 pub mod word_map;
-pub mod word_params;
+pub mod word_param;
 
 pub use super::{LexType, WordIdx};
-pub use word_feats::WordFeats;
+pub use word_feature::WordFeatures;
 pub use word_map::WordMap;
-pub use word_params::{WordParam, WordParams};
+pub use word_param::{WordParam, WordParams};
 
 pub struct Lexicon {
     map: WordMap,
     params: WordParams,
-    feats: WordFeats,
+    features: WordFeatures,
     lex_type: LexType,
 }
 
@@ -19,11 +19,11 @@ impl Lexicon {
     pub fn new(entries: &[(&str, WordParam, &str)], lex_type: LexType) -> Self {
         let map = WordMap::from_iter(entries.iter().map(|e| e.0));
         let params = WordParams::from_iter(entries.iter().map(|e| e.1));
-        let feats = WordFeats::from_iter(entries.iter().map(|e| e.2));
+        let features = WordFeatures::from_iter(entries.iter().map(|e| e.2));
         Self {
             map,
             params,
-            feats,
+            features,
             lex_type,
         }
     }
@@ -33,27 +33,29 @@ impl Lexicon {
         &'a self,
         input: &'a [u8],
     ) -> impl Iterator<Item = LexMatch> + 'a {
-        self.map.common_prefix_iterator(input).map(move |e| {
-            LexMatch::new(
-                WordIdx::new(self.lex_type, e.word_id),
-                self.params.get(e.word_id as usize),
-                e.end_byte,
-            )
-        })
+        self.map
+            .common_prefix_iterator(input)
+            .map(move |(word_id, end_byte)| {
+                LexMatch::new(
+                    WordIdx::new(self.lex_type, word_id),
+                    self.params.param(word_id as usize),
+                    end_byte,
+                )
+            })
     }
 
     #[inline(always)]
     pub fn word_feature(&self, word_idx: WordIdx) -> &str {
         debug_assert_eq!(word_idx.lex_type(), self.lex_type);
-        self.feats.get(word_idx.word_id() as usize)
+        self.features.feature(word_idx.word_id() as usize)
     }
 }
 
 #[derive(Eq, PartialEq, Debug)]
 pub struct LexMatch {
-    end_byte: u32,
     word_idx: WordIdx,
     word_param: WordParam,
+    end_byte: u32,
 }
 
 impl LexMatch {
@@ -67,17 +69,17 @@ impl LexMatch {
     }
 
     #[inline(always)]
-    pub fn end_byte(&self) -> usize {
+    pub const fn end_byte(&self) -> usize {
         self.end_byte as usize
     }
 
     #[inline(always)]
-    pub fn word_idx(&self) -> WordIdx {
+    pub const fn word_idx(&self) -> WordIdx {
         self.word_idx
     }
 
     #[inline(always)]
-    pub fn word_param(&self) -> WordParam {
+    pub const fn word_param(&self) -> WordParam {
         self.word_param
     }
 }

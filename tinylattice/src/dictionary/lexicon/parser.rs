@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Result};
 
-use super::{LexType, Lexicon, RawWordEntry, WordFeats, WordMap, WordParam, WordParams};
+use super::{LexType, Lexicon, RawWordEntry, WordFeatures, WordMap, WordParam, WordParams};
 
 impl Lexicon {
     pub fn from_lines<I, S>(lines: I, lex_type: LexType) -> Result<Self>
@@ -14,11 +14,11 @@ impl Lexicon {
         }
         let map = WordMap::from_iter(entries.iter().map(|e| &e.surface));
         let params = WordParams::from_iter(entries.iter().map(|e| e.param));
-        let feats = WordFeats::from_iter(entries.iter().map(|e| &e.feature));
+        let features = WordFeatures::from_iter(entries.iter().map(|e| &e.feature));
         Ok(Self {
             map,
             params,
-            feats,
+            features,
             lex_type,
         })
     }
