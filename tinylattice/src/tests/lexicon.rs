@@ -1,4 +1,4 @@
-use crate::dictionary::{lexicon::LexiconMatch, LexType, Lexicon, WordIdx, WordParam};
+use crate::dictionary::{lexicon::LexMatch, LexType, Lexicon, WordIdx, WordParam};
 
 const LEX_TEXT: &str = include_str!("./resources/lex.csv");
 
@@ -13,7 +13,7 @@ fn test_common_prefix_iterator_1() {
     // 東
     assert_eq!(
         it.next(),
-        Some(LexiconMatch::new(
+        Some(LexMatch::new(
             WordIdx::new(LexType::System, 4),
             WordParam::new(7, 7, 4675),
             3
@@ -22,7 +22,7 @@ fn test_common_prefix_iterator_1() {
     // 東京
     assert_eq!(
         it.next(),
-        Some(LexiconMatch::new(
+        Some(LexMatch::new(
             WordIdx::new(LexType::System, 5),
             WordParam::new(6, 6, 2816),
             6
@@ -31,7 +31,7 @@ fn test_common_prefix_iterator_1() {
     // 東京都
     assert_eq!(
         it.next(),
-        Some(LexiconMatch::new(
+        Some(LexMatch::new(
             WordIdx::new(LexType::System, 6),
             WordParam::new(6, 8, 5320),
             9
@@ -47,7 +47,7 @@ fn test_common_prefix_iterator_2() {
     for word_id in 40..46 {
         assert_eq!(
             it.next(),
-            Some(LexiconMatch::new(
+            Some(LexMatch::new(
                 WordIdx::new(LexType::System, word_id),
                 WordParam::new(8, 8, -20000),
                 1

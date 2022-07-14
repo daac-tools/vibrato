@@ -32,9 +32,9 @@ impl Lexicon {
     pub fn common_prefix_iterator<'a>(
         &'a self,
         input: &'a [u8],
-    ) -> impl Iterator<Item = LexiconMatch> + 'a {
+    ) -> impl Iterator<Item = LexMatch> + 'a {
         self.map.common_prefix_iterator(input).map(move |e| {
-            LexiconMatch::new(
+            LexMatch::new(
                 WordIdx::new(self.lex_type, e.word_id),
                 self.params.get(e.word_id as usize),
                 e.end_byte,
@@ -50,13 +50,13 @@ impl Lexicon {
 }
 
 #[derive(Eq, PartialEq, Debug)]
-pub struct LexiconMatch {
+pub struct LexMatch {
     end_byte: u32,
     word_idx: WordIdx,
     word_param: WordParam,
 }
 
-impl LexiconMatch {
+impl LexMatch {
     #[inline(always)]
     pub fn new(word_idx: WordIdx, word_param: WordParam, end_byte: u32) -> Self {
         Self {
@@ -105,7 +105,7 @@ mod tests {
         let mut it = lexicon.common_prefix_iterator("東京都".as_bytes());
         assert_eq!(
             it.next().unwrap(),
-            LexiconMatch {
+            LexMatch {
                 end_byte: 6,
                 word_idx: WordIdx::new(LexType::System, 0),
                 word_param: WordParam::new(1, 2, 3),
@@ -113,7 +113,7 @@ mod tests {
         );
         assert_eq!(
             it.next().unwrap(),
-            LexiconMatch {
+            LexMatch {
                 end_byte: 6,
                 word_idx: WordIdx::new(LexType::System, 2),
                 word_param: WordParam::new(7, 8, 9),
@@ -121,7 +121,7 @@ mod tests {
         );
         assert_eq!(
             it.next().unwrap(),
-            LexiconMatch {
+            LexMatch {
                 end_byte: 9,
                 word_idx: WordIdx::new(LexType::System, 1),
                 word_param: WordParam::new(4, 5, 6),
