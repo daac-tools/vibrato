@@ -73,7 +73,7 @@ impl Lattice {
             begin: begin as u16,
             right_id: param.right_id,
             min_idx,
-            min_cost: min_cost + param.cost as i32,
+            min_cost: min_cost + param.word_cost as i32,
         });
     }
 

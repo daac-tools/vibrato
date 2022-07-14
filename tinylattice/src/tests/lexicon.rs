@@ -3,7 +3,7 @@ use crate::dictionary::{lexicon::LexMatch, LexType, Lexicon, WordIdx, WordParam}
 const LEX_TEXT: &str = include_str!("./resources/lex.csv");
 
 fn make_lexicon() -> Lexicon {
-    Lexicon::from_lines(LEX_TEXT.split('\n'), LexType::System)
+    Lexicon::from_lines(LEX_TEXT.split('\n'), LexType::System).unwrap()
 }
 
 #[test]

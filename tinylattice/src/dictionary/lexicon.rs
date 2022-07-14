@@ -86,7 +86,7 @@ impl LexMatch {
 pub struct RawWordEntry {
     pub surface: String,
     pub param: WordParam,
-    pub feat: String,
+    pub feature: String,
 }
 
 #[cfg(test)]

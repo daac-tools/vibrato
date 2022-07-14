@@ -36,8 +36,8 @@ impl Tokenizer {
         self.lattice.reset(sent.chars().len());
         let input_bytes = sent.bytes();
 
-        for (char_pos, &byte_pos) in sent.c2b().iter().enumerate() {
-            if !self.lattice.has_previous_node(char_pos) {
+        for (pos_char, &pos_byte) in sent.c2b().iter().enumerate() {
+            if !self.lattice.has_previous_node(pos_char) {
                 continue;
             }
 
@@ -46,12 +46,12 @@ impl Tokenizer {
             for m in self
                 .dict
                 .lexicon()
-                .common_prefix_iterator(&input_bytes[byte_pos..])
+                .common_prefix_iterator(&input_bytes[pos_byte..])
             {
-                assert!(m.end_byte() + byte_pos <= input_bytes.len());
+                assert!(m.end_byte() + pos_byte <= input_bytes.len());
                 self.lattice.insert_node(
-                    char_pos,
-                    sent.char_position(m.end_byte() + byte_pos),
+                    pos_char,
+                    sent.char_position(m.end_byte() + pos_byte),
                     m.word_idx(),
                     m.word_param(),
                     &self.dict.connector(),
@@ -60,10 +60,10 @@ impl Tokenizer {
             }
 
             if !matched {
-                for w in self.dict.unk_handler().unk_words(sent, char_pos) {
+                for w in self.dict.unk_handler().unk_words(sent, pos_char) {
                     self.lattice.insert_node(
-                        w.char_begin(),
-                        w.char_end(),
+                        w.begin_char(),
+                        w.end_char(),
                         w.word_idx(),
                         w.word_param(),
                         self.dict.connector(),
@@ -83,13 +83,13 @@ impl Tokenizer {
         morphs.clear();
         morphs.resize(self.best_path.len(), Morpheme::default());
 
-        for (i, (end_pos, end_node)) in self.best_path.iter().rev().enumerate() {
-            let end_pos = *end_pos;
+        for (i, (char_end, end_node)) in self.best_path.iter().rev().enumerate() {
+            let char_end = *char_end;
             morphs[i] = Morpheme {
                 byte_begin: sent.byte_position(end_node.begin()) as u16,
-                byte_end: sent.byte_position(end_pos) as u16,
+                byte_end: sent.byte_position(char_end) as u16,
                 char_begin: end_node.begin() as u16,
-                char_end: end_pos as u16,
+                char_end: char_end as u16,
                 word_idx: end_node.word_idx(),
                 total_cost: end_node.min_cost(),
             };
@@ -129,8 +129,8 @@ mod tests {
         };
 
         let dict = Dictionary::new(
-            Lexicon::from_lines(lexicon_csv.split('\n'), LexType::System),
-            Connector::from_lines(matrix_def.split('\n')),
+            Lexicon::from_lines(lexicon_csv.split('\n'), LexType::System).unwrap(),
+            Connector::from_lines(matrix_def.split('\n')).unwrap(),
             CategoryMap::default(),
             SimpleUnkHandler::new(unk_entry),
         );

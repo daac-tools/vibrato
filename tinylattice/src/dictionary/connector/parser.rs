@@ -1,3 +1,5 @@
+use anyhow::{anyhow, Result};
+
 use super::Connector;
 
 impl Connector {
@@ -6,37 +8,39 @@ impl Connector {
     // r0 l1
     // r0 l2
     // ...
-    pub fn from_lines<I, L>(mut lines: I) -> Self
+    pub fn from_lines<I, L>(mut lines: I) -> Result<Self>
     where
         I: Iterator<Item = L>,
         L: AsRef<str>,
     {
-        let (num_right, num_left) = Self::parse_header(lines.next().unwrap().as_ref());
+        let (num_right, num_left) = Self::parse_header(lines.next().unwrap().as_ref())?;
         let mut data = vec![0; num_right * num_left];
         for line in lines {
             let line = line.as_ref();
             if !line.is_empty() {
-                let (right_id, left_id, cost) = Self::parse_body(line);
-                data[left_id * num_right + right_id] = cost;
+                let (right_id, left_id, conn_cost) = Self::parse_body(line)?;
+                data[left_id * num_right + right_id] = conn_cost;
             }
         }
-        Self::new(data, num_right, num_left)
+        Ok(Self::new(data, num_right, num_left))
     }
 
-    fn parse_header(line: &str) -> (usize, usize) {
-        let items: Vec<_> = line.split(' ').collect();
-        assert_eq!(items.len(), 2, "{:?}", &items);
-        (items[0].parse().unwrap(), items[1].parse().unwrap())
+    fn parse_header(line: &str) -> Result<(usize, usize)> {
+        let cols: Vec<_> = line.split(' ').collect();
+        if cols.len() != 2 {
+            Err(anyhow!("Invalid format: {}", line))
+        } else {
+            Ok((cols[0].parse()?, cols[1].parse()?))
+        }
     }
 
-    fn parse_body(line: &str) -> (usize, usize, i16) {
-        let items: Vec<_> = line.split(' ').collect();
-        assert_eq!(items.len(), 3, "{:?}", &items);
-        (
-            items[0].parse().unwrap(),
-            items[1].parse().unwrap(),
-            items[2].parse().unwrap(),
-        )
+    fn parse_body(line: &str) -> Result<(usize, usize, i16)> {
+        let cols: Vec<_> = line.split(' ').collect();
+        if cols.len() != 3 {
+            Err(anyhow!("Invalid format: {}", line))
+        } else {
+            Ok((cols[0].parse()?, cols[1].parse()?, cols[2].parse()?))
+        }
     }
 }
 
@@ -51,7 +55,7 @@ mod tests {
 0 1 1
 1 0 -2
 1 1 -3";
-        let conn = Connector::from_lines(data.split('\n'));
+        let conn = Connector::from_lines(data.split('\n')).unwrap();
         assert_eq!(conn.cost(0, 0), 0);
         assert_eq!(conn.cost(0, 1), 1);
         assert_eq!(conn.cost(1, 0), -2);
@@ -67,7 +71,7 @@ mod tests {
 1 0 -3
 1 1 -4
 1 2 -5";
-        let conn = Connector::from_lines(data.split('\n'));
+        let conn = Connector::from_lines(data.split('\n')).unwrap();
         assert_eq!(conn.cost(0, 0), 0);
         assert_eq!(conn.cost(0, 1), 1);
         assert_eq!(conn.cost(0, 2), 2);

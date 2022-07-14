@@ -2,16 +2,16 @@
 pub struct WordParam {
     pub left_id: i16,
     pub right_id: i16,
-    pub cost: i16,
+    pub word_cost: i16,
 }
 
 impl WordParam {
     #[inline(always)]
-    pub const fn new(left_id: i16, right_id: i16, cost: i16) -> Self {
+    pub const fn new(left_id: i16, right_id: i16, word_cost: i16) -> Self {
         Self {
             left_id,
             right_id,
-            cost,
+            word_cost,
         }
     }
 }
@@ -31,7 +31,7 @@ impl WordParams {
     }
 
     #[inline(always)]
-    pub fn get(&self, i: usize) -> WordParam {
-        self.params[i]
+    pub fn get(&self, word_id: usize) -> WordParam {
+        self.params[word_id]
     }
 }

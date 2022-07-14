@@ -1,43 +1,43 @@
+use anyhow::{anyhow, Result};
+
 use super::{LexType, Lexicon, RawWordEntry, WordFeats, WordMap, WordParam, WordParams};
 
 impl Lexicon {
-    pub fn from_lines<I, S>(lines: I, lex_type: LexType) -> Self
+    pub fn from_lines<I, S>(lines: I, lex_type: LexType) -> Result<Self>
     where
         I: IntoIterator<Item = S>,
         S: AsRef<str>,
     {
-        let entries: Vec<_> = lines
-            .into_iter()
-            .map(|l| Self::parse_csv(l.as_ref()))
-            .collect();
+        let mut entries = vec![];
+        for line in lines {
+            entries.push(Self::parse_csv(line.as_ref())?);
+        }
         let map = WordMap::from_iter(entries.iter().map(|e| &e.surface));
         let params = WordParams::from_iter(entries.iter().map(|e| e.param));
-        let feats = WordFeats::from_iter(entries.iter().map(|e| &e.feat));
-        Self {
+        let feats = WordFeats::from_iter(entries.iter().map(|e| &e.feature));
+        Ok(Self {
             map,
             params,
             feats,
             lex_type,
-        }
+        })
     }
 
-    fn parse_csv(line: &str) -> RawWordEntry {
-        let items: Vec<_> = line.split(',').collect();
-        assert!(4 <= items.len());
-        let feat = if 4 < items.len() {
-            items[4..].join(",")
-        } else {
-            String::new()
-        };
-        RawWordEntry {
-            surface: items[0].to_string(),
-            param: WordParam::new(
-                items[1].parse().unwrap(),
-                items[2].parse().unwrap(),
-                items[3].parse().unwrap(),
-            ),
-            feat,
+    fn parse_csv(line: &str) -> Result<RawWordEntry> {
+        let cols: Vec<_> = line.split(',').collect();
+        if cols.len() < 4 {
+            return Err(anyhow!("Invalid format: {}", line));
         }
+        let surface = cols[0].parse()?;
+        let left_id = cols[1].parse()?;
+        let right_id = cols[2].parse()?;
+        let word_cost = cols[3].parse()?;
+        let feature = cols.get(4..).map_or("".to_string(), |x| x.join(","));
+        Ok(RawWordEntry {
+            surface,
+            param: WordParam::new(left_id, right_id, word_cost),
+            feature,
+        })
     }
 }
 
@@ -48,27 +48,27 @@ mod tests {
     #[test]
     fn test_parse() {
         let line = "東京,1,2,3";
-        let entry = Lexicon::parse_csv(line);
+        let entry = Lexicon::parse_csv(line).unwrap();
         assert_eq!(
             entry,
             RawWordEntry {
                 surface: "東京".to_string(),
                 param: WordParam::new(1, 2, 3),
-                feat: "".to_string(),
+                feature: "".to_string(),
             }
         );
     }
 
     #[test]
-    fn test_parse_with_feat() {
+    fn test_parse_with_feature() {
         let line = "東京,1,2,3,京都,名詞,固有名詞";
-        let entry = Lexicon::parse_csv(line);
+        let entry = Lexicon::parse_csv(line).unwrap();
         assert_eq!(
             entry,
             RawWordEntry {
                 surface: "東京".to_string(),
                 param: WordParam::new(1, 2, 3),
-                feat: "京都,名詞,固有名詞".to_string(),
+                feature: "京都,名詞,固有名詞".to_string(),
             }
         );
     }

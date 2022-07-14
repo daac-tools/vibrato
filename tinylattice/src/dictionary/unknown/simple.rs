@@ -10,11 +10,11 @@ impl SimpleUnkHandler {
         Self { entry }
     }
 
-    pub fn unk_words(&self, sentence: &Sentence, char_pos: usize) -> Vec<UnkWord> {
-        let len = sentence.get_word_candidate_length(char_pos);
+    pub fn unk_words(&self, sentence: &Sentence, pos_char: usize) -> Vec<UnkWord> {
+        let len = sentence.get_word_candidate_length(pos_char);
         vec![UnkWord {
-            char_begin: char_pos as u16,
-            char_end: (char_pos + len) as u16,
+            begin_char: pos_char as u16,
+            end_char: (pos_char + len) as u16,
             left_id: self.entry.left_id,
             right_id: self.entry.right_id,
             word_cost: self.entry.word_cost,

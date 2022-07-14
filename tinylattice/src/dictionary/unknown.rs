@@ -29,8 +29,8 @@ pub struct UnkEntry {
 
 #[derive(Default, Debug, Clone, Copy)]
 pub struct UnkWord {
-    char_begin: u16,
-    char_end: u16,
+    begin_char: u16,
+    end_char: u16,
     left_id: i16,
     right_id: i16,
     word_cost: i16,
@@ -38,12 +38,12 @@ pub struct UnkWord {
 }
 
 impl UnkWord {
-    pub fn char_begin(&self) -> usize {
-        self.char_begin as usize
+    pub fn begin_char(&self) -> usize {
+        self.begin_char as usize
     }
 
-    pub fn char_end(&self) -> usize {
-        self.char_end as usize
+    pub fn end_char(&self) -> usize {
+        self.end_char as usize
     }
 
     pub fn word_param(&self) -> WordParam {
@@ -89,8 +89,8 @@ impl UnkHandler {
     //         if cate_def.is_group {
     //             for e in entries {
     //                 buf.push(UnkWord {
-    //                     char_begin: char_pos as u16,
-    //                     char_end: (char_pos + concatable) as u16,
+    //                     begin_char: char_pos as u16,
+    //                     end_char: (char_pos + concatable) as u16,
     //                     left_id: e.left_id,
     //                     right_id: e.right_id,
     //                     word_cost: e.word_cost,

@@ -10,11 +10,11 @@ const CATE_TEXT: &str = include_str!("./resources/char.def");
 // const UNK_TEXT: &str = include_str!("./resources/unk.def");
 
 fn make_lexicon() -> Lexicon {
-    Lexicon::from_lines(LEX_TEXT.split('\n'), LexType::System)
+    Lexicon::from_lines(LEX_TEXT.split('\n'), LexType::System).unwrap()
 }
 
 fn make_connector() -> Connector {
-    Connector::from_lines(MATRIX_TEXT.split('\n'))
+    Connector::from_lines(MATRIX_TEXT.split('\n')).unwrap()
 }
 
 fn make_category_map() -> CategoryMap {
