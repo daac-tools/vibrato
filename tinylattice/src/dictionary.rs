@@ -1,35 +1,40 @@
 pub mod category;
 pub mod connector;
 pub mod lexicon;
-pub mod oov;
 pub mod unknown;
 
 pub use category::{CategoryMap, CategoryTypes};
 pub use connector::Connector;
 pub use lexicon::{Lexicon, WordParam};
-pub use oov::SimpleOovProvider;
+pub use unknown::simple::SimpleUnkHandler;
+
+#[derive(Clone, Copy, Eq, PartialEq, Debug)]
+pub enum LexType {
+    System,
+    Unknown,
+}
 
 #[derive(Clone, Copy, Eq, PartialEq, Debug)]
 pub struct WordIdx {
-    lex_id: u32,
+    lex_type: LexType,
     word_id: u32,
 }
 
 impl Default for WordIdx {
     fn default() -> Self {
-        Self::new(u32::MAX, u32::MAX)
+        Self::new(LexType::System, u32::MAX)
     }
 }
 
 impl WordIdx {
     #[inline(always)]
-    pub const fn new(lex_id: u32, word_id: u32) -> Self {
-        Self { lex_id, word_id }
+    pub const fn new(lex_type: LexType, word_id: u32) -> Self {
+        Self { lex_type, word_id }
     }
 
     #[inline(always)]
-    pub const fn lex_id(&self) -> u32 {
-        self.lex_id
+    pub const fn lex_type(&self) -> LexType {
+        self.lex_type
     }
 
     #[inline(always)]
@@ -42,7 +47,7 @@ pub struct Dictionary {
     lexicon: Lexicon,
     connector: Connector,
     category_map: CategoryMap,
-    simple_oov_provider: Option<SimpleOovProvider>,
+    unk_handler: SimpleUnkHandler,
 }
 
 impl Dictionary {
@@ -50,13 +55,13 @@ impl Dictionary {
         lexicon: Lexicon,
         connector: Connector,
         category_map: CategoryMap,
-        simple_oov_provider: Option<SimpleOovProvider>,
+        unk_handler: SimpleUnkHandler,
     ) -> Self {
         Self {
             lexicon,
             connector,
             category_map,
-            simple_oov_provider,
+            unk_handler,
         }
     }
 
@@ -76,7 +81,7 @@ impl Dictionary {
     }
 
     #[inline(always)]
-    pub fn simple_oov_provider(&self) -> Option<&SimpleOovProvider> {
-        self.simple_oov_provider.as_ref()
+    pub fn unk_handler(&self) -> &SimpleUnkHandler {
+        &self.unk_handler
     }
 }

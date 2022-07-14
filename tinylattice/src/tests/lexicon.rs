@@ -1,9 +1,9 @@
-use crate::dictionary::lexicon::*;
+use crate::dictionary::{lexicon::LexiconMatch, LexType, Lexicon, WordIdx, WordParam};
 
 const LEX_TEXT: &str = include_str!("./resources/lex.csv");
 
 fn make_lexicon() -> Lexicon {
-    Lexicon::from_lines(LEX_TEXT.split('\n'))
+    Lexicon::from_lines(LEX_TEXT.split('\n'), LexType::System)
 }
 
 #[test]
@@ -14,7 +14,7 @@ fn test_common_prefix_iterator_1() {
     assert_eq!(
         it.next(),
         Some(LexiconMatch::new(
-            WordIdx::new(0, 4),
+            WordIdx::new(LexType::System, 4),
             WordParam::new(7, 7, 4675),
             3
         ))
@@ -23,7 +23,7 @@ fn test_common_prefix_iterator_1() {
     assert_eq!(
         it.next(),
         Some(LexiconMatch::new(
-            WordIdx::new(0, 5),
+            WordIdx::new(LexType::System, 5),
             WordParam::new(6, 6, 2816),
             6
         ))
@@ -32,7 +32,7 @@ fn test_common_prefix_iterator_1() {
     assert_eq!(
         it.next(),
         Some(LexiconMatch::new(
-            WordIdx::new(0, 6),
+            WordIdx::new(LexType::System, 6),
             WordParam::new(6, 8, 5320),
             9
         ))
@@ -48,7 +48,7 @@ fn test_common_prefix_iterator_2() {
         assert_eq!(
             it.next(),
             Some(LexiconMatch::new(
-                WordIdx::new(0, word_id),
+                WordIdx::new(LexType::System, word_id),
                 WordParam::new(8, 8, -20000),
                 1
             ))
@@ -61,19 +61,19 @@ fn test_common_prefix_iterator_2() {
 fn test_get_word_feature() {
     let lexicon = make_lexicon();
     assert_eq!(
-        lexicon.word_feature(WordIdx::new(0, 0)),
+        lexicon.word_feature(WordIdx::new(LexType::System, 0)),
         "た,助動詞,*,*,*,助動詞-タ,終止形-一般,タ,た,*,A,*,*,*,*"
     );
     assert_eq!(
-        lexicon.word_feature(WordIdx::new(0, 2)),
+        lexicon.word_feature(WordIdx::new(LexType::System, 2)),
         "に,助詞,格助詞,*,*,*,*,ニ,に,*,A,*,*,*,*"
     );
     assert_eq!(
-        lexicon.word_feature(WordIdx::new(0, 39)),
+        lexicon.word_feature(WordIdx::new(LexType::System, 39)),
         " ,空白,*,*,*,*,*, , ,*,A,*,*,*,*"
     );
     assert_eq!(
-        lexicon.word_feature(WordIdx::new(0, 45)),
+        lexicon.word_feature(WordIdx::new(LexType::System, 45)),
         "X,名詞,固有名詞,地名,一般,*,*,X,X,*,A,*,*,*,*"
     );
 }

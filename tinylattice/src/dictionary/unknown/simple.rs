@@ -18,7 +18,7 @@ impl SimpleUnkHandler {
             left_id: self.entry.left_id,
             right_id: self.entry.right_id,
             word_cost: self.entry.word_cost,
-            word_id: 0,
+            word_id: 0, // will be not used
         }]
     }
 }

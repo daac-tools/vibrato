@@ -5,7 +5,9 @@ pub mod simple;
 
 use std::collections::HashMap;
 
-use super::CategoryTypes;
+use super::{CategoryTypes, LexType, WordIdx, WordParam};
+
+pub use simple::SimpleUnkHandler;
 // use crate::Sentence;
 
 #[derive(Default, Debug, Clone, Copy)]
@@ -18,11 +20,11 @@ pub struct CategoryDef {
 
 #[derive(Default, Debug, Clone)]
 pub struct UnkEntry {
-    cate_type: CategoryTypes,
-    left_id: i16,
-    right_id: i16,
-    word_cost: i16,
-    feature: String,
+    pub cate_type: CategoryTypes,
+    pub left_id: i16,
+    pub right_id: i16,
+    pub word_cost: i16,
+    pub feature: String,
 }
 
 #[derive(Default, Debug, Clone, Copy)]
@@ -33,6 +35,24 @@ pub struct UnkWord {
     right_id: i16,
     word_cost: i16,
     word_id: u16,
+}
+
+impl UnkWord {
+    pub fn char_begin(&self) -> usize {
+        self.char_begin as usize
+    }
+
+    pub fn char_end(&self) -> usize {
+        self.char_end as usize
+    }
+
+    pub fn word_param(&self) -> WordParam {
+        WordParam::new(self.left_id, self.right_id, self.word_cost)
+    }
+
+    pub fn word_idx(&self) -> WordIdx {
+        WordIdx::new(LexType::Unknown, self.word_id as u32)
+    }
 }
 
 pub struct UnkHandler {

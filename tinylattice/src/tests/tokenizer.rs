@@ -1,12 +1,16 @@
-use crate::dictionary::*;
+use crate::dictionary::unknown::{SimpleUnkHandler, UnkEntry};
+use crate::dictionary::{
+    CategoryMap, CategoryTypes, Connector, Dictionary, LexType, Lexicon, WordIdx,
+};
 use crate::{Sentence, Tokenizer};
 
 const LEX_TEXT: &str = include_str!("./resources/lex.csv");
 const MATRIX_TEXT: &str = include_str!("./resources/matrix_10x10.def");
 const CATE_TEXT: &str = include_str!("./resources/char.def");
+// const UNK_TEXT: &str = include_str!("./resources/unk.def");
 
 fn make_lexicon() -> Lexicon {
-    Lexicon::from_lines(LEX_TEXT.split('\n'))
+    Lexicon::from_lines(LEX_TEXT.split('\n'), LexType::System)
 }
 
 fn make_connector() -> Connector {
@@ -17,12 +21,14 @@ fn make_category_map() -> CategoryMap {
     CategoryMap::from_lines(CATE_TEXT.split('\n')).unwrap()
 }
 
-fn make_simple_oov_provider(lex_id: u32) -> SimpleOovProvider {
-    SimpleOovProvider::new(
-        lex_id,
-        WordParam::new(8, 8, 6000),
-        "名詞,普通名詞,一般,*,*,*".to_string(),
-    )
+fn make_simple_unk_handler() -> SimpleUnkHandler {
+    SimpleUnkHandler::new(UnkEntry {
+        cate_type: CategoryTypes::DEFAULT,
+        left_id: 7,
+        right_id: 7,
+        word_cost: 3857,
+        feature: "補助記号,一般,*,*,*,*".to_string(),
+    })
 }
 
 #[test]
@@ -31,7 +37,7 @@ fn test_tokenize_tokyo() {
         make_lexicon(),
         make_connector(),
         make_category_map(),
-        Some(make_simple_oov_provider(1)),
+        make_simple_unk_handler(),
     );
 
     let mut tokenizer = Tokenizer::new(dict);
@@ -44,7 +50,7 @@ fn test_tokenize_tokyo() {
     assert_eq!(morphs.len(), 1);
     assert_eq!(morphs[0].byte_range(), 0..9);
     assert_eq!(morphs[0].char_range(), 0..3);
-    assert_eq!(morphs[0].word_idx(), WordIdx::new(0, 6));
+    assert_eq!(morphs[0].word_idx(), WordIdx::new(LexType::System, 6));
 
     //   c=0      c=5320       c=0
     //  [BOS] -- [東京都] -- [EOS]
@@ -60,7 +66,7 @@ fn test_tokenize_kyotokyo() {
         make_lexicon(),
         make_connector(),
         make_category_map(),
-        Some(make_simple_oov_provider(1)),
+        make_simple_unk_handler(),
     );
     let mut tokenizer = Tokenizer::new(dict);
     let mut sentence = Sentence::new();
@@ -72,13 +78,13 @@ fn test_tokenize_kyotokyo() {
     assert_eq!(morphs.len(), 3);
     assert_eq!(morphs[0].byte_range(), 0..6);
     assert_eq!(morphs[0].char_range(), 0..2);
-    assert_eq!(morphs[0].word_idx(), WordIdx::new(0, 3));
+    assert_eq!(morphs[0].word_idx(), WordIdx::new(LexType::System, 3));
     assert_eq!(morphs[1].byte_range(), 6..15);
     assert_eq!(morphs[1].char_range(), 2..5);
-    assert_eq!(morphs[1].word_idx(), WordIdx::new(0, 6));
+    assert_eq!(morphs[1].word_idx(), WordIdx::new(LexType::System, 6));
     assert_eq!(morphs[2].byte_range(), 15..21);
     assert_eq!(morphs[2].char_range(), 5..7);
-    assert_eq!(morphs[2].word_idx(), WordIdx::new(0, 3));
+    assert_eq!(morphs[2].word_idx(), WordIdx::new(LexType::System, 3));
 
     //   c=0     c=5293    c=5320    c=5293    c=0
     //  [BOS] -- [京都] -- [東京都] -- [京都] -- [EOS]
@@ -98,7 +104,7 @@ fn test_tokenize_kampersanda() {
         make_lexicon(),
         make_connector(),
         make_category_map(),
-        Some(make_simple_oov_provider(1)),
+        make_simple_unk_handler(),
     );
 
     let mut tokenizer = Tokenizer::new(dict);
@@ -111,14 +117,14 @@ fn test_tokenize_kampersanda() {
     assert_eq!(morphs.len(), 1);
     assert_eq!(morphs[0].byte_range(), 0..11);
     assert_eq!(morphs[0].char_range(), 0..11);
-    assert_eq!(morphs[0].word_idx(), WordIdx::new(1, 0));
+    assert_eq!(morphs[0].word_idx(), WordIdx::new(LexType::Unknown, 0));
 
-    //   c=0        c=6000         c=0
+    //   c=0        c=3857         c=0
     //  [BOS] -- [kampersanda] -- [EOS]
-    //     r=0  l=8         r=8  l=0
+    //     r=0  l=7         r=7  l=0
     let connector = tokenizer.dictionary().connector();
-    assert_eq!(connector.cost(0, 8), 447);
-    assert_eq!(morphs[0].total_cost(), 447 + 6000);
+    assert_eq!(connector.cost(0, 7), 887);
+    assert_eq!(morphs[0].total_cost(), 887 + 3857);
 }
 
 #[test]
@@ -127,7 +133,7 @@ fn test_tokenize_tokyoken() {
         make_lexicon(),
         make_connector(),
         make_category_map(),
-        Some(make_simple_oov_provider(1)),
+        make_simple_unk_handler(),
     );
 
     let mut tokenizer = Tokenizer::new(dict);

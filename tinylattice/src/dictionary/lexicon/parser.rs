@@ -1,7 +1,7 @@
-use super::{Lexicon, RawWordEntry, WordFeats, WordMap, WordParam, WordParams};
+use super::{LexType, Lexicon, RawWordEntry, WordFeats, WordMap, WordParam, WordParams};
 
 impl Lexicon {
-    pub fn from_lines<I, S>(lines: I) -> Self
+    pub fn from_lines<I, S>(lines: I, lex_type: LexType) -> Self
     where
         I: IntoIterator<Item = S>,
         S: AsRef<str>,
@@ -13,7 +13,12 @@ impl Lexicon {
         let map = WordMap::from_iter(entries.iter().map(|e| &e.surface));
         let params = WordParams::from_iter(entries.iter().map(|e| e.param));
         let feats = WordFeats::from_iter(entries.iter().map(|e| &e.feat));
-        Self { map, params, feats }
+        Self {
+            map,
+            params,
+            feats,
+            lex_type,
+        }
     }
 
     fn parse_csv(line: &str) -> RawWordEntry {

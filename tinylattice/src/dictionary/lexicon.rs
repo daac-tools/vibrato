@@ -3,7 +3,7 @@ pub mod word_feats;
 pub mod word_map;
 pub mod word_params;
 
-pub use super::WordIdx;
+pub use super::{LexType, WordIdx};
 pub use word_feats::WordFeats;
 pub use word_map::WordMap;
 pub use word_params::{WordParam, WordParams};
@@ -12,14 +12,20 @@ pub struct Lexicon {
     map: WordMap,
     params: WordParams,
     feats: WordFeats,
+    lex_type: LexType,
 }
 
 impl Lexicon {
-    pub fn new(entries: &[(&str, WordParam, &str)]) -> Self {
+    pub fn new(entries: &[(&str, WordParam, &str)], lex_type: LexType) -> Self {
         let map = WordMap::from_iter(entries.iter().map(|e| e.0));
         let params = WordParams::from_iter(entries.iter().map(|e| e.1));
         let feats = WordFeats::from_iter(entries.iter().map(|e| e.2));
-        Self { map, params, feats }
+        Self {
+            map,
+            params,
+            feats,
+            lex_type,
+        }
     }
 
     #[inline(always)]
@@ -29,7 +35,7 @@ impl Lexicon {
     ) -> impl Iterator<Item = LexiconMatch> + 'a {
         self.map.common_prefix_iterator(input).map(move |e| {
             LexiconMatch::new(
-                WordIdx::new(0, e.word_id),
+                WordIdx::new(self.lex_type, e.word_id),
                 self.params.get(e.word_id as usize),
                 e.end_byte,
             )
@@ -38,7 +44,7 @@ impl Lexicon {
 
     #[inline(always)]
     pub fn word_feature(&self, word_idx: WordIdx) -> &str {
-        debug_assert_eq!(word_idx.lex_id(), 0);
+        debug_assert_eq!(word_idx.lex_type(), self.lex_type);
         self.feats.get(word_idx.word_id() as usize)
     }
 }
@@ -95,13 +101,13 @@ mod tests {
             ("東京", WordParam::new(7, 8, 9), ""),
             ("京都", WordParam::new(10, 11, 12), ""),
         ];
-        let lexicon = Lexicon::new(&entries);
+        let lexicon = Lexicon::new(&entries, LexType::System);
         let mut it = lexicon.common_prefix_iterator("東京都".as_bytes());
         assert_eq!(
             it.next().unwrap(),
             LexiconMatch {
                 end_byte: 6,
-                word_idx: WordIdx::new(0, 0),
+                word_idx: WordIdx::new(LexType::System, 0),
                 word_param: WordParam::new(1, 2, 3),
             }
         );
@@ -109,7 +115,7 @@ mod tests {
             it.next().unwrap(),
             LexiconMatch {
                 end_byte: 6,
-                word_idx: WordIdx::new(0, 2),
+                word_idx: WordIdx::new(LexType::System, 2),
                 word_param: WordParam::new(7, 8, 9),
             }
         );
@@ -117,7 +123,7 @@ mod tests {
             it.next().unwrap(),
             LexiconMatch {
                 end_byte: 9,
-                word_idx: WordIdx::new(0, 1),
+                word_idx: WordIdx::new(LexType::System, 1),
                 word_param: WordParam::new(4, 5, 6),
             }
         );

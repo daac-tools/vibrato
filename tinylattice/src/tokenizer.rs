@@ -42,6 +42,7 @@ impl Tokenizer {
             }
 
             let mut matched = false;
+
             for m in self
                 .dict
                 .lexicon()
@@ -59,13 +60,12 @@ impl Tokenizer {
             }
 
             if !matched {
-                if let Some(p) = self.dict.simple_oov_provider() {
-                    let oov = p.oov_word(sent, char_pos);
+                for w in self.dict.unk_handler().unk_words(sent, char_pos) {
                     self.lattice.insert_node(
-                        char_pos,
-                        char_pos + oov.word_len(),
-                        oov.word_idx(),
-                        oov.word_param(),
+                        w.char_begin(),
+                        w.char_end(),
+                        w.word_idx(),
+                        w.word_param(),
                         self.dict.connector(),
                     );
                 }
@@ -120,9 +120,20 @@ mod tests {
 1 0 0
 1 1 0";
 
-        let lexicon = Lexicon::from_lines(lexicon_csv.split('\n'));
-        let connector = Connector::from_lines(matrix_def.split('\n'));
-        let dict = Dictionary::new(lexicon, connector, CategoryMap::default(), None);
+        let unk_entry = unknown::UnkEntry {
+            cate_type: CategoryTypes::DEFAULT,
+            left_id: 0,
+            right_id: 0,
+            word_cost: 10,
+            feature: "".to_string(),
+        };
+
+        let dict = Dictionary::new(
+            Lexicon::from_lines(lexicon_csv.split('\n'), LexType::System),
+            Connector::from_lines(matrix_def.split('\n')),
+            CategoryMap::default(),
+            SimpleUnkHandler::new(unk_entry),
+        );
 
         let mut tokenizer = Tokenizer::new(dict);
         let mut sentence = Sentence::new();
@@ -139,7 +150,7 @@ mod tests {
                     byte_end: 6,
                     char_begin: 0,
                     char_end: 2,
-                    word_idx: WordIdx::new(0, 0),
+                    word_idx: WordIdx::new(LexType::System, 0),
                     total_cost: 1,
                 },
                 // 言語処理
@@ -148,7 +159,7 @@ mod tests {
                     byte_end: 18,
                     char_begin: 2,
                     char_end: 6,
-                    word_idx: WordIdx::new(0, 4),
+                    word_idx: WordIdx::new(LexType::System, 4),
                     total_cost: 6,
                 },
             ]
