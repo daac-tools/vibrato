@@ -1,0 +1,10 @@
+[package]
+name = "tokenize"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tinylattice = { path = "../tinylattice" }
+clap = { version = "3.1", features = ["derive"] }  # MIT or Apache-2.0
