@@ -8,11 +8,12 @@ impl Connector {
     // r0 l1
     // r0 l2
     // ...
-    pub fn from_lines<I, L>(mut lines: I) -> Result<Self>
+    pub fn from_lines<I, L>(lines: I) -> Result<Self>
     where
-        I: Iterator<Item = L>,
+        I: IntoIterator<Item = L>,
         L: AsRef<str>,
     {
+        let mut lines = lines.into_iter();
         let (num_right, num_left) = Self::parse_header(lines.next().unwrap().as_ref())?;
         let mut data = vec![0; num_right * num_left];
         for line in lines {

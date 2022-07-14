@@ -1,3 +1,5 @@
+use anyhow::Result;
+
 pub mod category;
 pub mod connector;
 pub mod lexicon;
@@ -51,6 +53,23 @@ pub struct Dictionary {
 }
 
 impl Dictionary {
+    pub fn from_lines<I, S>(lex_csv: I, matrix_def: I, char_def: I, unk_def: I) -> Result<Self>
+    where
+        I: IntoIterator<Item = S>,
+        S: AsRef<str>,
+    {
+        let lexicon = Lexicon::from_lines(lex_csv, LexType::System)?;
+        let connector = Connector::from_lines(matrix_def)?;
+        let category_map = CategoryMap::from_lines(char_def)?;
+        let unk_handler = SimpleUnkHandler::from_lines(unk_def)?;
+        Ok(Self {
+            lexicon,
+            connector,
+            category_map,
+            unk_handler,
+        })
+    }
+
     pub fn new(
         lexicon: Lexicon,
         connector: Connector,

@@ -46,7 +46,7 @@ impl UnkHandler {
         Ok(cate_defs)
     }
 
-    fn parse_unk_def<I, L>(lines: I) -> Result<Vec<UnkEntry>>
+    pub(crate) fn parse_unk_def<I, L>(lines: I) -> Result<Vec<UnkEntry>>
     where
         I: IntoIterator<Item = L>,
         L: AsRef<str>,

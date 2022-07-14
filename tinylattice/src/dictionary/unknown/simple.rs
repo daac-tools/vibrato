@@ -1,4 +1,7 @@
-use super::{UnkEntry, UnkWord};
+use anyhow::Result;
+
+use super::{UnkEntry, UnkHandler, UnkWord};
+use crate::dictionary::CategoryTypes;
 use crate::Sentence;
 
 pub struct SimpleUnkHandler {
@@ -8,6 +11,19 @@ pub struct SimpleUnkHandler {
 impl SimpleUnkHandler {
     pub fn new(entry: UnkEntry) -> Self {
         Self { entry }
+    }
+
+    // tmp
+    pub fn from_lines<I, L>(unk_def: I) -> Result<Self>
+    where
+        I: IntoIterator<Item = L>,
+        L: AsRef<str>,
+    {
+        let unk_entries = UnkHandler::parse_unk_def(unk_def)?;
+        assert_eq!(unk_entries[0].cate_type, CategoryTypes::DEFAULT);
+        Ok(Self {
+            entry: unk_entries[0].clone(),
+        })
     }
 
     pub fn unk_words(&self, sentence: &Sentence, pos_char: usize) -> Vec<UnkWord> {
