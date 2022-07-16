@@ -12,3 +12,5 @@ Cargo.lock
 target/
 sudachi-dict
 *.dic
+mecab-ipadic*
+unidic-mecab*
