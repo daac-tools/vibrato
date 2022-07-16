@@ -2,4 +2,5 @@
 members = [
     "tinylattice",
     "tokenize",
+    "parse-mecab-ipadic",
 ]
