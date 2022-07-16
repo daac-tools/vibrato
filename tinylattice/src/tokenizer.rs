@@ -1,6 +1,6 @@
 pub mod lattice;
 
-use crate::dictionary::Dictionary;
+pub use crate::dictionary::Dictionary;
 use crate::sentence::Sentence;
 use crate::Morpheme;
 use lattice::{Lattice, Node};
@@ -83,13 +83,13 @@ impl Tokenizer {
         morphs.clear();
         morphs.resize(self.best_path.len(), Morpheme::default());
 
-        for (i, (char_end, node)) in self.best_path.iter().rev().enumerate() {
-            let char_end = *char_end;
+        for (i, (end_char, node)) in self.best_path.iter().rev().enumerate() {
+            let end_char = *end_char;
             morphs[i] = Morpheme {
                 begin_byte: sent.byte_position(node.begin_char()) as u16,
-                end_byte: sent.byte_position(char_end) as u16,
+                end_byte: sent.byte_position(end_char) as u16,
                 begin_char: node.begin_char() as u16,
-                end_char: char_end as u16,
+                end_char: end_char as u16,
                 word_idx: node.word_idx(),
                 total_cost: node.min_cost(),
             };

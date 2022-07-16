@@ -10,4 +10,4 @@ pub mod tests;
 
 pub use morpheme::Morpheme;
 pub use sentence::Sentence;
-pub use tokenizer::Tokenizer;
+pub use tokenizer::{Dictionary, Tokenizer};

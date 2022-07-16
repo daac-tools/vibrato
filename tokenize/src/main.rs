@@ -1,8 +1,11 @@
+use std::error::Error;
 use std::fs::File;
 use std::io::BufRead;
 use std::io::BufReader;
 use std::path::Path;
-use std::path::PathBuf;
+
+use tinylattice::dictionary::{CategoryMap, Connector, LexType, Lexicon, SimpleUnkHandler};
+use tinylattice::{Dictionary, Sentence, Tokenizer};
 
 use clap::Parser;
 
@@ -22,37 +25,31 @@ struct Args {
     unkdef_filename: String,
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
-    // let config = Config::new(
-    //     None,
-    //     args.resources_filename.map(|s| PathBuf::from(s)),
-    //     Some(PathBuf::from(&args.dict_filename)),
-    // )
-    // .unwrap();
-    // let lines = load_file(&args.sentence_filename);
+    let mut tokenizer = Tokenizer::new(Dictionary::new(
+        Lexicon::from_lines(to_lines(args.sysdic_filename), LexType::System)?,
+        Connector::from_lines(to_lines(args.matrix_filename))?,
+        CategoryMap::from_lines(to_lines(args.chardef_filename))?,
+        SimpleUnkHandler::from_lines(to_lines(args.unkdef_filename))?,
+    ));
 
-    // let dict = JapaneseDictionary::from_cfg(&config).unwrap();
-    // let mut tokenizer = StatefulTokenizer::new(&dict, Mode::C);
-    // tokenizer.set_subset(InfoSubset::empty());
-    // let mut morphemes = MorphemeList::empty(&dict);
+    let mut sentence = Sentence::new();
+    for line in std::io::stdin().lock().lines() {
+        sentence.set_sentence(line?);
+        tokenizer.tokenize(&mut sentence);
+        let surfaces = sentence.surfaces();
+        println!("{}", surfaces.join(" "));
+    }
 
-    // for line in &lines {
-    //     tokenizer.reset().push_str(line);
-    //     tokenizer.do_tokenize().unwrap();
-    //     morphemes.collect_results(&mut tokenizer).unwrap();
-
-    //     let tokenized: Vec<_> = morphemes.iter().map(|m| m.surface().to_string()).collect();
-    //     println!("{}", tokenized.join(" "));
-    // }
+    Ok(())
 }
 
-fn load_file<P>(path: P) -> Vec<String>
+fn to_lines<P>(path: P) -> impl Iterator<Item = String>
 where
     P: AsRef<Path>,
 {
-    let file = File::open(path).unwrap();
-    let buf = BufReader::new(file);
-    buf.lines().map(|line| line.unwrap()).collect()
+    let buf = BufReader::new(File::open(path).unwrap());
+    buf.lines().map(|line| line.unwrap())
 }

@@ -1,9 +1,11 @@
+use std::borrow::Cow;
+
 use crate::dictionary::{CategoryMap, CategoryTypes};
 use crate::Morpheme;
 
 #[derive(Default, Clone)]
 pub struct Sentence<'a> {
-    bytes: &'a [u8],
+    input: Cow<'a, str>,
     chars: Vec<char>,
     c2b: Vec<usize>,
     b2c: Vec<usize>,
@@ -29,25 +31,25 @@ impl<'a> Sentence<'a> {
         self.morphs.clear();
     }
 
-    pub fn set_sentence(&mut self, input: &'a str) {
+    pub fn set_sentence(&mut self, input: impl Into<Cow<'a, str>>) {
         self.clear();
 
-        self.bytes = input.as_bytes();
-        self.b2c.resize(input.len() + 1, usize::MAX);
+        self.input = input.into();
+        self.b2c.resize(self.input.len() + 1, usize::MAX);
 
-        for (ci, (bi, ch)) in input.char_indices().enumerate() {
+        for (ci, (bi, ch)) in self.input.char_indices().enumerate() {
             self.chars.push(ch);
             self.c2b.push(bi);
             self.b2c[bi] = ci;
         }
-        self.c2b.push(input.len());
-        self.b2c[input.len()] = self.chars.len();
+        self.c2b.push(self.input.len());
+        self.b2c[self.input.len()] = self.chars.len();
     }
 
     pub fn compute_bow(&mut self, cate_map: &CategoryMap) {
         debug_assert!(self.bow.is_empty());
 
-        self.bow.resize(self.bytes.len(), false);
+        self.bow.resize(self.bytes().len(), false);
 
         let non_starting = CategoryTypes::ALPHA | CategoryTypes::GREEK | CategoryTypes::CYRILLIC;
         let mut prev_cate = CategoryTypes::empty();
@@ -98,13 +100,26 @@ impl<'a> Sentence<'a> {
     }
 
     #[inline(always)]
+    pub fn raw(&self) -> &str {
+        &self.input
+    }
+
+    #[inline(always)]
     pub fn bytes(&self) -> &[u8] {
-        &self.bytes
+        &self.input.as_bytes()
     }
 
     #[inline(always)]
     pub fn chars(&self) -> &[char] {
         &self.chars
+    }
+
+    #[inline(always)]
+    pub fn surfaces(&self) -> Vec<&str> {
+        self.morphs()
+            .iter()
+            .map(|m| &self.raw()[m.range_byte()])
+            .collect()
     }
 
     #[inline(always)]
