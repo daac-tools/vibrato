@@ -23,5 +23,5 @@ cat mecab-ipadic-2.7.0-20070801/char.def | nkf -Ew > ${resources_dir}/char.def
 cat mecab-ipadic-2.7.0-20070801/unk.def | nkf -Ew > ${resources_dir}/unk.def
 mv mecab-ipadic-2.7.0-20070801/matrix.def ${resources_dir}/
 
-# rm -rf mecab-ipadic-2.7.0-20070801
+rm -rf mecab-ipadic-2.7.0-20070801
 rm -f mecab-ipadic-2.7.0-20070801.tar.gz

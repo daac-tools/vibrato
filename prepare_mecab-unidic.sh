@@ -22,5 +22,5 @@ mv unidic-mecab-2.1.2_src/char.def ${resources_dir}/
 mv unidic-mecab-2.1.2_src/unk.def ${resources_dir}/
 mv unidic-mecab-2.1.2_src/matrix.def ${resources_dir}/
 
-# rm -rf unidic-mecab-2.1.2_src
+rm -rf unidic-mecab-2.1.2_src
 rm -f unidic-mecab-2.1.2_src.zip
