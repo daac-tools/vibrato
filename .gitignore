@@ -14,3 +14,4 @@ sudachi-dict
 *.dic
 mecab-ipadic*
 unidic-mecab*
+resources_mecab-ipadic/
