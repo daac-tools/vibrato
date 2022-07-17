@@ -14,12 +14,14 @@ if [ -d ${resources_dir} ]; then
   exit
 fi
 
-mkdir ${resources_dir}
-
 wget http://jaist.dl.sourceforge.net/project/mecab/mecab-ipadic/2.7.0-20070801/mecab-ipadic-2.7.0-20070801.tar.gz
 tar -xzf mecab-ipadic-2.7.0-20070801.tar.gz
 
+mkdir ${resources_dir}
 env LC_ALL=C cat mecab-ipadic-2.7.0-20070801/*.csv | nkf -Ew | sort > ${resources_dir}/lex.csv
 cat mecab-ipadic-2.7.0-20070801/char.def | nkf -Ew > ${resources_dir}/char.def
 cat mecab-ipadic-2.7.0-20070801/unk.def | nkf -Ew > ${resources_dir}/unk.def
-cp mecab-ipadic-2.7.0-20070801/matrix.def ${resources_dir}/
+mv mecab-ipadic-2.7.0-20070801/matrix.def ${resources_dir}/
+
+# rm -rf mecab-ipadic-2.7.0-20070801
+rm -f mecab-ipadic-2.7.0-20070801.tar.gz
