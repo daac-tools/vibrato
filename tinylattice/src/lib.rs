@@ -5,8 +5,8 @@ pub mod serializer;
 pub mod tokenizer;
 pub mod utils;
 
-#[cfg(test)]
-pub mod tests;
+// #[cfg(test)]
+// pub mod tests;
 
 pub use morpheme::Morpheme;
 pub use sentence::Sentence;

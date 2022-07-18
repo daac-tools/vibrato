@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use crate::dictionary::{CategoryMap, CategoryTypes};
+use crate::dictionary::character::{CharInfo, CharProperty};
 use crate::Morpheme;
 
 #[derive(Default, Clone)]
@@ -9,9 +9,8 @@ pub struct Sentence<'a> {
     chars: Vec<char>,
     c2b: Vec<usize>,
     b2c: Vec<usize>,
-    bow: Vec<bool>,
-    categories: Vec<CategoryTypes>,
-    concatable: Vec<usize>,
+    cinfos: Vec<CharInfo>,
+    groupable: Vec<usize>,
     morphs: Vec<Morpheme>,
 }
 
@@ -25,9 +24,8 @@ impl<'a> Sentence<'a> {
         self.chars.clear();
         self.c2b.clear();
         self.b2c.clear();
-        self.bow.clear();
-        self.categories.clear();
-        self.concatable.clear();
+        self.cinfos.clear();
+        self.groupable.clear();
         self.morphs.clear();
     }
 
@@ -46,52 +44,32 @@ impl<'a> Sentence<'a> {
         self.b2c[self.input.len()] = self.chars.len();
     }
 
-    pub fn compute_bow(&mut self, cate_map: &CategoryMap) {
-        debug_assert!(self.bow.is_empty());
+    pub fn compile(&mut self, char_prop: &CharProperty) {
+        self.compute_categories(char_prop);
+        self.compute_groupable();
+    }
 
-        self.bow.resize(self.bytes().len(), false);
+    fn compute_categories(&mut self, char_prop: &CharProperty) {
+        debug_assert!(!self.chars.is_empty());
 
-        let non_starting = CategoryTypes::ALPHA | CategoryTypes::GREEK | CategoryTypes::CYRILLIC;
-        let mut prev_cate = CategoryTypes::empty();
-        let mut next_bow = true;
-
-        for (&ch, &bi) in self.chars.iter().zip(self.c2b.iter()) {
-            let cate = cate_map.get_category_types(ch);
-            let can_bow = if !next_bow {
-                // this char was forbidden by the previous one
-                next_bow = true;
-                false
-            } else if cate.intersects(CategoryTypes::NOOOVBOW2) {
-                // this rule is stronger than the next one and must come before
-                // this and next are forbidden
-                next_bow = false;
-                false
-            } else if cate.intersects(CategoryTypes::NOOOVBOW) {
-                // this char is forbidden
-                false
-            } else if cate.intersects(non_starting) {
-                // the previous char is compatible
-                !cate.intersects(prev_cate)
-            } else {
-                true
-            };
-            self.bow[bi] = can_bow;
-            prev_cate = cate;
+        self.cinfos.reserve(self.chars.len());
+        for &c in &self.chars {
+            self.cinfos.push(char_prop.char_info(c));
         }
     }
 
-    pub fn compute_concatable(&mut self) {
+    fn compute_groupable(&mut self) {
         debug_assert!(!self.chars.is_empty());
-        debug_assert_eq!(self.chars.len(), self.categories.len());
+        debug_assert_eq!(self.chars.len(), self.cinfos.len());
 
-        self.concatable.resize(self.chars.len(), 1);
-        let mut rhs = self.categories.last().cloned().unwrap();
+        self.groupable.resize(self.chars.len(), 1);
+        let mut rhs = self.cinfos.last().unwrap().cate_ids;
 
         for i in (1..self.chars.len()).rev() {
-            let lhs = self.categories[i - 1];
+            let lhs = self.cinfos[i - 1].cate_ids;
             let and = lhs & rhs;
             if !and.is_empty() {
-                self.concatable[i - 1] = self.concatable[i] + 1;
+                self.groupable[i - 1] = self.groupable[i] + 1;
                 rhs = and;
             } else {
                 rhs = lhs;
@@ -138,6 +116,7 @@ impl<'a> Sentence<'a> {
     }
 
     /// Returns byte offsets of current chars
+    /// Including end position
     #[inline(always)]
     pub fn c2b(&self) -> &[usize] {
         &self.c2b
@@ -149,44 +128,23 @@ impl<'a> Sentence<'a> {
     }
 
     #[inline(always)]
-    pub fn byte_position(&self, char_pos: usize) -> usize {
-        self.c2b[char_pos]
+    pub fn byte_position(&self, pos_char: usize) -> usize {
+        self.c2b[pos_char]
     }
 
     #[inline(always)]
-    pub fn char_position(&self, byte_pos: usize) -> usize {
-        self.b2c[byte_pos]
+    pub fn char_position(&self, pos_byte: usize) -> usize {
+        self.b2c[pos_byte]
     }
 
     #[inline(always)]
-    pub fn category(&self, char_pos: usize) -> CategoryTypes {
-        self.categories[char_pos]
+    pub fn char_info(&self, pos_char: usize) -> CharInfo {
+        self.cinfos[pos_char]
     }
 
     #[inline(always)]
-    pub fn concatable(&self, char_pos: usize) -> usize {
-        self.concatable[char_pos]
-    }
-
-    /// Whether the byte can start a new word.
-    /// Supports bytes not on character boundaries.
-    #[inline(always)]
-    pub fn can_bow(&self, byte_pos: usize) -> bool {
-        self.bow[byte_pos]
-    }
-
-    /// Returns char length to the next can_bow point
-    ///
-    /// Used by SimpleOOV plugin
-    #[inline(always)]
-    pub fn get_word_candidate_length(&self, char_pos: usize) -> usize {
-        for i in (char_pos + 1)..self.chars.len() {
-            let byte_pos = self.c2b[i];
-            if self.can_bow(byte_pos) {
-                return i - char_pos;
-            }
-        }
-        self.chars.len() - char_pos
+    pub fn groupable(&self, pos_char: usize) -> usize {
+        self.groupable[pos_char]
     }
 }
 

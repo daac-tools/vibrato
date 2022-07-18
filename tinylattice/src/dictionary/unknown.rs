@@ -1,26 +1,14 @@
-#![allow(dead_code)]
+pub mod builder;
 
-pub mod parser;
-pub mod simple;
+use super::{LexType, WordIdx, WordParam};
+use crate::dictionary::character::CharInfo;
+use crate::Sentence;
 
-use std::collections::HashMap;
-
-use super::{CategoryTypes, LexType, WordIdx, WordParam};
-
-pub use simple::SimpleUnkHandler;
-// use crate::Sentence;
-
-#[derive(Default, Debug, Clone, Copy)]
-pub struct CategoryDef {
-    cate_type: CategoryTypes,
-    is_invoke: bool,
-    is_group: bool,
-    length: u32,
-}
+const MAX_GROUPING_LEN: usize = 24;
 
 #[derive(Default, Debug, Clone)]
 pub struct UnkEntry {
-    pub cate_type: CategoryTypes,
+    pub cate_id: u16,
     pub left_id: i16,
     pub right_id: i16,
     pub word_cost: i16,
@@ -56,62 +44,62 @@ impl UnkWord {
 }
 
 pub struct UnkHandler {
-    cate_def_map: HashMap<CategoryTypes, CategoryDef>,
-    unk_entries_map: HashMap<CategoryTypes, Vec<UnkEntry>>,
+    // indexed by category id
+    entries: Vec<Vec<UnkEntry>>,
 }
 
 impl UnkHandler {
-    pub fn new(_cate_defs: Vec<CategoryDef>, _unk_entries: Vec<UnkEntry>) -> Self {
-        Self {
-            cate_def_map: HashMap::new(),
-            unk_entries_map: HashMap::new(),
+    pub fn gen_unk_words(
+        &self,
+        sent: &Sentence,
+        pos_char: usize,
+        has_matched: bool,
+    ) -> Vec<UnkWord> {
+        let cinfo = sent.char_info(pos_char);
+
+        let mut unk_words = vec![];
+        if has_matched && !cinfo.invoke {
+            return unk_words;
         }
+
+        let glen = sent.groupable(pos_char);
+
+        if cinfo.group {
+            if glen < MAX_GROUPING_LEN {
+                self.create_unk_words(pos_char, pos_char + glen, cinfo, &mut unk_words);
+            }
+        }
+
+        for i in 1..=cinfo.length as usize {
+            if i == glen {
+                continue;
+            }
+            let end_char = pos_char + i;
+            if sent.chars().len() < end_char {
+                break;
+            }
+            self.create_unk_words(pos_char, end_char, cinfo, &mut unk_words);
+        }
+        unk_words
     }
 
-    // pub fn unk_words(&self, sentence: &Sentence, char_pos: usize) -> Vec<UnkWord> {
-    //     let concatable = sentence.concatable(char_pos);
-    //     debug_assert_ne!(concatable, 0);
-
-    //     let mut buf = vec![];
-    //     for cate_def in sentence
-    //         .category(char_pos)
-    //         .iter()
-    //         .flat_map(|ct| self.cate_def_map.get(&ct))
-    //         .filter(|&cd| cd.is_invoke)
-    //     {
-    //         let entries = match self.unk_entries_map.get(&cate_def.cate_type) {
-    //             Some(e) => e,
-    //             None => continue,
-    //         };
-
-    //         let mut len = concatable;
-
-    //         if cate_def.is_group {
-    //             for e in entries {
-    //                 buf.push(UnkWord {
-    //                     begin_char: char_pos as u16,
-    //                     end_char: (char_pos + concatable) as u16,
-    //                     left_id: e.left_id,
-    //                     right_id: e.right_id,
-    //                     word_cost: e.word_cost,
-    //                     word_id: 0,
-    //                 });
-    //             }
-    //             len -= 1;
-    //         }
-    //         for i in 1..=cate_def.length {
-    //             let sublen = (char_pos + i as usize).min(sentence.chars().len());
-    //             if sublen > len {
-    //                 break;
-    //             }
-    //             for e in entries {}
-
-    //             for oov in oovs {
-    //                 nodes.push(self.get_oov_node(oov, offset, offset + sublength));
-    //                 num_created += 1;
-    //             }
-    //         }
-    //     }
-    //     buf
-    // }
+    fn create_unk_words(
+        &self,
+        begin_char: usize,
+        end_char: usize,
+        cinfo: CharInfo,
+        words: &mut Vec<UnkWord>,
+    ) {
+        let entries = &self.entries[cinfo.base_id as usize];
+        for e in entries {
+            words.push(UnkWord {
+                begin_char: begin_char as u16,
+                end_char: end_char as u16,
+                left_id: e.left_id,
+                right_id: e.right_id,
+                word_cost: e.word_cost,
+                word_id: e.cate_id,
+            });
+        }
+    }
 }

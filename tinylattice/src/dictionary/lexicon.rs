@@ -1,4 +1,4 @@
-pub mod parser;
+pub mod builder;
 pub mod word_feature;
 pub mod word_map;
 pub mod word_param;

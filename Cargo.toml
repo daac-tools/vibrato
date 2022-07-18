@@ -1,6 +1,5 @@
 [workspace]
 members = [
     "tinylattice",
-    "tokenize",
-    "parse-mecab-ipadic",
+    # "tokenize",
 ]

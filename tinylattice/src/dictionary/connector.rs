@@ -1,9 +1,19 @@
-pub mod parser;
+pub mod builder;
 
 pub struct Connector {
     data: Vec<i16>,
     num_right: usize,
     num_left: usize,
+}
+
+impl Default for Connector {
+    fn default() -> Self {
+        Self {
+            data: vec![0],
+            num_right: 1,
+            num_left: 1,
+        }
+    }
 }
 
 impl Connector {

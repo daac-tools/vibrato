@@ -1,14 +1,12 @@
-use anyhow::Result;
-
-pub mod category;
+pub mod character;
 pub mod connector;
 pub mod lexicon;
 pub mod unknown;
 
-pub use category::{CategoryMap, CategoryTypes};
+pub use character::CharProperty;
 pub use connector::Connector;
 pub use lexicon::{Lexicon, WordParam};
-pub use unknown::simple::SimpleUnkHandler;
+pub use unknown::UnkHandler;
 
 #[derive(Clone, Copy, Eq, PartialEq, Debug)]
 pub enum LexType {
@@ -48,38 +46,21 @@ impl WordIdx {
 pub struct Dictionary {
     lexicon: Lexicon,
     connector: Connector,
-    category_map: CategoryMap,
-    unk_handler: SimpleUnkHandler,
+    char_prop: CharProperty,
+    unk_handler: UnkHandler,
 }
 
 impl Dictionary {
-    pub fn from_lines<I, S>(lex_csv: I, matrix_def: I, char_def: I, unk_def: I) -> Result<Self>
-    where
-        I: IntoIterator<Item = S>,
-        S: AsRef<str>,
-    {
-        let lexicon = Lexicon::from_lines(lex_csv, LexType::System)?;
-        let connector = Connector::from_lines(matrix_def)?;
-        let category_map = CategoryMap::from_lines(char_def)?;
-        let unk_handler = SimpleUnkHandler::from_lines(unk_def)?;
-        Ok(Self {
-            lexicon,
-            connector,
-            category_map,
-            unk_handler,
-        })
-    }
-
     pub fn new(
         lexicon: Lexicon,
         connector: Connector,
-        category_map: CategoryMap,
-        unk_handler: SimpleUnkHandler,
+        char_prop: CharProperty,
+        unk_handler: UnkHandler,
     ) -> Self {
         Self {
             lexicon,
             connector,
-            category_map,
+            char_prop,
             unk_handler,
         }
     }
@@ -95,12 +76,12 @@ impl Dictionary {
     }
 
     #[inline(always)]
-    pub fn category_map(&self) -> &CategoryMap {
-        &self.category_map
+    pub fn char_prop(&self) -> &CharProperty {
+        &self.char_prop
     }
 
     #[inline(always)]
-    pub fn unk_handler(&self) -> &SimpleUnkHandler {
+    pub fn unk_handler(&self) -> &UnkHandler {
         &self.unk_handler
     }
 }
