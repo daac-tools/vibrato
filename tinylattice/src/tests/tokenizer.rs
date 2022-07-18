@@ -4,9 +4,9 @@ use crate::dictionary::{
 use crate::{Sentence, Tokenizer};
 
 const LEX_CSV: &str = include_str!("./resources/lex.csv");
-const MATRIX_DEF: &str = include_str!("./resources/matrix_10x10.def");
+const MATRIX_DEF: &str = include_str!("./resources/matrix.def");
 const CHAR_DEF: &str = include_str!("./resources/char.def");
-const UNK_DEF: &str = include_str!("./resources/unk2.def");
+const UNK_DEF: &str = include_str!("./resources/unk.def");
 
 #[test]
 fn test_tokenize_tokyo() {
@@ -95,7 +95,7 @@ fn test_tokenize_kampersanda() {
     assert_eq!(morphs.len(), 1);
     assert_eq!(morphs[0].range_byte(), 0..11);
     assert_eq!(morphs[0].range_char(), 0..11);
-    assert_eq!(morphs[0].word_idx(), WordIdx::new(LexType::Unknown, 1));
+    assert_eq!(morphs[0].word_idx(), WordIdx::new(LexType::Unknown, 2));
 
     //   c=0        c=11633         c=0
     //  [BOS] -- [kampersanda] -- [EOS]

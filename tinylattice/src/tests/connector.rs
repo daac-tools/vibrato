@@ -1,6 +1,6 @@
 use crate::dictionary::connector::*;
 
-const MATRIX_DEF: &str = include_str!("./resources/matrix_10x10.def");
+const MATRIX_DEF: &str = include_str!("./resources/matrix.def");
 
 #[test]
 fn test_matrix() {

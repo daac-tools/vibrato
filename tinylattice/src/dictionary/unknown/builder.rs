@@ -27,10 +27,6 @@ impl UnkHandler {
             entries.append(&mut v);
         }
         offsets.push(entries.len());
-
-        dbg!(&offsets);
-        dbg!(&entries);
-
         Ok(Self { offsets, entries })
     }
 

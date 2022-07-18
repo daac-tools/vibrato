@@ -69,9 +69,6 @@ impl Tokenizer {
                 .unk_handler()
                 .gen_unk_words(sent, pos_char, has_matched, &mut self.unk_words);
 
-            dbg!(pos_char);
-            dbg!(&self.unk_words);
-
             for w in &self.unk_words {
                 self.lattice.insert_node(
                     w.begin_char(),

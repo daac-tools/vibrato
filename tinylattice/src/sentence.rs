@@ -47,8 +47,6 @@ impl<'a> Sentence<'a> {
     pub fn compile(&mut self, char_prop: &CharProperty) {
         self.compute_categories(char_prop);
         self.compute_groupable();
-        dbg!(&self.cinfos);
-        dbg!(&self.groupable);
     }
 
     fn compute_categories(&mut self, char_prop: &CharProperty) {

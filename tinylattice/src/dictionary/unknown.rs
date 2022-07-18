@@ -62,14 +62,11 @@ impl UnkHandler {
         unk_words: &mut Vec<UnkWord>,
     ) {
         let cinfo = sent.char_info(pos_char);
-        dbg!(pos_char, cinfo, has_matched);
-
         if has_matched && !cinfo.invoke {
             return;
         }
 
         let mut grouped = None;
-
         if cinfo.group {
             let glen = sent.groupable(pos_char);
             if glen < MAX_GROUPING_LEN {
@@ -78,15 +75,12 @@ impl UnkHandler {
                 grouped = Some(glen);
             }
         }
-        dbg!(grouped);
 
         for i in 1..=cinfo.length as usize {
-            dbg!(i);
             if i == grouped.unwrap_or(0) {
                 continue;
             }
             let end_char = pos_char + i;
-            dbg!(end_char);
             if sent.chars().len() < end_char {
                 break;
             }
