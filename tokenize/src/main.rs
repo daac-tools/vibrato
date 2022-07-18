@@ -14,10 +14,14 @@ use clap::Parser;
 struct Args {
     #[clap(short = 'r', long)]
     resource_dirname: String,
+
+    #[clap(short = 'w', long)]
+    wakachi: bool,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
+    let wakachi = args.wakachi;
 
     let sysdic_filename = format!("{}/lex.csv", &args.resource_dirname);
     let matrix_filename = format!("{}/matrix.def", &args.resource_dirname);
@@ -32,13 +36,28 @@ fn main() -> Result<(), Box<dyn Error>> {
     ));
 
     let mut sentence = Sentence::new();
+
     for line in std::io::stdin().lock().lines() {
-        sentence.set_sentence(line?);
-        tokenizer.tokenize(&mut sentence);
-        for m in sentence.morphs() {
-            println!("{}\t{}", sentence.surface(m), tokenizer.feature(m));
+        let line = line?;
+        if line.is_empty() {
+            continue;
         }
-        println!("EOS");
+
+        sentence.set_sentence(line);
+        tokenizer.tokenize(&mut sentence);
+        let morphs = sentence.morphs();
+
+        if wakachi {
+            for m in morphs {
+                print!("{} ", sentence.surface(m));
+            }
+            println!();
+        } else {
+            for m in morphs {
+                println!("{}\t{}", sentence.surface(m), tokenizer.feature(m));
+            }
+            println!("EOS");
+        }
     }
 
     Ok(())

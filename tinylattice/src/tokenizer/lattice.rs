@@ -6,6 +6,7 @@ const INVALID_IDX: u16 = u16::MAX;
 #[derive(Default)]
 pub struct Lattice {
     ends: Vec<Vec<Node>>,
+    len_char: usize, // needed for avoiding to be free ends
     eos: Option<Node>,
 }
 
@@ -26,6 +27,7 @@ impl Lattice {
     // new_len is in characters
     pub fn reset(&mut self, new_len_char: usize) {
         Self::reset_vec(&mut self.ends, new_len_char + 1);
+        self.len_char = new_len_char;
         self.eos = None;
         self.insert_bos();
     }
@@ -33,7 +35,7 @@ impl Lattice {
     /// Number of characters of the input sentence.
     #[inline(always)]
     pub fn len_char(&self) -> usize {
-        self.ends.len() - 1
+        self.len_char
     }
 
     fn insert_bos(&mut self) {
@@ -121,7 +123,7 @@ impl Lattice {
 impl std::fmt::Debug for Lattice {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "Lattice {{ eos: {:?}, ends: [", &self.eos)?;
-        for (i, e) in self.ends.iter().enumerate() {
+        for (i, e) in self.ends[..=self.len_char()].iter().enumerate() {
             writeln!(f, "{} => {:?}", i, e)?;
         }
         writeln!(f, "]}}")

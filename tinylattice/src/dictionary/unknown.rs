@@ -4,8 +4,6 @@ use super::{LexType, WordIdx, WordParam};
 use crate::dictionary::character::CharInfo;
 use crate::Sentence;
 
-const MAX_GROUPING_LEN: usize = 24;
-
 #[derive(Default, Debug, Clone)]
 pub struct UnkEntry {
     pub cate_id: u16,
@@ -66,18 +64,15 @@ impl UnkHandler {
             return;
         }
 
-        let mut grouped = None;
+        let mut glen = 0;
+
         if cinfo.group() {
-            let glen = sent.groupable(pos_char);
-            if glen < MAX_GROUPING_LEN {
-                self.push_entries(pos_char, pos_char + glen, cinfo, unk_words);
-            } else {
-                grouped = Some(glen);
-            }
+            glen = sent.groupable(pos_char);
+            self.push_entries(pos_char, pos_char + glen, cinfo, unk_words);
         }
 
         for i in 1..=cinfo.length() {
-            if i == grouped.unwrap_or(0) {
+            if i == glen {
                 continue;
             }
             let end_char = pos_char + i;
