@@ -53,15 +53,24 @@ impl FromStr for CategorySet {
 impl CategorySet {
     pub const NUM_CATEGORIES: usize = 11;
 
+    #[inline(always)]
     pub fn new() -> Self {
         Self { bits: 0 }
     }
 
+    #[inline(always)]
+    pub unsafe fn from_raw_unchecked(bits: u32) -> Self {
+        debug_assert_eq!(bits >> Self::NUM_CATEGORIES, 0);
+        Self { bits }
+    }
+
+    #[inline(always)]
     pub fn from_id(id: u32) -> Self {
         debug_assert!((id as usize) < Self::NUM_CATEGORIES);
         Self { bits: 1 << id }
     }
 
+    #[inline(always)]
     pub fn first_id(&self) -> Option<u32> {
         if self.bits == 0 {
             None
@@ -70,11 +79,18 @@ impl CategorySet {
         }
     }
 
-    pub fn len(self) -> u32 {
+    #[inline(always)]
+    pub fn raw(&self) -> u32 {
+        self.bits
+    }
+
+    #[inline(always)]
+    pub fn len(&self) -> u32 {
         self.bits.count_ones()
     }
 
-    pub fn id_iter(self) -> CategoryIdIter {
+    #[inline(always)]
+    pub fn id_iter(&self) -> CategoryIdIter {
         CategoryIdIter { bits: self.bits }
     }
 }
@@ -88,6 +104,7 @@ pub struct CategoryIdIter {
 impl Iterator for CategoryIdIter {
     type Item = u32;
 
+    #[inline(always)]
     fn next(&mut self) -> Option<Self::Item> {
         if self.bits == 0 {
             return None;

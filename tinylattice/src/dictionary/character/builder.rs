@@ -30,13 +30,7 @@ impl CharProperty {
                 let cate_id = category.first_id().unwrap();
                 cate2info.insert(
                     cate_id,
-                    CharInfo {
-                        base_id: cate_id,
-                        cate_ids: CategorySet::new(),
-                        invoke,
-                        group,
-                        length: length as u16,
-                    },
+                    CharInfo::new(CategorySet::new(), cate_id, invoke, group, length).unwrap(),
                 );
             } else {
                 char_ranges.push(Self::parse_char_range(line)?);
@@ -47,9 +41,9 @@ impl CharProperty {
         let mut chr2inf = vec![init_cinfo; 1 << 16];
 
         for r in &char_ranges {
-            let inf = Self::encode_cate_info(r.categories, &cate2info);
+            let cinfo = Self::encode_cate_info(r.categories, &cate2info);
             for c in r.start..r.end {
-                chr2inf[c] = inf.clone();
+                chr2inf[c] = cinfo;
             }
         }
 
@@ -57,14 +51,13 @@ impl CharProperty {
     }
 
     fn encode_cate_info(categories: CategorySet, cate2info: &BTreeMap<u32, CharInfo>) -> CharInfo {
-        let mut base = cate2info
-            .get(&categories.first_id().unwrap())
-            .unwrap()
-            .clone();
+        let mut base = *cate2info.get(&categories.first_id().unwrap()).unwrap();
+        let mut cate_ids = base.cate_ids();
         for cate_id in categories.id_iter() {
-            let info = cate2info.get(&cate_id).unwrap();
-            base.cate_ids |= CategorySet::from_id(info.base_id);
+            let cinfo = cate2info.get(&cate_id).unwrap();
+            cate_ids |= CategorySet::from_id(cinfo.base_id());
         }
+        base.set_cate_ids(cate_ids);
         base
     }
 
