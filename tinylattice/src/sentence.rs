@@ -63,10 +63,10 @@ impl<'a> Sentence<'a> {
         debug_assert_eq!(self.chars.len(), self.cinfos.len());
 
         self.groupable.resize(self.chars.len(), 1);
-        let mut rhs = self.cinfos.last().unwrap().cate_ids;
+        let mut rhs = self.cinfos.last().unwrap().cate_ids();
 
         for i in (1..self.chars.len()).rev() {
-            let lhs = self.cinfos[i - 1].cate_ids;
+            let lhs = self.cinfos[i - 1].cate_ids();
             let and = lhs & rhs;
             if !and.is_empty() {
                 self.groupable[i - 1] = self.groupable[i] + 1;

@@ -5,11 +5,49 @@ pub use category::CategorySet;
 
 #[derive(Default, Debug, Clone, Copy)]
 pub struct CharInfo {
-    pub base_id: u32,
-    pub cate_ids: CategorySet,
-    pub invoke: bool,
-    pub group: bool,
-    pub length: u16,
+    base_id: u32,
+    cate_ids: CategorySet,
+    invoke: bool,
+    group: bool,
+    length: u16,
+}
+
+impl CharInfo {
+    pub fn new(
+        base_id: u32,
+        cate_ids: CategorySet,
+        invoke: bool,
+        group: bool,
+        length: usize,
+    ) -> Self {
+        Self {
+            base_id,
+            cate_ids,
+            invoke,
+            group,
+            length: length as u16,
+        }
+    }
+
+    pub fn base_id(&self) -> u32 {
+        self.base_id
+    }
+
+    pub fn cate_ids(&self) -> CategorySet {
+        self.cate_ids
+    }
+
+    pub fn invoke(&self) -> bool {
+        self.invoke
+    }
+
+    pub fn group(&self) -> bool {
+        self.group
+    }
+
+    pub fn length(&self) -> usize {
+        self.length as usize
+    }
 }
 
 pub struct CharProperty {
