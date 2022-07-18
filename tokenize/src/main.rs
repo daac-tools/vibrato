@@ -12,35 +12,33 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[clap(name = "main", about = "A program.")]
 struct Args {
-    #[clap(short = 'd', long)]
-    sysdic_filename: String,
-
-    #[clap(short = 'm', long)]
-    matrix_filename: String,
-
-    #[clap(short = 'c', long)]
-    chardef_filename: String,
-
-    #[clap(short = 'u', long)]
-    unkdef_filename: String,
+    #[clap(short = 'r', long)]
+    resource_dirname: String,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
+    let sysdic_filename = format!("{}/lex.csv", &args.resource_dirname);
+    let matrix_filename = format!("{}/matrix.def", &args.resource_dirname);
+    let chardef_filename = format!("{}/char.def", &args.resource_dirname);
+    let unkdef_filename = format!("{}/unk.def", &args.resource_dirname);
+
     let mut tokenizer = Tokenizer::new(Dictionary::new(
-        Lexicon::from_lines(to_lines(args.sysdic_filename), LexType::System)?,
-        Connector::from_lines(to_lines(args.matrix_filename))?,
-        CharProperty::from_lines(to_lines(args.chardef_filename))?,
-        UnkHandler::from_lines(to_lines(args.unkdef_filename))?,
+        Lexicon::from_lines(to_lines(sysdic_filename), LexType::System)?,
+        Connector::from_lines(to_lines(matrix_filename))?,
+        CharProperty::from_lines(to_lines(chardef_filename))?,
+        UnkHandler::from_lines(to_lines(unkdef_filename))?,
     ));
 
     let mut sentence = Sentence::new();
     for line in std::io::stdin().lock().lines() {
         sentence.set_sentence(line?);
         tokenizer.tokenize(&mut sentence);
-        let surfaces = sentence.surfaces();
-        println!("{}", surfaces.join(" "));
+        for m in sentence.morphs() {
+            println!("{}\t{}", sentence.surface(m), tokenizer.feature(m));
+        }
+        println!("EOS");
     }
 
     Ok(())

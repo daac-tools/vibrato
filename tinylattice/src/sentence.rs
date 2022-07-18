@@ -93,6 +93,11 @@ impl<'a> Sentence<'a> {
     }
 
     #[inline(always)]
+    pub fn surface(&self, morph: &Morpheme) -> &str {
+        &self.raw()[morph.range_byte()]
+    }
+
+    #[inline(always)]
     pub fn surfaces(&self) -> Vec<&str> {
         self.morphs()
             .iter()

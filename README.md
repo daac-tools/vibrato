@@ -17,5 +17,5 @@ mv unidic-mecab-2.1.2_src unidic-mecab
 ```
 
 ```
-echo "京都東京都京都" | cargo run --release -p tokenize -- -d resources_mecab-ipadic/lex.csv -m resources_mecab-ipadic/matrix.def -c resources_mecab-ipadic/char.def -u resources_mecab-ipadic/unk.def
+echo "日本語の形態素解析を行うことができます。" | cargo run --release -p tokenize -- -r resources_mecab-ipadic
 ```
