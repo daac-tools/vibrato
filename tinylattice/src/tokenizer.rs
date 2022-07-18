@@ -10,7 +10,7 @@ pub struct Tokenizer {
     dict: Dictionary,
     lattice: Lattice,
     unk_words: Vec<UnkWord>,
-    best_path: Vec<(usize, Node)>,
+    top_nodes: Vec<(usize, Node)>,
 }
 
 impl Tokenizer {
@@ -19,7 +19,7 @@ impl Tokenizer {
             dict,
             lattice: Lattice::default(),
             unk_words: Vec::with_capacity(16),
-            best_path: vec![],
+            top_nodes: vec![],
         }
     }
 
@@ -83,15 +83,15 @@ impl Tokenizer {
     }
 
     fn resolve_best_path(&mut self, sent: &mut Sentence) {
-        self.best_path.clear();
-        self.lattice.fill_best_path(&mut self.best_path);
+        self.top_nodes.clear();
+        self.lattice.fill_best_path(&mut self.top_nodes);
 
         let mut morphs = sent.take_morphs();
 
         morphs.clear();
-        morphs.resize(self.best_path.len(), Morpheme::default());
+        morphs.resize(self.top_nodes.len(), Morpheme::default());
 
-        for (i, (end_char, node)) in self.best_path.iter().rev().enumerate() {
+        for (i, (end_char, node)) in self.top_nodes.iter().rev().enumerate() {
             let end_char = *end_char;
             morphs[i] = Morpheme {
                 begin_byte: sent.byte_position(node.begin_char()) as u16,

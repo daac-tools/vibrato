@@ -106,12 +106,12 @@ impl<'a> Sentence<'a> {
     }
 
     #[inline(always)]
-    pub fn take_morphs(&mut self) -> Vec<Morpheme> {
+    pub(crate) fn take_morphs(&mut self) -> Vec<Morpheme> {
         std::mem::take(&mut self.morphs)
     }
 
     #[inline(always)]
-    pub fn set_morphs(&mut self, morphs: Vec<Morpheme>) {
+    pub(crate) fn set_morphs(&mut self, morphs: Vec<Morpheme>) {
         self.morphs = morphs;
     }
 
