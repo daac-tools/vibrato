@@ -26,18 +26,22 @@ pub struct UnkWord {
 }
 
 impl UnkWord {
+    #[inline(always)]
     pub fn begin_char(&self) -> usize {
         self.begin_char as usize
     }
 
+    #[inline(always)]
     pub fn end_char(&self) -> usize {
         self.end_char as usize
     }
 
+    #[inline(always)]
     pub fn word_param(&self) -> WordParam {
         WordParam::new(self.left_id, self.right_id, self.word_cost)
     }
 
+    #[inline(always)]
     pub fn word_idx(&self) -> WordIdx {
         WordIdx::new(LexType::Unknown, self.word_id as u32)
     }
@@ -54,19 +58,19 @@ impl UnkHandler {
         sent: &Sentence,
         pos_char: usize,
         has_matched: bool,
-    ) -> Vec<UnkWord> {
+        unk_words: &mut Vec<UnkWord>,
+    ) {
         let cinfo = sent.char_info(pos_char);
 
-        let mut unk_words = vec![];
         if has_matched && !cinfo.invoke {
-            return unk_words;
+            return;
         }
 
         let glen = sent.groupable(pos_char);
 
         if cinfo.group {
             if glen < MAX_GROUPING_LEN {
-                self.create_unk_words(pos_char, pos_char + glen, cinfo, &mut unk_words);
+                self.push_entries(pos_char, pos_char + glen, cinfo, unk_words);
             }
         }
 
@@ -78,21 +82,20 @@ impl UnkHandler {
             if sent.chars().len() < end_char {
                 break;
             }
-            self.create_unk_words(pos_char, end_char, cinfo, &mut unk_words);
+            self.push_entries(pos_char, end_char, cinfo, unk_words);
         }
-        unk_words
     }
 
-    fn create_unk_words(
+    fn push_entries(
         &self,
         begin_char: usize,
         end_char: usize,
         cinfo: CharInfo,
-        words: &mut Vec<UnkWord>,
+        unk_words: &mut Vec<UnkWord>,
     ) {
         let entries = &self.entries[cinfo.base_id as usize];
         for e in entries {
-            words.push(UnkWord {
+            unk_words.push(UnkWord {
                 begin_char: begin_char as u16,
                 end_char: end_char as u16,
                 left_id: e.left_id,

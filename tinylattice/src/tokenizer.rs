@@ -1,5 +1,6 @@
 pub mod lattice;
 
+use crate::dictionary::unknown::UnkWord;
 pub use crate::dictionary::Dictionary;
 use crate::sentence::Sentence;
 use crate::Morpheme;
@@ -8,6 +9,7 @@ use lattice::{Lattice, Node};
 pub struct Tokenizer {
     dict: Dictionary,
     lattice: Lattice,
+    unk_words: Vec<UnkWord>,
     best_path: Vec<(usize, Node)>,
 }
 
@@ -16,6 +18,7 @@ impl Tokenizer {
         Self {
             dict,
             lattice: Lattice::default(),
+            unk_words: Vec::with_capacity(16),
             best_path: vec![],
         }
     }
@@ -61,13 +64,12 @@ impl Tokenizer {
                 has_matched = true;
             }
 
-            // dbg!(pos_char);
-
-            for w in self
-                .dict
+            self.unk_words.clear();
+            self.dict
                 .unk_handler()
-                .gen_unk_words(sent, pos_char, has_matched)
-            {
+                .gen_unk_words(sent, pos_char, has_matched, &mut self.unk_words);
+
+            for w in &self.unk_words {
                 self.lattice.insert_node(
                     w.begin_char(),
                     w.end_char(),
