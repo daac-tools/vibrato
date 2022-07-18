@@ -88,6 +88,7 @@ impl UnkHandler {
         }
     }
 
+    #[inline(always)]
     fn push_entries(
         &self,
         begin_char: usize,

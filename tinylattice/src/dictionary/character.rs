@@ -5,10 +5,8 @@ pub use category::CategorySet;
 
 const CATE_IDS_BITS: usize = 18;
 const CATE_IDS_MASK: u32 = (1 << CATE_IDS_BITS) - 1;
-
 const BASE_ID_BITS: usize = 8;
 const BASE_ID_MASK: u32 = (1 << BASE_ID_BITS) - 1;
-
 const LENGTH_BITS: usize = 4;
 
 // cate_ids: 18
@@ -85,10 +83,10 @@ pub struct CharProperty {
 impl CharProperty {
     pub fn char_info(&self, c: char) -> CharInfo {
         let c = c as usize;
-        if let Some(inf) = self.chr2inf.get(c) {
-            inf.clone()
+        if let Some(cinfo) = self.chr2inf.get(c) {
+            *cinfo
         } else {
-            self.chr2inf[0].clone()
+            self.chr2inf[0]
         }
     }
 }
