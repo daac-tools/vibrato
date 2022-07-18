@@ -3,7 +3,7 @@ pub mod category;
 
 pub use category::CategorySet;
 
-#[derive(Default, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy)]
 pub struct CharInfo {
     pub base_id: u32,
     pub cate_ids: CategorySet,

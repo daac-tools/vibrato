@@ -10,18 +10,28 @@ impl UnkHandler {
         I: IntoIterator<Item = L>,
         L: AsRef<str>,
     {
-        let mut entries = vec![vec![]; CategorySet::NUM_CATEGORIES];
-
+        let mut map = vec![vec![]; CategorySet::NUM_CATEGORIES];
         for line in lines {
             let line = line.as_ref().trim();
             if line.is_empty() || line.starts_with('#') {
                 continue;
             }
             let e = Self::parse_unk_entry(line)?;
-            entries[e.cate_id as usize].push(e);
+            map[e.cate_id as usize].push(e);
         }
 
-        Ok(Self { entries })
+        let mut offsets = vec![];
+        let mut entries = vec![];
+        for mut v in map {
+            offsets.push(entries.len());
+            entries.append(&mut v);
+        }
+        offsets.push(entries.len());
+
+        dbg!(&offsets);
+        dbg!(&entries);
+
+        Ok(Self { offsets, entries })
     }
 
     fn parse_unk_entry(line: &str) -> Result<UnkEntry> {

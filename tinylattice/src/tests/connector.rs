@@ -1,10 +1,10 @@
 use crate::dictionary::connector::*;
 
-const MATRIX_TEXT: &str = include_str!("./resources/matrix_10x10.def");
+const MATRIX_DEF: &str = include_str!("./resources/matrix_10x10.def");
 
 #[test]
 fn test_matrix() {
-    let conn = Connector::from_lines(MATRIX_TEXT.split('\n')).unwrap();
+    let conn = Connector::from_lines(MATRIX_DEF.split('\n')).unwrap();
     assert_eq!(conn.num_left(), 10);
     assert_eq!(conn.num_right(), 10);
     assert_eq!(conn.cost(0, 0), 0);

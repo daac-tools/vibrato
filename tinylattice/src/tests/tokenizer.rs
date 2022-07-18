@@ -1,43 +1,20 @@
-use crate::dictionary::unknown::{SimpleUnkHandler, UnkEntry};
 use crate::dictionary::{
-    CategoryMap, CategoryTypes, Connector, Dictionary, LexType, Lexicon, WordIdx,
+    CharProperty, Connector, Dictionary, LexType, Lexicon, UnkHandler, WordIdx,
 };
 use crate::{Sentence, Tokenizer};
 
-const LEX_TEXT: &str = include_str!("./resources/lex.csv");
-const MATRIX_TEXT: &str = include_str!("./resources/matrix_10x10.def");
-const CATE_TEXT: &str = include_str!("./resources/char.def");
-// const UNK_TEXT: &str = include_str!("./resources/unk.def");
-
-fn make_lexicon() -> Lexicon {
-    Lexicon::from_lines(LEX_TEXT.split('\n'), LexType::System).unwrap()
-}
-
-fn make_connector() -> Connector {
-    Connector::from_lines(MATRIX_TEXT.split('\n')).unwrap()
-}
-
-fn make_category_map() -> CategoryMap {
-    CategoryMap::from_lines(CATE_TEXT.split('\n')).unwrap()
-}
-
-fn make_simple_unk_handler() -> SimpleUnkHandler {
-    SimpleUnkHandler::new(UnkEntry {
-        cate_type: CategoryTypes::DEFAULT,
-        left_id: 7,
-        right_id: 7,
-        word_cost: 3857,
-        feature: "補助記号,一般,*,*,*,*".to_string(),
-    })
-}
+const LEX_CSV: &str = include_str!("./resources/lex.csv");
+const MATRIX_DEF: &str = include_str!("./resources/matrix_10x10.def");
+const CHAR_DEF: &str = include_str!("./resources/char.def");
+const UNK_DEF: &str = include_str!("./resources/unk2.def");
 
 #[test]
 fn test_tokenize_tokyo() {
     let dict = Dictionary::new(
-        make_lexicon(),
-        make_connector(),
-        make_category_map(),
-        make_simple_unk_handler(),
+        Lexicon::from_lines(LEX_CSV.split('\n'), LexType::System).unwrap(),
+        Connector::from_lines(MATRIX_DEF.split('\n')).unwrap(),
+        CharProperty::from_lines(CHAR_DEF.split('\n')).unwrap(),
+        UnkHandler::from_lines(UNK_DEF.split('\n')).unwrap(),
     );
 
     let mut tokenizer = Tokenizer::new(dict);
@@ -63,11 +40,12 @@ fn test_tokenize_tokyo() {
 #[test]
 fn test_tokenize_kyotokyo() {
     let dict = Dictionary::new(
-        make_lexicon(),
-        make_connector(),
-        make_category_map(),
-        make_simple_unk_handler(),
+        Lexicon::from_lines(LEX_CSV.split('\n'), LexType::System).unwrap(),
+        Connector::from_lines(MATRIX_DEF.split('\n')).unwrap(),
+        CharProperty::from_lines(CHAR_DEF.split('\n')).unwrap(),
+        UnkHandler::from_lines(UNK_DEF.split('\n')).unwrap(),
     );
+
     let mut tokenizer = Tokenizer::new(dict);
     let mut sentence = Sentence::new();
 
@@ -101,10 +79,10 @@ fn test_tokenize_kyotokyo() {
 #[test]
 fn test_tokenize_kampersanda() {
     let dict = Dictionary::new(
-        make_lexicon(),
-        make_connector(),
-        make_category_map(),
-        make_simple_unk_handler(),
+        Lexicon::from_lines(LEX_CSV.split('\n'), LexType::System).unwrap(),
+        Connector::from_lines(MATRIX_DEF.split('\n')).unwrap(),
+        CharProperty::from_lines(CHAR_DEF.split('\n')).unwrap(),
+        UnkHandler::from_lines(UNK_DEF.split('\n')).unwrap(),
     );
 
     let mut tokenizer = Tokenizer::new(dict);
@@ -117,23 +95,23 @@ fn test_tokenize_kampersanda() {
     assert_eq!(morphs.len(), 1);
     assert_eq!(morphs[0].range_byte(), 0..11);
     assert_eq!(morphs[0].range_char(), 0..11);
-    assert_eq!(morphs[0].word_idx(), WordIdx::new(LexType::Unknown, 0));
+    assert_eq!(morphs[0].word_idx(), WordIdx::new(LexType::Unknown, 1));
 
-    //   c=0        c=3857         c=0
+    //   c=0        c=11633         c=0
     //  [BOS] -- [kampersanda] -- [EOS]
     //     r=0  l=7         r=7  l=0
     let connector = tokenizer.dictionary().connector();
     assert_eq!(connector.cost(0, 7), 887);
-    assert_eq!(morphs[0].total_cost(), 887 + 3857);
+    assert_eq!(morphs[0].total_cost(), 887 + 11633);
 }
 
 #[test]
 fn test_tokenize_tokyoken() {
     let dict = Dictionary::new(
-        make_lexicon(),
-        make_connector(),
-        make_category_map(),
-        make_simple_unk_handler(),
+        Lexicon::from_lines(LEX_CSV.split('\n'), LexType::System).unwrap(),
+        Connector::from_lines(MATRIX_DEF.split('\n')).unwrap(),
+        CharProperty::from_lines(CHAR_DEF.split('\n')).unwrap(),
+        UnkHandler::from_lines(UNK_DEF.split('\n')).unwrap(),
     );
 
     let mut tokenizer = Tokenizer::new(dict);

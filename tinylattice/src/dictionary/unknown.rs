@@ -49,7 +49,8 @@ impl UnkWord {
 
 pub struct UnkHandler {
     // indexed by category id
-    entries: Vec<Vec<UnkEntry>>,
+    offsets: Vec<usize>,
+    entries: Vec<UnkEntry>,
 }
 
 impl UnkHandler {
@@ -61,24 +62,31 @@ impl UnkHandler {
         unk_words: &mut Vec<UnkWord>,
     ) {
         let cinfo = sent.char_info(pos_char);
+        dbg!(pos_char, cinfo, has_matched);
 
         if has_matched && !cinfo.invoke {
             return;
         }
 
-        let glen = sent.groupable(pos_char);
+        let mut grouped = None;
 
         if cinfo.group {
+            let glen = sent.groupable(pos_char);
             if glen < MAX_GROUPING_LEN {
                 self.push_entries(pos_char, pos_char + glen, cinfo, unk_words);
+            } else {
+                grouped = Some(glen);
             }
         }
+        dbg!(grouped);
 
         for i in 1..=cinfo.length as usize {
-            if i == glen {
+            dbg!(i);
+            if i == grouped.unwrap_or(0) {
                 continue;
             }
             let end_char = pos_char + i;
+            dbg!(end_char);
             if sent.chars().len() < end_char {
                 break;
             }
@@ -93,15 +101,17 @@ impl UnkHandler {
         cinfo: CharInfo,
         unk_words: &mut Vec<UnkWord>,
     ) {
-        let entries = &self.entries[cinfo.base_id as usize];
-        for e in entries {
+        let start = self.offsets[cinfo.base_id as usize];
+        let end = self.offsets[cinfo.base_id as usize + 1];
+        for word_id in start..end {
+            let e = &self.entries[word_id];
             unk_words.push(UnkWord {
                 begin_char: begin_char as u16,
                 end_char: end_char as u16,
                 left_id: e.left_id,
                 right_id: e.right_id,
                 word_cost: e.word_cost,
-                word_id: e.cate_id,
+                word_id: word_id as u16,
             });
         }
     }

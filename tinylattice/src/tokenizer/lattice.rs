@@ -47,6 +47,7 @@ impl Lattice {
     }
 
     pub fn insert_eos(&mut self, connector: &Connector) {
+        dbg!(&self);
         let (min_idx, min_cost) = self.search_min_node(self.len_char(), 0, connector).unwrap();
         self.eos = Some(Node {
             word_idx: WordIdx::default(),
