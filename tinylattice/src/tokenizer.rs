@@ -25,6 +25,9 @@ impl Tokenizer {
 
     #[inline(always)]
     pub fn tokenize(&mut self, sent: &mut Sentence) {
+        if sent.chars().is_empty() {
+            return;
+        }
         sent.compile(self.dict.char_prop());
         self.build_lattice(sent);
         self.resolve_best_path(sent);

@@ -33,8 +33,11 @@ impl<'a> Sentence<'a> {
         self.clear();
 
         self.input = input.into();
-        self.b2c.resize(self.input.len() + 1, usize::MAX);
+        if self.input.is_empty() {
+            return;
+        }
 
+        self.b2c.resize(self.input.len() + 1, usize::MAX);
         for (ci, (bi, ch)) in self.input.char_indices().enumerate() {
             self.chars.push(ch);
             self.c2b.push(bi);

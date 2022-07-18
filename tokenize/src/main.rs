@@ -39,9 +39,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     for line in std::io::stdin().lock().lines() {
         let line = line?;
-        if line.is_empty() {
-            continue;
-        }
 
         sentence.set_sentence(line);
         tokenizer.tokenize(&mut sentence);
