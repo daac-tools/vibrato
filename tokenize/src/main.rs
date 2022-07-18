@@ -4,8 +4,8 @@ use std::io::BufRead;
 use std::io::BufReader;
 use std::path::Path;
 
-use tinylattice::dictionary::{CategoryMap, Connector, LexType, Lexicon, SimpleUnkHandler};
-use tinylattice::{Dictionary, Sentence, Tokenizer};
+use tinylattice::dictionary::{CharProperty, Connector, Dictionary, LexType, Lexicon, UnkHandler};
+use tinylattice::{Sentence, Tokenizer};
 
 use clap::Parser;
 
@@ -31,8 +31,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut tokenizer = Tokenizer::new(Dictionary::new(
         Lexicon::from_lines(to_lines(args.sysdic_filename), LexType::System)?,
         Connector::from_lines(to_lines(args.matrix_filename))?,
-        CategoryMap::from_lines(to_lines(args.chardef_filename))?,
-        SimpleUnkHandler::from_lines(to_lines(args.unkdef_filename))?,
+        CharProperty::from_lines(to_lines(args.chardef_filename))?,
+        UnkHandler::from_lines(to_lines(args.unkdef_filename))?,
     ));
 
     let mut sentence = Sentence::new();
