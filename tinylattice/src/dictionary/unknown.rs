@@ -105,4 +105,9 @@ impl UnkHandler {
             });
         }
     }
+
+    pub fn word_feature(&self, word_idx: WordIdx) -> &str {
+        debug_assert_eq!(word_idx.lex_type(), LexType::Unknown);
+        &self.entries[word_idx.word_id() as usize].feature
+    }
 }

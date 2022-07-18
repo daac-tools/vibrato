@@ -84,4 +84,12 @@ impl Dictionary {
     pub fn unk_handler(&self) -> &UnkHandler {
         &self.unk_handler
     }
+
+    #[inline(always)]
+    pub fn word_feature(&self, word_idx: WordIdx) -> &str {
+        match word_idx.lex_type() {
+            LexType::System => self.lexicon().word_feature(word_idx),
+            LexType::Unknown => self.unk_handler().word_feature(word_idx),
+        }
+    }
 }

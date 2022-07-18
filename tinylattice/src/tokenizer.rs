@@ -32,7 +32,7 @@ impl Tokenizer {
 
     #[inline(always)]
     pub fn feature(&self, morph: &Morpheme) -> &str {
-        self.dict.lexicon().word_feature(morph.word_idx())
+        self.dict.word_feature(morph.word_idx())
     }
 
     #[inline(always)]
