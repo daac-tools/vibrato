@@ -64,15 +64,16 @@ impl UnkHandler {
             return;
         }
 
-        let mut glen = 0;
+        let mut grouped = false;
+        let groupable = sent.groupable(pos_char);
 
         if cinfo.group() {
-            glen = sent.groupable(pos_char);
-            self.push_entries(pos_char, pos_char + glen, cinfo, unk_words);
+            grouped = true;
+            self.push_entries(pos_char, pos_char + groupable, cinfo, unk_words);
         }
 
-        for i in 1..=cinfo.length() {
-            if i == glen {
+        for i in 1..=cinfo.length().min(groupable) {
+            if grouped && i == groupable {
                 continue;
             }
             let end_char = pos_char + i;

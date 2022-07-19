@@ -33,3 +33,20 @@ cargo run --release -p exp_timeperf -- -r resources_mecab-unidic -s wagahaiwa_ne
 ```
 echo "偸《ぬす》み" | cargo run --release -p tokenize -- -r resources_mecab-ipadic
 ```
+
+以下のようになってほしい
+
+```
+% ./tokenize/a.out 
+偸《ぬす》み
+偸      名詞,一般,*,*,*,*,*
+《      記号,括弧開,*,*,*,*,《,《,《
+ぬ      助動詞,*,*,*,特殊・ヌ,基本形,ぬ,ヌ,ヌ
+す      名詞,一般,*,*,*,*,す,ス,ス
+》      記号,括弧閉,*,*,*,*,》,》,》
+み      接頭詞,名詞接続,*,*,*,*,み,ミ,ミ
+EOS
+```
+
+KANJIが別の文字を巻き込んで未知語を作ったときのコストはどうなる？
+=> そもそも別のカテゴリの文字はマージされないようにする必要があった。
