@@ -48,7 +48,14 @@ fn main() -> Result<(), Box<dyn Error>> {
             println!("{}", surfaces.join(" "));
         } else {
             for m in morphs {
-                println!("{}\t{}", sentence.surface(m), tokenizer.feature(m));
+                match m.word_idx().lex_type() {
+                    LexType::System => {
+                        println!("{}\t{}", sentence.surface(m), tokenizer.feature(m))
+                    }
+                    LexType::Unknown => {
+                        println!("{}\t{} (UNK)", sentence.surface(m), tokenizer.feature(m))
+                    }
+                }
             }
             println!("EOS");
         }
