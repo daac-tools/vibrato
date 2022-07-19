@@ -29,3 +29,7 @@ cargo run --release -p tokenize -- -r resources_mecab-unidic -w < wagahaiwa_neko
 cargo run --release -p exp_timeperf -- -r resources_mecab-ipadic -s wagahaiwa_nekodearu.txt
 cargo run --release -p exp_timeperf -- -r resources_mecab-unidic -s wagahaiwa_nekodearu.txt
 ```
+
+```
+echo "偸《ぬす》み" | cargo run --release -p tokenize -- -r resources_mecab-ipadic
+```
