@@ -40,7 +40,7 @@ impl Lattice {
     fn insert_bos(&mut self) {
         self.ends[0].push(Node {
             word_idx: WordIdx::default(),
-            begin_char: u16::MAX,
+            start_char: u16::MAX,
             left_id: -1,
             right_id: 0,
             min_idx: INVALID_IDX,
@@ -52,7 +52,7 @@ impl Lattice {
         let (min_idx, min_cost) = self.search_min_node(self.len_char(), 0, connector).unwrap();
         self.eos = Some(Node {
             word_idx: WordIdx::default(),
-            begin_char: self.len_char() as u16,
+            start_char: self.len_char() as u16,
             left_id: 0,
             right_id: -1,
             min_idx,
@@ -62,18 +62,18 @@ impl Lattice {
 
     pub fn insert_node(
         &mut self,
-        begin_char: usize,
+        start_char: usize,
         end_char: usize,
         word_idx: WordIdx,
         word_param: WordParam,
         connector: &Connector,
     ) {
         let (min_idx, min_cost) = self
-            .search_min_node(begin_char, word_param.left_id as usize, connector)
+            .search_min_node(start_char, word_param.left_id as usize, connector)
             .unwrap();
         self.ends[end_char].push(Node {
             word_idx,
-            begin_char: begin_char as u16,
+            start_char: start_char as u16,
             left_id: word_param.left_id,
             right_id: word_param.right_id,
             min_idx,
@@ -84,16 +84,16 @@ impl Lattice {
     #[allow(unused_variables)] // for exp-ideal
     fn search_min_node(
         &self,
-        begin_char: usize,
+        start_char: usize,
         left_id: usize,
         connector: &Connector,
     ) -> Option<(u16, i32)> {
-        if self.ends[begin_char].is_empty() {
+        if self.ends[start_char].is_empty() {
             return None;
         }
         let mut min_idx = INVALID_IDX;
         let mut min_cost = MAX_COST;
-        for (i, left_node) in self.ends[begin_char].iter().enumerate() {
+        for (i, left_node) in self.ends[start_char].iter().enumerate() {
             assert!(left_node.is_connected_to_bos());
             #[cfg(feature = "exp-ideal")]
             let conn_cost = 0;
@@ -122,7 +122,7 @@ impl Lattice {
         while pos_char != 0 {
             let node = &self.ends[pos_char][min_idx];
             result.push((pos_char, node.clone()));
-            (pos_char, min_idx) = (node.begin_char(), node.min_idx());
+            (pos_char, min_idx) = (node.start_char(), node.min_idx());
         }
     }
 
@@ -160,7 +160,7 @@ impl std::fmt::Debug for Lattice {
 #[derive(Default, Debug, Clone)]
 pub struct Node {
     word_idx: WordIdx,
-    begin_char: u16,
+    start_char: u16,
     left_id: i16,
     right_id: i16,
     min_idx: u16,
@@ -174,8 +174,8 @@ impl Node {
     }
 
     #[inline(always)]
-    pub fn begin_char(&self) -> usize {
-        self.begin_char as usize
+    pub fn start_char(&self) -> usize {
+        self.start_char as usize
     }
 
     #[inline(always)]

@@ -15,7 +15,7 @@ pub struct UnkEntry {
 
 #[derive(Default, Debug, Clone, Copy)]
 pub struct UnkWord {
-    begin_char: u16,
+    start_char: u16,
     end_char: u16,
     left_id: i16,
     right_id: i16,
@@ -25,8 +25,8 @@ pub struct UnkWord {
 
 impl UnkWord {
     #[inline(always)]
-    pub fn begin_char(&self) -> usize {
-        self.begin_char as usize
+    pub fn start_char(&self) -> usize {
+        self.start_char as usize
     }
 
     #[inline(always)]
@@ -87,7 +87,7 @@ impl UnkHandler {
     #[inline(always)]
     fn push_entries(
         &self,
-        begin_char: usize,
+        start_char: usize,
         end_char: usize,
         cinfo: CharInfo,
         unk_words: &mut Vec<UnkWord>,
@@ -97,7 +97,7 @@ impl UnkHandler {
         for word_id in start..end {
             let e = &self.entries[word_id];
             unk_words.push(UnkWord {
-                begin_char: begin_char as u16,
+                start_char: start_char as u16,
                 end_char: end_char as u16,
                 left_id: e.left_id,
                 right_id: e.right_id,

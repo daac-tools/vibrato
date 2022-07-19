@@ -84,7 +84,7 @@ impl Tokenizer {
 
             for w in &self.unk_words {
                 self.lattice.insert_node(
-                    w.begin_char(),
+                    w.start_char(),
                     w.end_char(),
                     w.word_idx(),
                     w.word_param(),
@@ -107,9 +107,9 @@ impl Tokenizer {
         for (i, (end_char, node)) in self.top_nodes.iter().rev().enumerate() {
             let end_char = *end_char;
             morphs[i] = Morpheme {
-                begin_byte: sent.byte_position(node.begin_char()) as u16,
+                start_byte: sent.byte_position(node.start_char()) as u16,
                 end_byte: sent.byte_position(end_char) as u16,
-                begin_char: node.begin_char() as u16,
+                start_char: node.start_char() as u16,
                 end_char: end_char as u16,
                 word_idx: node.word_idx(),
                 total_cost: node.min_cost(),
@@ -163,18 +163,18 @@ mod tests {
             vec![
                 // 自然
                 Morpheme {
-                    begin_byte: 0,
+                    start_byte: 0,
                     end_byte: 6,
-                    begin_char: 0,
+                    start_char: 0,
                     end_char: 2,
                     word_idx: WordIdx::new(LexType::System, 0),
                     total_cost: 1,
                 },
                 // 言語処理
                 Morpheme {
-                    begin_byte: 6,
+                    start_byte: 6,
                     end_byte: 18,
-                    begin_char: 2,
+                    start_char: 2,
                     end_char: 6,
                     word_idx: WordIdx::new(LexType::System, 4),
                     total_cost: 6,
@@ -212,18 +212,18 @@ mod tests {
             vec![
                 // 自然
                 Morpheme {
-                    begin_byte: 0,
+                    start_byte: 0,
                     end_byte: 6,
-                    begin_char: 0,
+                    start_char: 0,
                     end_char: 2,
                     word_idx: WordIdx::new(LexType::System, 0),
                     total_cost: 1,
                 },
                 // 日本語処理
                 Morpheme {
-                    begin_byte: 6,
+                    start_byte: 6,
                     end_byte: 21,
-                    begin_char: 2,
+                    start_char: 2,
                     end_char: 7,
                     word_idx: WordIdx::new(LexType::Unknown, 0),
                     total_cost: 101,
@@ -261,18 +261,18 @@ mod tests {
             vec![
                 // 不自然
                 Morpheme {
-                    begin_byte: 0,
+                    start_byte: 0,
                     end_byte: 9,
-                    begin_char: 0,
+                    start_char: 0,
                     end_char: 3,
                     word_idx: WordIdx::new(LexType::Unknown, 0),
                     total_cost: 100,
                 },
                 // 言語処理
                 Morpheme {
-                    begin_byte: 9,
+                    start_byte: 9,
                     end_byte: 21,
-                    begin_char: 3,
+                    start_char: 3,
                     end_char: 7,
                     word_idx: WordIdx::new(LexType::System, 4),
                     total_cost: 105,

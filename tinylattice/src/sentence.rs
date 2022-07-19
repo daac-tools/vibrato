@@ -165,6 +165,7 @@ mod tests {
     fn test_sentence() {
         let mut sent = Sentence::new();
         sent.set_sentence("自然");
+        sent.compute_basic();
         assert_eq!(sent.chars(), &['自', '然']);
         assert_eq!(sent.c2b(), &[0, 3, 6]);
         assert_eq!(sent.char_position(0), 0);
