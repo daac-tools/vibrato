@@ -81,6 +81,7 @@ impl Lattice {
         });
     }
 
+    #[allow(unused_variables)] // for exp-ideal
     fn search_min_node(
         &self,
         begin_char: usize,
@@ -94,7 +95,11 @@ impl Lattice {
         let mut min_cost = MAX_COST;
         for (i, left_node) in self.ends[begin_char].iter().enumerate() {
             assert!(left_node.is_connected_to_bos());
+            #[cfg(feature = "exp-ideal")]
+            let conn_cost = 0;
+            #[cfg(not(feature = "exp-ideal"))]
             let conn_cost = connector.cost(left_node.right_id(), left_id) as i32;
+
             let new_cost = left_node.min_cost() + conn_cost;
             if new_cost < min_cost {
                 min_idx = i as u16;

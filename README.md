@@ -19,3 +19,8 @@ mv unidic-mecab-2.1.2_src unidic-mecab
 ```
 echo "日本語の形態素解析を行うことができます。" | cargo run --release -p tokenize -- -r resources_mecab-ipadic
 ```
+
+```
+cargo run --release -p exp_timeperf -- -r resources_mecab-ipadic -s wagahaiwa_nekodearu.txt
+cargo run --release -p exp_timeperf -- -r resources_mecab-unidic -s wagahaiwa_nekodearu.txt
+```
