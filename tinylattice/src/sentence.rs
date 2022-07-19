@@ -1,11 +1,9 @@
-use std::borrow::Cow;
-
 use crate::dictionary::character::{CharInfo, CharProperty};
 use crate::Morpheme;
 
 #[derive(Default, Clone)]
-pub struct Sentence<'a> {
-    input: Cow<'a, str>,
+pub struct Sentence {
+    input: String,
     chars: Vec<char>,
     c2b: Vec<usize>,
     b2c: Vec<usize>,
@@ -14,13 +12,14 @@ pub struct Sentence<'a> {
     morphs: Vec<Morpheme>,
 }
 
-impl<'a> Sentence<'a> {
+impl Sentence {
     pub fn new() -> Self {
         Self::default()
     }
 
     #[inline(always)]
     pub fn clear(&mut self) {
+        self.input.clear();
         self.chars.clear();
         self.c2b.clear();
         self.b2c.clear();
@@ -29,14 +28,21 @@ impl<'a> Sentence<'a> {
         self.morphs.clear();
     }
 
-    pub fn set_sentence(&mut self, input: impl Into<Cow<'a, str>>) {
+    pub fn set_sentence<S>(&mut self, input: S)
+    where
+        S: AsRef<str>,
+    {
         self.clear();
+        self.input.push_str(input.as_ref());
+    }
 
-        self.input = input.into();
-        if self.input.is_empty() {
-            return;
-        }
+    pub fn compile(&mut self, char_prop: &CharProperty) {
+        self.compute_basic();
+        self.compute_categories(char_prop);
+        self.compute_groupable();
+    }
 
+    fn compute_basic(&mut self) {
         self.b2c.resize(self.input.len() + 1, usize::MAX);
         for (ci, (bi, ch)) in self.input.char_indices().enumerate() {
             self.chars.push(ch);
@@ -45,11 +51,6 @@ impl<'a> Sentence<'a> {
         }
         self.c2b.push(self.input.len());
         self.b2c[self.input.len()] = self.chars.len();
-    }
-
-    pub fn compile(&mut self, char_prop: &CharProperty) {
-        self.compute_categories(char_prop);
-        self.compute_groupable();
     }
 
     fn compute_categories(&mut self, char_prop: &CharProperty) {
