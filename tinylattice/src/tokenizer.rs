@@ -43,6 +43,11 @@ impl Tokenizer {
         &self.dict
     }
 
+    #[inline(always)]
+    pub fn lattice(&self) -> &Lattice {
+        &self.lattice
+    }
+
     fn build_lattice(&mut self, sent: &Sentence) {
         self.lattice.reset(sent.chars().len());
 
@@ -112,6 +117,15 @@ impl Tokenizer {
         }
 
         sent.set_morphs(morphs);
+    }
+
+    pub fn count_connid_occurrences(
+        &self,
+        lid_counts: &mut Vec<usize>,
+        rid_counts: &mut Vec<usize>,
+    ) {
+        self.lattice
+            .count_connid_occurrences(lid_counts, rid_counts, self.dict.connector());
     }
 }
 

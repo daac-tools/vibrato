@@ -24,7 +24,6 @@ impl Lattice {
         }
     }
 
-    // new_len is in characters
     pub fn reset(&mut self, new_len_char: usize) {
         Self::reset_vec(&mut self.ends, new_len_char + 1);
         self.len_char = new_len_char;
@@ -42,6 +41,7 @@ impl Lattice {
         self.ends[0].push(Node {
             word_idx: WordIdx::default(),
             begin_char: u16::MAX,
+            left_id: -1,
             right_id: 0,
             min_idx: INVALID_IDX,
             min_cost: 0,
@@ -53,7 +53,8 @@ impl Lattice {
         self.eos = Some(Node {
             word_idx: WordIdx::default(),
             begin_char: self.len_char() as u16,
-            right_id: i16::MAX,
+            left_id: 0,
+            right_id: -1,
             min_idx,
             min_cost,
         });
@@ -73,6 +74,7 @@ impl Lattice {
         self.ends[end_char].push(Node {
             word_idx,
             begin_char: begin_char as u16,
+            left_id: word_param.left_id,
             right_id: word_param.right_id,
             min_idx,
             min_cost: min_cost + word_param.word_cost as i32,
@@ -118,6 +120,26 @@ impl Lattice {
             (pos_char, min_idx) = (node.begin_char(), node.min_idx());
         }
     }
+
+    pub fn count_connid_occurrences(
+        &self,
+        lid_counts: &mut Vec<usize>,
+        rid_counts: &mut Vec<usize>,
+        connector: &Connector,
+    ) {
+        if lid_counts.len() < connector.num_left() {
+            lid_counts.resize(connector.num_left(), 0);
+        }
+        if rid_counts.len() < connector.num_right() {
+            rid_counts.resize(connector.num_right(), 0);
+        }
+        for nodes in &self.ends[1..=self.len_char()] {
+            for node in nodes {
+                lid_counts[node.left_id()] += 1;
+                rid_counts[node.right_id()] += 1;
+            }
+        }
+    }
 }
 
 impl std::fmt::Debug for Lattice {
@@ -134,6 +156,7 @@ impl std::fmt::Debug for Lattice {
 pub struct Node {
     word_idx: WordIdx,
     begin_char: u16,
+    left_id: i16,
     right_id: i16,
     min_idx: u16,
     min_cost: i32,
@@ -148,6 +171,11 @@ impl Node {
     #[inline(always)]
     pub fn begin_char(&self) -> usize {
         self.begin_char as usize
+    }
+
+    #[inline(always)]
+    pub fn left_id(&self) -> usize {
+        self.left_id as usize
     }
 
     #[inline(always)]
