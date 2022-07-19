@@ -21,6 +21,11 @@ echo "日本語の形態素解析を行うことができます。" | cargo run 
 ```
 
 ```
+cargo run --release -p tokenize -- -r resources_mecab-ipadic -w < wagahaiwa_nekodearu.txt > tok-ipadic.txt
+cargo run --release -p tokenize -- -r resources_mecab-unidic -w < wagahaiwa_nekodearu.txt > tok-unidic.txt
+```
+
+```
 cargo run --release -p exp_timeperf -- -r resources_mecab-ipadic -s wagahaiwa_nekodearu.txt
 cargo run --release -p exp_timeperf -- -r resources_mecab-unidic -s wagahaiwa_nekodearu.txt
 ```

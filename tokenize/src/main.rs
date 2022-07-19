@@ -44,10 +44,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         let morphs = sentence.morphs();
 
         if wakachi {
-            for m in morphs {
-                print!("{} ", sentence.surface(m));
-            }
-            println!();
+            let surfaces = sentence.surfaces();
+            println!("{}", surfaces.join(" "));
         } else {
             for m in morphs {
                 println!("{}\t{}", sentence.surface(m), tokenizer.feature(m));
