@@ -101,7 +101,9 @@ impl Lattice {
             let conn_cost = connector.cost(left_node.right_id(), left_id) as i32;
 
             let new_cost = left_node.min_cost() + conn_cost;
-            if new_cost < min_cost {
+
+            // <= allows the same analysis as MeCab
+            if new_cost <= min_cost {
                 min_idx = i as u16;
                 min_cost = new_cost;
             }

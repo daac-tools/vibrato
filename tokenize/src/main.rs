@@ -49,10 +49,22 @@ fn main() -> Result<(), Box<dyn Error>> {
             for m in morphs {
                 match m.word_idx().lex_type() {
                     LexType::System => {
-                        println!("{}\t{}", sentence.surface(m), tokenizer.feature(m))
+                        println!(
+                            "{}\t{}\t{}\t{}",
+                            sentence.surface(m),
+                            tokenizer.feature(m),
+                            m.word_idx().word_id(),
+                            m.total_cost()
+                        )
                     }
                     LexType::Unknown => {
-                        println!("{}\t{} (UNK)", sentence.surface(m), tokenizer.feature(m))
+                        println!(
+                            "{}\t{}\t{}\t{} (UNK)",
+                            sentence.surface(m),
+                            tokenizer.feature(m),
+                            m.word_idx().word_id(),
+                            m.total_cost()
+                        )
                     }
                 }
             }
