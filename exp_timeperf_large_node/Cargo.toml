@@ -1,0 +1,11 @@
+[package]
+name = "exp_timeperf_large_node"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tinylattice = { path = "../tinylattice", default-features = false, features = ["exp-large-node"] }
+exp_timer = { path = "../exp_timer" }
+clap = { version = "3.1", features = ["derive"] }  # MIT or Apache-2.0

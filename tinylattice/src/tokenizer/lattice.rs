@@ -3,6 +3,9 @@ use crate::dictionary::{Connector, WordIdx, WordParam};
 const MAX_COST: i32 = i32::MAX;
 const INVALID_IDX: u16 = u16::MAX;
 
+#[cfg(feature = "exp-large-node")]
+const EXTRA_FACTOR: usize = 20;
+
 #[derive(Default)]
 pub struct Lattice {
     ends: Vec<Vec<Node>>,
@@ -45,6 +48,8 @@ impl Lattice {
             right_id: 0,
             min_idx: INVALID_IDX,
             min_cost: 0,
+            #[cfg(feature = "exp-large-node")]
+            _dummy: [0; EXTRA_FACTOR],
         });
     }
 
@@ -57,6 +62,8 @@ impl Lattice {
             right_id: -1,
             min_idx,
             min_cost,
+            #[cfg(feature = "exp-large-node")]
+            _dummy: [0; EXTRA_FACTOR],
         });
     }
 
@@ -78,6 +85,8 @@ impl Lattice {
             right_id: word_param.right_id,
             min_idx,
             min_cost: min_cost + word_param.word_cost as i32,
+            #[cfg(feature = "exp-large-node")]
+            _dummy: [0; EXTRA_FACTOR],
         });
     }
 
@@ -157,6 +166,8 @@ impl std::fmt::Debug for Lattice {
     }
 }
 
+// Def: 160 bits
+//
 #[derive(Default, Debug, Clone)]
 pub struct Node {
     word_idx: WordIdx,
@@ -165,6 +176,8 @@ pub struct Node {
     right_id: i16,
     min_idx: u16,
     min_cost: i32,
+    #[cfg(feature = "exp-large-node")]
+    _dummy: [u32; EXTRA_FACTOR],
 }
 
 impl Node {
