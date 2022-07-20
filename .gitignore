@@ -15,8 +15,7 @@ sudachi-dict
 mecab-ipadic*
 unidic-mecab*
 
-resources_mecab-ipadic/
-resources_mecab-unidic/
+resources_*/
 
 workspace-mecab/
 .vscode/

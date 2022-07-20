@@ -6,14 +6,14 @@ which wget
 which unzip
 which sort
 
-resources_dir="resources_mecab-unidic"
+resources_dir="resources_unidic-cwj-3_1_0"
 
 if [ -d ${resources_dir} ]; then
   echo "Directory ${resources_dir} already exits."
   exit
 fi
 
-wget "https://ccd.ninjal.ac.jp/unidic_archive/cwj/3.1.0/unidic-cwj-3.1.0-full.zip" -O "./unidic-cwj-3.1.0-full.zip" --no-check-certificate
+wget "https://clrd.ninjal.ac.jp/unidic_archive/cwj/3.1.0/unidic-cwj-3.1.0-full.zip" -O "./unidic-cwj-3.1.0-full.zip" --no-check-certificate
 unzip unidic-cwj-3.1.0-full.zip
 
 mkdir ${resources_dir}

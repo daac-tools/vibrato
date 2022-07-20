@@ -7,7 +7,7 @@ which tar
 which nkf
 which sort
 
-resources_dir="resources_mecab-ipadic"
+resources_dir="resources_ipadic-mecab-2_7_0"
 
 if [ -d ${resources_dir} ]; then
   echo "Directory ${resources_dir} already exits."

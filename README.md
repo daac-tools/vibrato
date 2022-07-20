@@ -26,8 +26,9 @@ cargo run --release -p tokenize -- -r resources_mecab-unidic -w < wagahaiwa_neko
 ```
 
 ```
-cargo run --release -p exp_timeperf -- -r resources_mecab-ipadic -s wagahaiwa_nekodearu.txt
-cargo run --release -p exp_timeperf -- -r resources_mecab-unidic -s wagahaiwa_nekodearu.txt
+cargo run --release -p exp_timeperf -- -r resources_ipadic-mecab-2_7_0 -s wagahaiwa_nekodearu.txt
+cargo run --release -p exp_timeperf -- -r resources_unidic-mecab-2_1_2 -s wagahaiwa_nekodearu.txt
+cargo run --release -p exp_timeperf -- -r resources_unidic-cwj-3_1_0 -s wagahaiwa_nekodearu.txt
 ```
 
 ```
