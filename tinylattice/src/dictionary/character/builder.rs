@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::io::{prelude::*, BufReader, Read};
 
 use anyhow::{anyhow, Result};
 
@@ -11,19 +12,22 @@ struct CharRange {
 }
 
 impl CharProperty {
-    pub fn from_lines<I, L>(lines: I) -> Result<Self>
+    pub fn from_reader<R>(rdr: R) -> Result<Self>
     where
-        I: IntoIterator<Item = L>,
-        L: AsRef<str>,
+        R: Read,
     {
         let mut cate2info = BTreeMap::new();
         let mut char_ranges = vec![];
 
-        for line in lines {
-            let line = line.as_ref().trim();
+        let reader = BufReader::new(rdr);
+        for line in reader.lines() {
+            let line = line?;
+            let line = line.trim();
+
             if line.is_empty() || line.starts_with('#') {
                 continue;
             }
+
             if !line.starts_with("0x") {
                 let (category, invoke, group, length) = Self::parse_char_category(line)?;
                 assert_eq!(category.len(), 1);

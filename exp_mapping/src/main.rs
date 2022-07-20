@@ -33,10 +33,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let unkdef_filename = format!("{}/unk.def", &args.resource_dirname);
 
     let mut tokenizer = Tokenizer::new(Dictionary::new(
-        Lexicon::from_lines(to_lines(sysdic_filename), LexType::System)?,
-        Connector::from_lines(to_lines(matrix_filename))?,
-        CharProperty::from_lines(to_lines(chardef_filename))?,
-        UnkHandler::from_lines(to_lines(unkdef_filename))?,
+        Lexicon::from_reader(File::open(sysdic_filename)?, LexType::System)?,
+        Connector::from_reader(File::open(matrix_filename)?)?,
+        CharProperty::from_reader(File::open(chardef_filename)?)?,
+        UnkHandler::from_reader(File::open(unkdef_filename)?)?,
     ));
 
     let mut sentence = Sentence::new();

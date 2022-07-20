@@ -146,10 +146,10 @@ mod tests {
         let unk_def = "DEFAULT,0,0,100,*";
 
         let dict = Dictionary::new(
-            Lexicon::from_lines(lexicon_csv.split('\n'), LexType::System).unwrap(),
-            Connector::from_lines(matrix_def.split('\n')).unwrap(),
-            CharProperty::from_lines(char_def.split('\n')).unwrap(),
-            UnkHandler::from_lines(unk_def.split('\n')).unwrap(),
+            Lexicon::from_reader(lexicon_csv.as_bytes(), LexType::System).unwrap(),
+            Connector::from_reader(matrix_def.as_bytes()).unwrap(),
+            CharProperty::from_reader(char_def.as_bytes()).unwrap(),
+            UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
         );
 
         let mut tokenizer = Tokenizer::new(dict);
@@ -195,10 +195,10 @@ mod tests {
         let unk_def = "DEFAULT,0,0,100,*";
 
         let dict = Dictionary::new(
-            Lexicon::from_lines(lexicon_csv.split('\n'), LexType::System).unwrap(),
-            Connector::from_lines(matrix_def.split('\n')).unwrap(),
-            CharProperty::from_lines(char_def.split('\n')).unwrap(),
-            UnkHandler::from_lines(unk_def.split('\n')).unwrap(),
+            Lexicon::from_reader(lexicon_csv.as_bytes(), LexType::System).unwrap(),
+            Connector::from_reader(matrix_def.as_bytes()).unwrap(),
+            CharProperty::from_reader(char_def.as_bytes()).unwrap(),
+            UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
         );
 
         let mut tokenizer = Tokenizer::new(dict);
@@ -244,10 +244,10 @@ mod tests {
         let unk_def = "DEFAULT,0,0,100,*";
 
         let dict = Dictionary::new(
-            Lexicon::from_lines(lexicon_csv.split('\n'), LexType::System).unwrap(),
-            Connector::from_lines(matrix_def.split('\n')).unwrap(),
-            CharProperty::from_lines(char_def.split('\n')).unwrap(),
-            UnkHandler::from_lines(unk_def.split('\n')).unwrap(),
+            Lexicon::from_reader(lexicon_csv.as_bytes(), LexType::System).unwrap(),
+            Connector::from_reader(matrix_def.as_bytes()).unwrap(),
+            CharProperty::from_reader(char_def.as_bytes()).unwrap(),
+            UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
         );
 
         let mut tokenizer = Tokenizer::new(dict);

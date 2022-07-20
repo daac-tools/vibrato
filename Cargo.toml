@@ -5,6 +5,4 @@ members = [
     "exp_timer",
     "exp_mapping",
     "exp_timeperf",
-    "exp_timeperf_ideal",
-    "exp_timeperf_large_node",
 ]

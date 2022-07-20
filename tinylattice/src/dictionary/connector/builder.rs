@@ -1,3 +1,5 @@
+use std::io::{prelude::*, BufReader, Read};
+
 use anyhow::{anyhow, Result};
 
 use super::Connector;
@@ -8,18 +10,20 @@ impl Connector {
     // r0 l1
     // r0 l2
     // ...
-    pub fn from_lines<I, L>(lines: I) -> Result<Self>
+    pub fn from_reader<R>(rdr: R) -> Result<Self>
     where
-        I: IntoIterator<Item = L>,
-        L: AsRef<str>,
+        R: Read,
     {
-        let mut lines = lines.into_iter();
-        let (num_right, num_left) = Self::parse_header(lines.next().unwrap().as_ref())?;
+        let reader = BufReader::new(rdr);
+        let mut lines = reader.lines();
+
+        let (num_right, num_left) = Self::parse_header(&lines.next().unwrap()?)?;
         let mut data = vec![0; num_right * num_left];
+
         for line in lines {
-            let line = line.as_ref();
+            let line = line?;
             if !line.is_empty() {
-                let (right_id, left_id, conn_cost) = Self::parse_body(line)?;
+                let (right_id, left_id, conn_cost) = Self::parse_body(&line)?;
                 data[left_id * num_right + right_id] = conn_cost;
             }
         }
@@ -56,7 +60,7 @@ mod tests {
 0 1 1
 1 0 -2
 1 1 -3";
-        let conn = Connector::from_lines(data.split('\n')).unwrap();
+        let conn = Connector::from_reader(data.as_bytes()).unwrap();
         assert_eq!(conn.cost(0, 0), 0);
         assert_eq!(conn.cost(0, 1), 1);
         assert_eq!(conn.cost(1, 0), -2);
@@ -72,7 +76,7 @@ mod tests {
 1 0 -3
 1 1 -4
 1 2 -5";
-        let conn = Connector::from_lines(data.split('\n')).unwrap();
+        let conn = Connector::from_reader(data.as_bytes()).unwrap();
         assert_eq!(conn.cost(0, 0), 0);
         assert_eq!(conn.cost(0, 1), 1);
         assert_eq!(conn.cost(0, 2), 2);

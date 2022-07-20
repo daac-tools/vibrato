@@ -13,14 +13,14 @@ if [ -d ${resources_dir} ]; then
   exit
 fi
 
-wget https://osdn.jp/projects/unidic/downloads/58338/unidic-mecab-2.1.2_src.zip
-unzip unidic-mecab-2.1.2_src.zip
+wget "https://ccd.ninjal.ac.jp/unidic_archive/cwj/3.1.0/unidic-cwj-3.1.0-full.zip" -O "./unidic-cwj-3.1.0-full.zip" --no-check-certificate
+unzip unidic-cwj-3.1.0-full.zip
 
 mkdir ${resources_dir}
-env LC_ALL=C cat unidic-mecab-2.1.2_src/lex.csv | sort > ${resources_dir}/lex.csv
-mv unidic-mecab-2.1.2_src/char.def ${resources_dir}/
-mv unidic-mecab-2.1.2_src/unk.def ${resources_dir}/
-mv unidic-mecab-2.1.2_src/matrix.def ${resources_dir}/
+env LC_ALL=C cat unidic-cwj-3.1.0-full/lex_3_1.csv | sort > ${resources_dir}/lex.csv
+mv unidic-cwj-3.1.0-full/char.def ${resources_dir}/
+mv unidic-cwj-3.1.0-full/unk.def ${resources_dir}/
+mv unidic-cwj-3.1.0-full/matrix.def ${resources_dir}/
 
-rm -rf unidic-mecab-2.1.2_src
-rm -f unidic-mecab-2.1.2_src.zip
+rm -rf unidic-cwj-3.1.0-full
+rm -rf unidic-cwj-3.1.0-full.zip

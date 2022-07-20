@@ -5,6 +5,10 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = []
+exp-ideal = ["tinylattice/exp-ideal"]
+
 [dependencies]
 tinylattice = { path = "../tinylattice" }
 exp_timer = { path = "../exp_timer" }

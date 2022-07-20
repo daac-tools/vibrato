@@ -11,10 +11,10 @@ const UNK_DEF: &str = include_str!("./resources/unk.def");
 #[test]
 fn test_tokenize_tokyo() {
     let dict = Dictionary::new(
-        Lexicon::from_lines(LEX_CSV.split('\n'), LexType::System).unwrap(),
-        Connector::from_lines(MATRIX_DEF.split('\n')).unwrap(),
-        CharProperty::from_lines(CHAR_DEF.split('\n')).unwrap(),
-        UnkHandler::from_lines(UNK_DEF.split('\n')).unwrap(),
+        Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
+        Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
+        UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
 
     let mut tokenizer = Tokenizer::new(dict);
@@ -40,10 +40,10 @@ fn test_tokenize_tokyo() {
 #[test]
 fn test_tokenize_kyotokyo() {
     let dict = Dictionary::new(
-        Lexicon::from_lines(LEX_CSV.split('\n'), LexType::System).unwrap(),
-        Connector::from_lines(MATRIX_DEF.split('\n')).unwrap(),
-        CharProperty::from_lines(CHAR_DEF.split('\n')).unwrap(),
-        UnkHandler::from_lines(UNK_DEF.split('\n')).unwrap(),
+        Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
+        Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
+        UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
 
     let mut tokenizer = Tokenizer::new(dict);
@@ -79,10 +79,10 @@ fn test_tokenize_kyotokyo() {
 #[test]
 fn test_tokenize_kampersanda() {
     let dict = Dictionary::new(
-        Lexicon::from_lines(LEX_CSV.split('\n'), LexType::System).unwrap(),
-        Connector::from_lines(MATRIX_DEF.split('\n')).unwrap(),
-        CharProperty::from_lines(CHAR_DEF.split('\n')).unwrap(),
-        UnkHandler::from_lines(UNK_DEF.split('\n')).unwrap(),
+        Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
+        Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
+        UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
 
     let mut tokenizer = Tokenizer::new(dict);
@@ -108,10 +108,10 @@ fn test_tokenize_kampersanda() {
 #[test]
 fn test_tokenize_tokyoken() {
     let dict = Dictionary::new(
-        Lexicon::from_lines(LEX_CSV.split('\n'), LexType::System).unwrap(),
-        Connector::from_lines(MATRIX_DEF.split('\n')).unwrap(),
-        CharProperty::from_lines(CHAR_DEF.split('\n')).unwrap(),
-        UnkHandler::from_lines(UNK_DEF.split('\n')).unwrap(),
+        Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
+        Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
+        UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
 
     let mut tokenizer = Tokenizer::new(dict);

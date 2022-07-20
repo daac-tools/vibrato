@@ -4,7 +4,7 @@ const LEX_CSV: &str = include_str!("./resources/lex.csv");
 
 #[test]
 fn test_common_prefix_iterator_1() {
-    let lexicon = Lexicon::from_lines(LEX_CSV.split('\n'), LexType::System).unwrap();
+    let lexicon = Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap();
     let mut it = lexicon.common_prefix_iterator("東京都に行く".as_bytes());
     // 東
     assert_eq!(
@@ -38,7 +38,7 @@ fn test_common_prefix_iterator_1() {
 
 #[test]
 fn test_common_prefix_iterator_2() {
-    let lexicon = Lexicon::from_lines(LEX_CSV.split('\n'), LexType::System).unwrap();
+    let lexicon = Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap();
     let mut it = lexicon.common_prefix_iterator("X".as_bytes());
     for word_id in 40..46 {
         assert_eq!(
@@ -55,7 +55,7 @@ fn test_common_prefix_iterator_2() {
 
 #[test]
 fn test_get_word_feature() {
-    let lexicon = Lexicon::from_lines(LEX_CSV.split('\n'), LexType::System).unwrap();
+    let lexicon = Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap();
     assert_eq!(
         lexicon.word_feature(WordIdx::new(LexType::System, 0)),
         "た,助動詞,*,*,*,助動詞-タ,終止形-一般,タ,た,*,A,*,*,*,*"

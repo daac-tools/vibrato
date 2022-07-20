@@ -1,7 +1,6 @@
 use std::error::Error;
 use std::fs::File;
-use std::io::{BufRead, BufReader};
-use std::path::Path;
+use std::io::BufRead;
 
 use tinylattice::dictionary::{CharProperty, Connector, Dictionary, LexType, Lexicon, UnkHandler};
 use tinylattice::{Sentence, Tokenizer};
@@ -28,10 +27,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let unkdef_filename = format!("{}/unk.def", &args.resource_dirname);
 
     let mut tokenizer = Tokenizer::new(Dictionary::new(
-        Lexicon::from_lines(to_lines(sysdic_filename), LexType::System)?,
-        Connector::from_lines(to_lines(matrix_filename))?,
-        CharProperty::from_lines(to_lines(chardef_filename))?,
-        UnkHandler::from_lines(to_lines(unkdef_filename))?,
+        Lexicon::from_reader(File::open(sysdic_filename)?, LexType::System)?,
+        Connector::from_reader(File::open(matrix_filename)?)?,
+        CharProperty::from_reader(File::open(chardef_filename)?)?,
+        UnkHandler::from_reader(File::open(unkdef_filename)?)?,
     ));
 
     let mut sentence = Sentence::new();
@@ -62,12 +61,4 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     Ok(())
-}
-
-fn to_lines<P>(path: P) -> impl Iterator<Item = String>
-where
-    P: AsRef<Path>,
-{
-    let buf = BufReader::new(File::open(path).unwrap());
-    buf.lines().map(|line| line.unwrap())
 }
