@@ -88,7 +88,7 @@ impl Sentence {
 
     #[inline(always)]
     pub fn bytes(&self) -> &[u8] {
-        &self.input.as_bytes()
+        self.input.as_bytes()
     }
 
     #[inline(always)]

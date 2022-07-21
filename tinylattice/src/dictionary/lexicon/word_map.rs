@@ -12,7 +12,7 @@ pub struct WordMap {
 }
 
 impl WordMap {
-    pub fn from_iter<I, W>(words: I) -> Self
+    pub fn new<I, W>(words: I) -> Self
     where
         I: IntoIterator<Item = W>,
         W: AsRef<str>,

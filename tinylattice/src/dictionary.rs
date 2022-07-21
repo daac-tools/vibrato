@@ -51,7 +51,7 @@ pub struct Dictionary {
 }
 
 impl Dictionary {
-    pub fn new(
+    pub const fn new(
         lexicon: Lexicon,
         connector: Connector,
         char_prop: CharProperty,
@@ -66,22 +66,22 @@ impl Dictionary {
     }
 
     #[inline(always)]
-    pub fn lexicon(&self) -> &Lexicon {
+    pub const fn lexicon(&self) -> &Lexicon {
         &self.lexicon
     }
 
     #[inline(always)]
-    pub fn connector(&self) -> &Connector {
+    pub const fn connector(&self) -> &Connector {
         &self.connector
     }
 
     #[inline(always)]
-    pub fn char_prop(&self) -> &CharProperty {
+    pub const fn char_prop(&self) -> &CharProperty {
         &self.char_prop
     }
 
     #[inline(always)]
-    pub fn unk_handler(&self) -> &UnkHandler {
+    pub const fn unk_handler(&self) -> &UnkHandler {
         &self.unk_handler
     }
 

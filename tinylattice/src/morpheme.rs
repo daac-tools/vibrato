@@ -24,12 +24,12 @@ impl Morpheme {
     }
 
     #[inline(always)]
-    pub fn word_idx(&self) -> WordIdx {
+    pub const fn word_idx(&self) -> WordIdx {
         self.word_idx
     }
 
     #[inline(always)]
-    pub fn total_cost(&self) -> i32 {
+    pub const fn total_cost(&self) -> i32 {
         self.total_cost
     }
 }

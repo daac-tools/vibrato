@@ -33,7 +33,7 @@ impl Lattice {
 
     /// Number of characters of the input sentence.
     #[inline(always)]
-    pub fn len_char(&self) -> usize {
+    pub const fn len_char(&self) -> usize {
         self.len_char
     }
 
@@ -173,37 +173,37 @@ pub struct Node {
 
 impl Node {
     #[inline(always)]
-    pub fn word_idx(&self) -> WordIdx {
+    pub const fn word_idx(&self) -> WordIdx {
         self.word_idx
     }
 
     #[inline(always)]
-    pub fn start_char(&self) -> usize {
+    pub const fn start_char(&self) -> usize {
         self.start_char as usize
     }
 
     #[inline(always)]
-    pub fn left_id(&self) -> usize {
+    pub const fn left_id(&self) -> usize {
         self.left_id as usize
     }
 
     #[inline(always)]
-    pub fn right_id(&self) -> usize {
+    pub const fn right_id(&self) -> usize {
         self.right_id as usize
     }
 
     #[inline(always)]
-    pub fn min_idx(&self) -> usize {
+    pub const fn min_idx(&self) -> usize {
         self.min_idx as usize
     }
 
     #[inline(always)]
-    pub fn min_cost(&self) -> i32 {
+    pub const fn min_cost(&self) -> i32 {
         self.min_cost
     }
 
     #[inline(always)]
-    pub fn is_connected_to_bos(&self) -> bool {
+    pub const fn is_connected_to_bos(&self) -> bool {
         self.min_cost != MAX_COST
     }
 }

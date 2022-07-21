@@ -25,22 +25,22 @@ pub struct UnkWord {
 
 impl UnkWord {
     #[inline(always)]
-    pub fn start_char(&self) -> usize {
+    pub const fn start_char(&self) -> usize {
         self.start_char as usize
     }
 
     #[inline(always)]
-    pub fn end_char(&self) -> usize {
+    pub const fn end_char(&self) -> usize {
         self.end_char as usize
     }
 
     #[inline(always)]
-    pub fn word_param(&self) -> WordParam {
+    pub const fn word_param(&self) -> WordParam {
         WordParam::new(self.left_id, self.right_id, self.word_cost)
     }
 
     #[inline(always)]
-    pub fn word_idx(&self) -> WordIdx {
+    pub const fn word_idx(&self) -> WordIdx {
         WordIdx::new(LexType::Unknown, self.word_id as u32)
     }
 }

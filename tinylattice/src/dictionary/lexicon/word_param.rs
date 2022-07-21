@@ -22,7 +22,7 @@ pub struct WordParams {
 
 impl WordParams {
     // (left_id, right_id, word_cost)
-    pub fn from_iter<I>(params: I) -> Self
+    pub fn new<I>(params: I) -> Self
     where
         I: IntoIterator<Item = WordParam>,
     {

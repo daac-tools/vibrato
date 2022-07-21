@@ -33,13 +33,13 @@ impl Connector {
 
     /// Returns maximum number of left connection ID
     #[inline(always)]
-    pub fn num_left(&self) -> usize {
+    pub const fn num_left(&self) -> usize {
         self.num_left
     }
 
     /// Returns maximum number of right connection ID
     #[inline(always)]
-    pub fn num_right(&self) -> usize {
+    pub const fn num_right(&self) -> usize {
         self.num_right
     }
 }

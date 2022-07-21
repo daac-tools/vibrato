@@ -19,9 +19,9 @@ impl Lexicon {
             entries.push(Self::parse_csv(&rec)?);
         }
 
-        let map = WordMap::from_iter(entries.iter().map(|e| &e.surface));
-        let params = WordParams::from_iter(entries.iter().map(|e| e.param));
-        let features = WordFeatures::from_iter(entries.iter().map(|e| &e.feature));
+        let map = WordMap::new(entries.iter().map(|e| &e.surface));
+        let params = WordParams::new(entries.iter().map(|e| e.param));
+        let features = WordFeatures::new(entries.iter().map(|e| &e.feature));
 
         Ok(Self {
             map,

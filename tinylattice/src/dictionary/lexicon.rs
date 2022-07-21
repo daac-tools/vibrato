@@ -48,7 +48,7 @@ pub struct LexMatch {
 
 impl LexMatch {
     #[inline(always)]
-    pub fn new(word_idx: WordIdx, word_param: WordParam, end_byte: u32) -> Self {
+    pub const fn new(word_idx: WordIdx, word_param: WordParam, end_byte: u32) -> Self {
         Self {
             word_idx,
             word_param,
@@ -86,8 +86,8 @@ mod tests {
     #[test]
     fn test_common_prefix_iterator() {
         let lexicon = Lexicon {
-            map: WordMap::from_iter(["東京", "東京都", "東京", "京都"]),
-            params: WordParams::from_iter([
+            map: WordMap::new(["東京", "東京都", "東京", "京都"]),
+            params: WordParams::new([
                 WordParam::new(1, 2, 3),
                 WordParam::new(4, 5, 6),
                 WordParam::new(7, 8, 9),

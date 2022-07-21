@@ -4,7 +4,7 @@ pub struct WordFeatures {
 }
 
 impl WordFeatures {
-    pub fn from_iter<I, S>(features: I) -> Self
+    pub fn new<I, S>(features: I) -> Self
     where
         I: IntoIterator<Item = S>,
         S: AsRef<str>,

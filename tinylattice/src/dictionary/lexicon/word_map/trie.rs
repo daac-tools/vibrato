@@ -18,7 +18,7 @@ impl Trie {
         let unit: usize = self.get(0) as usize;
         CommonPrefixIter {
             trie: &self.units,
-            node_pos: Trie::offset(unit),
+            node_pos: Self::offset(unit),
             data: input,
             offset: 0,
         }
@@ -34,22 +34,22 @@ impl Trie {
     }
 
     #[inline(always)]
-    fn has_leaf(unit: usize) -> bool {
+    const fn has_leaf(unit: usize) -> bool {
         ((unit >> 8) & 1) == 1
     }
 
     #[inline(always)]
-    fn value(unit: u32) -> u32 {
+    const fn value(unit: u32) -> u32 {
         unit & ((1 << 31) - 1)
     }
 
     #[inline(always)]
-    fn label(unit: usize) -> usize {
+    const fn label(unit: usize) -> usize {
         unit & ((1 << 31) | 0xFF)
     }
 
     #[inline(always)]
-    fn offset(unit: usize) -> usize {
+    const fn offset(unit: usize) -> usize {
         (unit >> 10) << ((unit & (1 << 9)) >> 6)
     }
 }
@@ -62,7 +62,7 @@ pub struct TrieMatch {
 
 impl TrieMatch {
     #[inline(always)]
-    pub fn new(value: u32, end_byte: u32) -> Self {
+    pub const fn new(value: u32, end_byte: u32) -> Self {
         Self { value, end_byte }
     }
 }

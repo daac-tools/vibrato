@@ -29,6 +29,7 @@ impl PostingsBuilder {
         offset
     }
 
+    #[allow(clippy::missing_const_for_fn)]
     pub fn build(self) -> Postings {
         Postings { data: self.data }
     }

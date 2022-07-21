@@ -39,12 +39,12 @@ impl Tokenizer {
     }
 
     #[inline(always)]
-    pub fn dictionary(&self) -> &Dictionary {
+    pub const fn dictionary(&self) -> &Dictionary {
         &self.dict
     }
 
     #[inline(always)]
-    pub fn lattice(&self) -> &Lattice {
+    pub const fn lattice(&self) -> &Lattice {
         &self.lattice
     }
 
@@ -72,7 +72,7 @@ impl Tokenizer {
                     sent.char_position(m.end_byte() + pos_byte),
                     m.word_idx(),
                     m.word_param(),
-                    &self.dict.connector(),
+                    self.dict.connector(),
                 );
                 has_matched = true;
             }

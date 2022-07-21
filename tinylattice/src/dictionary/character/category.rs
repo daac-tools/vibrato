@@ -23,12 +23,6 @@ bitflags! {
     }
 }
 
-impl Default for CategorySet {
-    fn default() -> Self {
-        Self { bits: 0 }
-    }
-}
-
 impl FromStr for CategorySet {
     type Err = Error;
 
@@ -54,10 +48,12 @@ impl CategorySet {
     pub const NUM_CATEGORIES: usize = 11;
 
     #[inline(always)]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self { bits: 0 }
     }
 
+    /// # Safety
+    /// hogehoge
     #[inline(always)]
     pub unsafe fn from_raw_unchecked(bits: u32) -> Self {
         debug_assert_eq!(bits >> Self::NUM_CATEGORIES, 0);
@@ -71,7 +67,7 @@ impl CategorySet {
     }
 
     #[inline(always)]
-    pub fn first_id(&self) -> Option<u32> {
+    pub const fn first_id(&self) -> Option<u32> {
         if self.bits == 0 {
             None
         } else {
@@ -80,17 +76,17 @@ impl CategorySet {
     }
 
     #[inline(always)]
-    pub fn raw(&self) -> u32 {
+    pub const fn raw(&self) -> u32 {
         self.bits
     }
 
     #[inline(always)]
-    pub fn len(&self) -> u32 {
+    pub const fn len(&self) -> u32 {
         self.bits.count_ones()
     }
 
     #[inline(always)]
-    pub fn id_iter(&self) -> CategoryIdIter {
+    pub const fn id_iter(&self) -> CategoryIdIter {
         CategoryIdIter { bits: self.bits }
     }
 }
