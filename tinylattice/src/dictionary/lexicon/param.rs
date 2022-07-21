@@ -1,3 +1,5 @@
+use super::ConnIdMapper;
+
 #[derive(Eq, PartialEq, Debug, Clone, Copy)]
 pub struct WordParam {
     pub left_id: i16,
@@ -34,5 +36,12 @@ impl WordParams {
     #[inline(always)]
     pub fn param(&self, word_id: usize) -> WordParam {
         self.params[word_id]
+    }
+
+    pub fn map_ids(&mut self, mapper: &ConnIdMapper) {
+        for p in &mut self.params {
+            p.left_id = mapper.left(p.left_id as u16) as i16;
+            p.right_id = mapper.right(p.right_id as u16) as i16;
+        }
     }
 }

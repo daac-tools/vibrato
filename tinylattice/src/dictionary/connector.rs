@@ -1,5 +1,7 @@
 pub mod builder;
 
+use super::mapper::ConnIdMapper;
+
 pub struct Connector {
     data: Vec<i16>,
     num_right: usize,
@@ -41,5 +43,19 @@ impl Connector {
     #[inline(always)]
     pub const fn num_right(&self) -> usize {
         self.num_right
+    }
+
+    pub fn map_ids(&mut self, mapper: &ConnIdMapper) {
+        let mut mapped = vec![0; self.data.len()];
+        for right_id in 0..self.num_right {
+            let new_right_id = mapper.right(right_id as u16) as usize;
+            for left_id in 0..self.num_left {
+                let new_left_id = mapper.right(left_id as u16) as usize;
+                let index = self.index(right_id, left_id);
+                let new_index = self.index(new_right_id, new_left_id);
+                mapped[new_index] = self.data[index];
+            }
+        }
+        self.data = mapped;
     }
 }

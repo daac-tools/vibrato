@@ -3,6 +3,7 @@ pub mod feature;
 pub mod map;
 pub mod param;
 
+use super::mapper::ConnIdMapper;
 pub use super::{LexType, WordIdx};
 pub use feature::WordFeatures;
 pub use map::WordMap;
@@ -36,6 +37,10 @@ impl Lexicon {
     pub fn word_feature(&self, word_idx: WordIdx) -> &str {
         debug_assert_eq!(word_idx.lex_type(), self.lex_type);
         self.features.feature(word_idx.word_id() as usize)
+    }
+
+    pub fn map_ids(&mut self, mapper: &ConnIdMapper) {
+        self.params.map_ids(mapper);
     }
 }
 

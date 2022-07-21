@@ -1,5 +1,6 @@
 pub mod builder;
 
+use super::mapper::ConnIdMapper;
 use super::{LexType, WordIdx, WordParam};
 use crate::dictionary::character::CharInfo;
 use crate::Sentence;
@@ -110,5 +111,12 @@ impl UnkHandler {
     pub fn word_feature(&self, word_idx: WordIdx) -> &str {
         debug_assert_eq!(word_idx.lex_type(), LexType::Unknown);
         &self.entries[word_idx.word_id() as usize].feature
+    }
+
+    pub fn map_ids(&mut self, mapper: &ConnIdMapper) {
+        for e in &mut self.entries {
+            e.left_id = mapper.left(e.left_id as u16) as i16;
+            e.right_id = mapper.right(e.right_id as u16) as i16;
+        }
     }
 }

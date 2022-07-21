@@ -1,11 +1,13 @@
 pub mod character;
 pub mod connector;
 pub mod lexicon;
+pub mod mapper;
 pub mod unknown;
 
 pub use character::CharProperty;
 pub use connector::Connector;
 pub use lexicon::{Lexicon, WordParam};
+pub use mapper::ConnIdMapper;
 pub use unknown::UnkHandler;
 
 #[derive(Clone, Copy, Eq, PartialEq, Debug)]
@@ -91,5 +93,11 @@ impl Dictionary {
             LexType::System => self.lexicon().word_feature(word_idx),
             LexType::Unknown => self.unk_handler().word_feature(word_idx),
         }
+    }
+
+    pub fn map_ids(&mut self, mapper: &ConnIdMapper) {
+        self.lexicon.map_ids(mapper);
+        self.connector.map_ids(mapper);
+        self.unk_handler.map_ids(mapper);
     }
 }
