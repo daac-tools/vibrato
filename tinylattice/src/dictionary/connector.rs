@@ -46,11 +46,14 @@ impl Connector {
     }
 
     pub fn map_ids(&mut self, mapper: &ConnIdMapper) {
+        assert_eq!(mapper.num_left(), self.num_left);
+        assert_eq!(mapper.num_right(), self.num_right);
+
         let mut mapped = vec![0; self.data.len()];
         for right_id in 0..self.num_right {
             let new_right_id = mapper.right(right_id as u16) as usize;
             for left_id in 0..self.num_left {
-                let new_left_id = mapper.right(left_id as u16) as usize;
+                let new_left_id = mapper.left(left_id as u16) as usize;
                 let index = self.index(right_id, left_id);
                 let new_index = self.index(new_right_id, new_left_id);
                 mapped[new_index] = self.data[index];

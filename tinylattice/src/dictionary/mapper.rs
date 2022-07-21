@@ -14,6 +14,14 @@ impl ConnIdMapper {
         self.right.is_some()
     }
 
+    pub fn num_left(&self) -> usize {
+        self.left.as_ref().unwrap().len()
+    }
+
+    pub fn num_right(&self) -> usize {
+        self.right.as_ref().unwrap().len()
+    }
+
     #[inline(always)]
     pub fn left(&self, id: u16) -> u16 {
         self.left.as_ref().map_or_else(|| id, |m| m[id as usize].1)
