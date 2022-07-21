@@ -128,22 +128,13 @@ impl Lattice {
         }
     }
 
-    pub fn count_connid_occurrences(
-        &self,
-        lid_counts: &mut Vec<usize>,
-        rid_counts: &mut Vec<usize>,
-        connector: &Connector,
-    ) {
-        if lid_counts.len() < connector.num_left() {
-            lid_counts.resize(connector.num_left(), 0);
-        }
-        if rid_counts.len() < connector.num_right() {
-            rid_counts.resize(connector.num_right(), 0);
-        }
-        for nodes in &self.ends[1..=self.len_char()] {
-            for node in nodes {
-                lid_counts[node.left_id()] += 1;
-                rid_counts[node.right_id()] += 1;
+    pub fn count_connid_occ(&self, lid_to_rid_occ: &mut Vec<Vec<usize>>) {
+        for end_char in 1..=self.len_char() {
+            for r_node in &self.ends[end_char] {
+                let start_char = r_node.start_char();
+                for l_node in &self.ends[start_char] {
+                    lid_to_rid_occ[r_node.left_id()][l_node.right_id()] += 1;
+                }
             }
         }
     }

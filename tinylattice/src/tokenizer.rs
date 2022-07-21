@@ -119,13 +119,14 @@ impl Tokenizer {
         sent.set_morphs(morphs);
     }
 
-    pub fn count_connid_occurrences(
-        &self,
-        lid_counts: &mut Vec<usize>,
-        rid_counts: &mut Vec<usize>,
-    ) {
-        self.lattice
-            .count_connid_occurrences(lid_counts, rid_counts, self.dict.connector());
+    pub fn new_connid_occ(&self) -> Vec<Vec<usize>> {
+        let num_left = self.dict.connector().num_left();
+        let num_right = self.dict.connector().num_right();
+        vec![vec![0; num_right]; num_left]
+    }
+
+    pub fn count_connid_occ(&self, lid_to_rid_occ: &mut Vec<Vec<usize>>) {
+        self.lattice.count_connid_occ(lid_to_rid_occ);
     }
 }
 
