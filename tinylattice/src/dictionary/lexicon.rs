@@ -1,12 +1,12 @@
 pub mod builder;
-pub mod word_feature;
-pub mod word_map;
-pub mod word_param;
+pub mod feature;
+pub mod map;
+pub mod param;
 
 pub use super::{LexType, WordIdx};
-pub use word_feature::WordFeatures;
-pub use word_map::WordMap;
-pub use word_param::{WordParam, WordParams};
+pub use feature::WordFeatures;
+pub use map::WordMap;
+pub use param::{WordParam, WordParams};
 
 pub struct Lexicon {
     map: WordMap,
