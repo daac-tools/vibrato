@@ -56,22 +56,22 @@ impl CharInfo {
     }
 
     #[inline(always)]
-    pub fn base_id(&self) -> u32 {
+    pub const fn base_id(&self) -> u32 {
         (self.0 >> CATE_IDS_BITS) & BASE_ID_MASK
     }
 
     #[inline(always)]
-    pub fn invoke(&self) -> bool {
+    pub const fn invoke(&self) -> bool {
         (self.0 >> (CATE_IDS_BITS + BASE_ID_BITS)) & 1 != 0
     }
 
     #[inline(always)]
-    pub fn group(&self) -> bool {
+    pub const fn group(&self) -> bool {
         (self.0 >> (CATE_IDS_BITS + BASE_ID_BITS + 1)) & 1 != 0
     }
 
     #[inline(always)]
-    pub fn length(&self) -> usize {
+    pub const fn length(&self) -> usize {
         (self.0 >> (CATE_IDS_BITS + BASE_ID_BITS + 2)) as usize
     }
 }
@@ -81,12 +81,10 @@ pub struct CharProperty {
 }
 
 impl CharProperty {
+    #[inline(always)]
     pub fn char_info(&self, c: char) -> CharInfo {
-        let c = c as usize;
-        if let Some(cinfo) = self.chr2inf.get(c) {
-            *cinfo
-        } else {
-            self.chr2inf[0]
-        }
+        self.chr2inf
+            .get(c as usize)
+            .map_or_else(|| self.chr2inf[0], |cinfo| *cinfo)
     }
 }

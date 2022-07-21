@@ -46,8 +46,8 @@ impl CharProperty {
 
         for r in &char_ranges {
             let cinfo = Self::encode_cate_info(r.categories, &cate2info);
-            for c in r.start..r.end {
-                chr2inf[c] = cinfo;
+            for e in chr2inf.iter_mut().take(r.end).skip(r.start) {
+                *e = cinfo;
             }
         }
 
@@ -108,10 +108,7 @@ impl CharProperty {
         }
 
         let mut categories = CategorySet::new();
-        for cate in cols[1..]
-            .iter()
-            .take_while(|c| c.chars().next().unwrap() != '#')
-        {
+        for cate in cols[1..].iter().take_while(|&&col| !col.starts_with('#')) {
             categories |= cate.parse()?;
         }
 
