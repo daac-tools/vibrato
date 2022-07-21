@@ -41,10 +41,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     if let Some(mapping_basename) = args.mapping_basename {
         let l_filename = format!("{}.lmap", mapping_basename);
         let r_filename = format!("{}.rmap", mapping_basename);
-        let mapper = ConnIdMapper::from_reader(
-            Some(File::open(l_filename)?),
-            Some(File::open(r_filename)?),
-        )?;
+        let mapper = ConnIdMapper::from_reader(File::open(l_filename)?, File::open(r_filename)?)?;
         dict.map_ids(&mapper);
     }
 

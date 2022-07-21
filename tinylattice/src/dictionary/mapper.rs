@@ -1,44 +1,36 @@
 pub mod builder;
 
 pub struct ConnIdMapper {
-    left: Option<Vec<(u16, u16)>>,
-    right: Option<Vec<(u16, u16)>>,
+    left: Vec<(u16, u16)>,
+    right: Vec<(u16, u16)>,
 }
 
 impl ConnIdMapper {
-    pub const fn has_left(&self) -> bool {
-        self.left.is_some()
-    }
-
-    pub const fn has_right(&self) -> bool {
-        self.right.is_some()
-    }
-
     pub fn num_left(&self) -> usize {
-        self.left.as_ref().unwrap().len()
+        self.left.len()
     }
 
     pub fn num_right(&self) -> usize {
-        self.right.as_ref().unwrap().len()
+        self.right.len()
     }
 
     #[inline(always)]
     pub fn left(&self, id: u16) -> u16 {
-        self.left.as_ref().map_or_else(|| id, |m| m[id as usize].1)
+        self.left[id as usize].1
     }
 
     #[inline(always)]
     pub fn right(&self, id: u16) -> u16 {
-        self.right.as_ref().map_or_else(|| id, |m| m[id as usize].1)
+        self.right[id as usize].1
     }
 
     #[inline(always)]
     pub fn left_inv(&self, id: u16) -> u16 {
-        self.left.as_ref().map_or_else(|| id, |m| m[id as usize].0)
+        self.left[id as usize].0
     }
 
     #[inline(always)]
     pub fn right_inv(&self, id: u16) -> u16 {
-        self.right.as_ref().map_or_else(|| id, |m| m[id as usize].0)
+        self.right[id as usize].0
     }
 }

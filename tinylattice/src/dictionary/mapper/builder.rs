@@ -5,20 +5,12 @@ use anyhow::{anyhow, Result};
 use super::ConnIdMapper;
 
 impl ConnIdMapper {
-    pub fn from_reader<R>(l_rdr: Option<R>, r_rdr: Option<R>) -> Result<Self>
+    pub fn from_reader<R>(l_rdr: R, r_rdr: R) -> Result<Self>
     where
         R: Read,
     {
-        let left = if let Some(r) = l_rdr {
-            Some(Self::read(r)?)
-        } else {
-            None
-        };
-        let right = if let Some(r) = r_rdr {
-            Some(Self::read(r)?)
-        } else {
-            None
-        };
+        let left = Self::read(l_rdr)?;
+        let right = Self::read(r_rdr)?;
         Ok(Self { left, right })
     }
 
