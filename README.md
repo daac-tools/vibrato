@@ -32,6 +32,10 @@ cargo run --release -p exp_timeperf -- -r resources_unidic-cwj-3_1_0 -s wagahaiw
 ```
 
 ```
+cargo run --release -p exp_timeperf -- -r resources_unidic-cwj-3_1_0 -s wagahaiwa_nekodearu.txt -m waganeko-mapping/unidic-cwj-3_1_0
+```
+
+```
 echo "偸《ぬす》み" | cargo run --release -p tokenize -- -r resources_mecab-ipadic
 ```
 
