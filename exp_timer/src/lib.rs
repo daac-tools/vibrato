@@ -1,9 +1,16 @@
 use std::time::Instant;
 
 // From https://github.com/jermp/essentials/blob/master/include/essentials.hpp
+
 pub struct Timer {
     times: Vec<f64>,
     start: Instant,
+}
+
+impl Default for Timer {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Timer {

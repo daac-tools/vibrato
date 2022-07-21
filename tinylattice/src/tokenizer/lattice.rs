@@ -128,7 +128,7 @@ impl Lattice {
         }
     }
 
-    pub fn count_connid_occ(&self, lid_to_rid_occ: &mut Vec<Vec<usize>>) {
+    pub fn count_connid_occ(&self, lid_to_rid_occ: &mut [Vec<usize>]) {
         for end_char in 1..=self.len_char() {
             for r_node in &self.ends[end_char] {
                 let start_char = r_node.start_char();

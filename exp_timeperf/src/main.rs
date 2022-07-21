@@ -1,7 +1,6 @@
 use std::error::Error;
 use std::fs::File;
-use std::io::{BufRead, BufReader};
-use std::path::Path;
+use std::io::BufRead;
 
 use exp_timer::Timer;
 use tinylattice::dictionary::{
@@ -22,15 +21,10 @@ struct Args {
 
     #[clap(short = 'm', long)]
     mapping_basename: Option<String>,
-
-    #[clap(short = 's', long)]
-    sentence_filename: String,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
-
-    let lines: Vec<_> = to_lines(&args.sentence_filename).collect();
 
     let sysdic_filename = format!("{}/lex.csv", &args.resource_dirname);
     let matrix_filename = format!("{}/matrix.def", &args.resource_dirname);
@@ -55,6 +49,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     let mut tokenizer = Tokenizer::new(dict);
+    let lines: Vec<_> = std::io::stdin()
+        .lock()
+        .lines()
+        .map(|l| l.unwrap())
+        .collect();
 
     let mut measure = |t: &mut Timer, s: &mut Sentence| {
         let mut n_words = 0;
@@ -90,9 +89,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         max += t.max();
     }
 
-    min = min / TRIALS as f64;
-    avg = avg / TRIALS as f64;
-    max = max / TRIALS as f64;
+    min /= TRIALS as f64;
+    avg /= TRIALS as f64;
+    max /= TRIALS as f64;
 
     println!("Number_of_sentences: {}", lines.len());
     println!(
@@ -101,12 +100,4 @@ fn main() -> Result<(), Box<dyn Error>> {
     );
 
     Ok(())
-}
-
-fn to_lines<P>(path: P) -> impl Iterator<Item = String>
-where
-    P: AsRef<Path>,
-{
-    let buf = BufReader::new(File::open(path).unwrap());
-    buf.lines().map(|line| line.unwrap())
 }

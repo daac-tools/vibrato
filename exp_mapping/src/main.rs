@@ -1,21 +1,19 @@
 use std::error::Error;
 use std::fs::File;
-use std::io::{BufRead, BufReader, BufWriter, Write};
-use std::path::Path;
+use std::io::{BufRead, BufWriter, Write};
 
 use tinylattice::dictionary::{CharProperty, Connector, Dictionary, LexType, Lexicon, UnkHandler};
 use tinylattice::{Sentence, Tokenizer};
 
 use clap::Parser;
 
+type Probs = Vec<(usize, f64)>;
+
 #[derive(Parser, Debug)]
 #[clap(name = "main", about = "A program.")]
 struct Args {
     #[clap(short = 'r', long)]
     resource_dirname: String,
-
-    #[clap(short = 's', long)]
-    sentence_filename: String,
 
     #[clap(short = 'o', long)]
     output_filename: String,
@@ -24,9 +22,7 @@ struct Args {
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
-    let lines: Vec<_> = to_lines(&args.sentence_filename).collect();
     let output_filename = &args.output_filename;
-
     let sysdic_filename = format!("{}/lex.csv", &args.resource_dirname);
     let matrix_filename = format!("{}/matrix.def", &args.resource_dirname);
     let chardef_filename = format!("{}/char.def", &args.resource_dirname);
@@ -42,7 +38,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut sentence = Sentence::new();
     let mut lid_to_rid_occ = tokenizer.new_connid_occ();
 
-    for line in lines {
+    for line in std::io::stdin().lock().lines() {
+        let line = line?;
         sentence.set_sentence(line);
         tokenizer.tokenize(&mut sentence);
         tokenizer.count_connid_occ(&mut lid_to_rid_occ);
@@ -52,20 +49,20 @@ fn main() -> Result<(), Box<dyn Error>> {
     {
         let mut w = BufWriter::new(File::create(format!("{}.lmap", output_filename)).unwrap());
         for (i, p) in lid_probs {
-            w.write(format!("{}\t{}\n", i, p).as_bytes())?;
+            w.write_all(format!("{}\t{}\n", i, p).as_bytes())?;
         }
     }
     {
         let mut w = BufWriter::new(File::create(format!("{}.rmap", output_filename)).unwrap());
         for (i, p) in rid_probs {
-            w.write(format!("{}\t{}\n", i, p).as_bytes())?;
+            w.write_all(format!("{}\t{}\n", i, p).as_bytes())?;
         }
     }
 
     Ok(())
 }
 
-fn compute_probs<V>(lid_to_rid_count: &[V]) -> (Vec<(usize, f64)>, Vec<(usize, f64)>)
+fn compute_probs<V>(lid_to_rid_count: &[V]) -> (Probs, Probs)
 where
     V: AsRef<[usize]>,
 {
@@ -80,7 +77,7 @@ where
         let rid_count = rid_count.as_ref();
         assert_eq!(num_right, rid_count.len());
 
-        let acc = rid_count.iter().fold(0, |acc, &x| acc + x) as f64;
+        let acc = rid_count.iter().sum::<usize>() as f64;
         let mut probs = vec![0.0; num_right];
         if acc != 0.0 {
             for (rid, &cnt) in rid_count.iter().enumerate() {
@@ -93,7 +90,7 @@ where
 
     let acc = lid_probs.iter().fold(0., |acc, &(_, cnt)| acc + cnt);
     for (_, lp) in lid_probs.iter_mut() {
-        *lp = *lp / acc;
+        *lp /= acc;
     }
 
     // Compute Right-id probs
@@ -123,12 +120,4 @@ where
     });
 
     (lid_probs, rid_probs)
-}
-
-fn to_lines<P>(path: P) -> impl Iterator<Item = String>
-where
-    P: AsRef<Path>,
-{
-    let buf = BufReader::new(File::open(path).unwrap());
-    buf.lines().map(|line| line.unwrap())
 }

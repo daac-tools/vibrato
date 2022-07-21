@@ -6,11 +6,11 @@ pub struct ConnIdMapper {
 }
 
 impl ConnIdMapper {
-    pub fn has_left(&self) -> bool {
+    pub const fn has_left(&self) -> bool {
         self.left.is_some()
     }
 
-    pub fn has_right(&self) -> bool {
+    pub const fn has_right(&self) -> bool {
         self.right.is_some()
     }
 
