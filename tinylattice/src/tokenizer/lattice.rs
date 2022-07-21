@@ -137,6 +137,10 @@ impl Lattice {
                 }
             }
         }
+        let r_node = self.eos.as_ref().unwrap();
+        for l_node in &self.ends[self.len_char()] {
+            lid_to_rid_occ[r_node.left_id()][l_node.right_id()] += 1;
+        }
     }
 }
 
