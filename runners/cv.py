@@ -45,7 +45,7 @@ def main():
     parser.add_argument('--with_mapping', '-m', action='store_true')
     args = parser.parse_args()
 
-    print(args)
+    print(args, flush=True)
 
     lines = [l.rstrip() for l in open(args.sent_file, 'rt') if len(l.rstrip()) != 0]
     random.shuffle(lines)
@@ -53,7 +53,7 @@ def main():
     test_spans = compute_spans(len(lines), NUM_FOLDS)
 
     for k, (i, j) in enumerate(test_spans):
-        print(f'** k={k} [{i},{j-1}] **')
+        print(f'** k={k} [{i},{j-1}] **', flush=True)
         test_lines = lines[i:j]
         train_lines = lines[:i] + lines[j:]
         if args.with_mapping:

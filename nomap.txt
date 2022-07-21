@@ -1,0 +1,151 @@
+Namespace(exe_dir='target/release', resource_dir='resources_unidic-cwj-3_1_0', sent_file='wagahaiwa_nekodearu.txt', with_mapping=False)
+** k=0 [0,233] **
+[exp_timeperf/src/main.rs:66] n_words = 246920
+Warmup: 0.03903716520000001
+[exp_timeperf/src/main.rs:66] n_words = 246920
+[exp_timeperf/src/main.rs:66] n_words = 246920
+[exp_timeperf/src/main.rs:66] n_words = 246920
+[exp_timeperf/src/main.rs:66] n_words = 246920
+[exp_timeperf/src/main.rs:66] n_words = 246920
+[exp_timeperf/src/main.rs:66] n_words = 246920
+[exp_timeperf/src/main.rs:66] n_words = 246920
+[exp_timeperf/src/main.rs:66] n_words = 246920
+[exp_timeperf/src/main.rs:66] n_words = 246920
+[exp_timeperf/src/main.rs:66] n_words = 246920
+Number_of_sentences: 234
+Elapsed_seconds_to_tokenize_all_sentences: [0.03511729549999999,0.036355020349999996,0.037944209699999995]
+** k=1 [234,467] **
+[exp_timeperf/src/main.rs:66] n_words = 254690
+Warmup: 0.0352428483
+[exp_timeperf/src/main.rs:66] n_words = 254690
+[exp_timeperf/src/main.rs:66] n_words = 254690
+[exp_timeperf/src/main.rs:66] n_words = 254690
+[exp_timeperf/src/main.rs:66] n_words = 254690
+[exp_timeperf/src/main.rs:66] n_words = 254690
+[exp_timeperf/src/main.rs:66] n_words = 254690
+[exp_timeperf/src/main.rs:66] n_words = 254690
+[exp_timeperf/src/main.rs:66] n_words = 254690
+[exp_timeperf/src/main.rs:66] n_words = 254690
+[exp_timeperf/src/main.rs:66] n_words = 254690
+Number_of_sentences: 234
+Elapsed_seconds_to_tokenize_all_sentences: [0.0358022301,0.03710342529999999,0.038298451]
+** k=2 [468,701] **
+[exp_timeperf/src/main.rs:66] n_words = 307300
+Warmup: 0.046813716299999995
+[exp_timeperf/src/main.rs:66] n_words = 307300
+[exp_timeperf/src/main.rs:66] n_words = 307300
+[exp_timeperf/src/main.rs:66] n_words = 307300
+[exp_timeperf/src/main.rs:66] n_words = 307300
+[exp_timeperf/src/main.rs:66] n_words = 307300
+[exp_timeperf/src/main.rs:66] n_words = 307300
+[exp_timeperf/src/main.rs:66] n_words = 307300
+[exp_timeperf/src/main.rs:66] n_words = 307300
+[exp_timeperf/src/main.rs:66] n_words = 307300
+[exp_timeperf/src/main.rs:66] n_words = 307300
+Number_of_sentences: 234
+Elapsed_seconds_to_tokenize_all_sentences: [0.0459202851,0.0479960256875,0.05037933040000001]
+** k=3 [702,935] **
+[exp_timeperf/src/main.rs:66] n_words = 240980
+Warmup: 0.0321305755
+[exp_timeperf/src/main.rs:66] n_words = 240980
+[exp_timeperf/src/main.rs:66] n_words = 240980
+[exp_timeperf/src/main.rs:66] n_words = 240980
+[exp_timeperf/src/main.rs:66] n_words = 240980
+[exp_timeperf/src/main.rs:66] n_words = 240980
+[exp_timeperf/src/main.rs:66] n_words = 240980
+[exp_timeperf/src/main.rs:66] n_words = 240980
+[exp_timeperf/src/main.rs:66] n_words = 240980
+[exp_timeperf/src/main.rs:66] n_words = 240980
+[exp_timeperf/src/main.rs:66] n_words = 240980
+Number_of_sentences: 234
+Elapsed_seconds_to_tokenize_all_sentences: [0.030212642499999998,0.0312702441125,0.0325806708]
+** k=4 [936,1170] **
+[exp_timeperf/src/main.rs:66] n_words = 228050
+Warmup: 0.029635366200000002
+[exp_timeperf/src/main.rs:66] n_words = 228050
+[exp_timeperf/src/main.rs:66] n_words = 228050
+[exp_timeperf/src/main.rs:66] n_words = 228050
+[exp_timeperf/src/main.rs:66] n_words = 228050
+[exp_timeperf/src/main.rs:66] n_words = 228050
+[exp_timeperf/src/main.rs:66] n_words = 228050
+[exp_timeperf/src/main.rs:66] n_words = 228050
+[exp_timeperf/src/main.rs:66] n_words = 228050
+[exp_timeperf/src/main.rs:66] n_words = 228050
+[exp_timeperf/src/main.rs:66] n_words = 228050
+Number_of_sentences: 235
+Elapsed_seconds_to_tokenize_all_sentences: [0.0281182901,0.0293093230375,0.0304591594]
+** k=5 [1171,1405] **
+[exp_timeperf/src/main.rs:66] n_words = 217820
+Warmup: 0.028523688699999994
+[exp_timeperf/src/main.rs:66] n_words = 217820
+[exp_timeperf/src/main.rs:66] n_words = 217820
+[exp_timeperf/src/main.rs:66] n_words = 217820
+[exp_timeperf/src/main.rs:66] n_words = 217820
+[exp_timeperf/src/main.rs:66] n_words = 217820
+[exp_timeperf/src/main.rs:66] n_words = 217820
+[exp_timeperf/src/main.rs:66] n_words = 217820
+[exp_timeperf/src/main.rs:66] n_words = 217820
+[exp_timeperf/src/main.rs:66] n_words = 217820
+[exp_timeperf/src/main.rs:66] n_words = 217820
+Number_of_sentences: 235
+Elapsed_seconds_to_tokenize_all_sentences: [0.0264428579,0.0272896798625,0.0286289978]
+** k=6 [1406,1640] **
+[exp_timeperf/src/main.rs:66] n_words = 274270
+Warmup: 0.036534603199999995
+[exp_timeperf/src/main.rs:66] n_words = 274270
+[exp_timeperf/src/main.rs:66] n_words = 274270
+[exp_timeperf/src/main.rs:66] n_words = 274270
+[exp_timeperf/src/main.rs:66] n_words = 274270
+[exp_timeperf/src/main.rs:66] n_words = 274270
+[exp_timeperf/src/main.rs:66] n_words = 274270
+[exp_timeperf/src/main.rs:66] n_words = 274270
+[exp_timeperf/src/main.rs:66] n_words = 274270
+[exp_timeperf/src/main.rs:66] n_words = 274270
+[exp_timeperf/src/main.rs:66] n_words = 274270
+Number_of_sentences: 235
+Elapsed_seconds_to_tokenize_all_sentences: [0.0353445918,0.036746236612500004,0.0384376151]
+** k=7 [1641,1875] **
+[exp_timeperf/src/main.rs:66] n_words = 201080
+Warmup: 0.0286420338
+[exp_timeperf/src/main.rs:66] n_words = 201080
+[exp_timeperf/src/main.rs:66] n_words = 201080
+[exp_timeperf/src/main.rs:66] n_words = 201080
+[exp_timeperf/src/main.rs:66] n_words = 201080
+[exp_timeperf/src/main.rs:66] n_words = 201080
+[exp_timeperf/src/main.rs:66] n_words = 201080
+[exp_timeperf/src/main.rs:66] n_words = 201080
+[exp_timeperf/src/main.rs:66] n_words = 201080
+[exp_timeperf/src/main.rs:66] n_words = 201080
+[exp_timeperf/src/main.rs:66] n_words = 201080
+Number_of_sentences: 235
+Elapsed_seconds_to_tokenize_all_sentences: [0.0249159319,0.0256985441125,0.026690643499999993]
+** k=8 [1876,2110] **
+[exp_timeperf/src/main.rs:66] n_words = 247220
+Warmup: 0.0324649694
+[exp_timeperf/src/main.rs:66] n_words = 247220
+[exp_timeperf/src/main.rs:66] n_words = 247220
+[exp_timeperf/src/main.rs:66] n_words = 247220
+[exp_timeperf/src/main.rs:66] n_words = 247220
+[exp_timeperf/src/main.rs:66] n_words = 247220
+[exp_timeperf/src/main.rs:66] n_words = 247220
+[exp_timeperf/src/main.rs:66] n_words = 247220
+[exp_timeperf/src/main.rs:66] n_words = 247220
+[exp_timeperf/src/main.rs:66] n_words = 247220
+[exp_timeperf/src/main.rs:66] n_words = 247220
+Number_of_sentences: 235
+Elapsed_seconds_to_tokenize_all_sentences: [0.031046698600000006,0.0322765849,0.0336267464]
+** k=9 [2111,2345] **
+[exp_timeperf/src/main.rs:66] n_words = 268730
+Warmup: 0.038868480000000004
+[exp_timeperf/src/main.rs:66] n_words = 268730
+[exp_timeperf/src/main.rs:66] n_words = 268730
+[exp_timeperf/src/main.rs:66] n_words = 268730
+[exp_timeperf/src/main.rs:66] n_words = 268730
+[exp_timeperf/src/main.rs:66] n_words = 268730
+[exp_timeperf/src/main.rs:66] n_words = 268730
+[exp_timeperf/src/main.rs:66] n_words = 268730
+[exp_timeperf/src/main.rs:66] n_words = 268730
+[exp_timeperf/src/main.rs:66] n_words = 268730
+[exp_timeperf/src/main.rs:66] n_words = 268730
+Number_of_sentences: 235
+Elapsed_seconds_to_tokenize_all_sentences: [0.0334405045,0.0346911920875,0.036007587300000005]
