@@ -137,9 +137,9 @@ mod tests {
     #[test]
     fn test_tokenize_1() {
         let lexicon_csv = "自然,0,0,1
-言語,0,0,2
+言語,0,0,4
 処理,0,0,3
-自然言語,0,0,4
+自然言語,0,0,6
 言語処理,0,0,5";
         let matrix_def = "1 1\n0 0 0";
         let char_def = "DEFAULT 0 1 0";
@@ -186,9 +186,9 @@ mod tests {
     #[test]
     fn test_tokenize_2() {
         let lexicon_csv = "自然,0,0,1
-言語,0,0,2
+言語,0,0,4
 処理,0,0,3
-自然言語,0,0,4
+自然言語,0,0,6
 言語処理,0,0,5";
         let matrix_def = "1 1\n0 0 0";
         let char_def = "DEFAULT 0 1 0";
@@ -235,9 +235,9 @@ mod tests {
     #[test]
     fn test_tokenize_3() {
         let lexicon_csv = "自然,0,0,1
-言語,0,0,2
+言語,0,0,4
 処理,0,0,3
-自然言語,0,0,4
+自然言語,0,0,6
 言語処理,0,0,5";
         let matrix_def = "1 1\n0 0 0";
         let char_def = "DEFAULT 0 0 3";
