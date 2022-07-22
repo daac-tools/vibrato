@@ -24,6 +24,9 @@ struct Args {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
+    #[cfg(feature = "exp-ideal")]
+    println!("WARNING: feature = exp-ideal is enabled.");
+
     let args = Args::parse();
 
     let sysdic_filename = format!("{}/lex.csv", &args.resource_dirname);

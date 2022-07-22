@@ -23,6 +23,9 @@ test_files=(
 )
 map_file="CORE"
 
+cargo build --release -p exp_mapping
+cargo build --release -p exp_timeperf
+
 ./${exe_dir}/exp_mapping -r ${resources_dir} -o ${map_file} < ${train_file}
 
 for test_file in "${test_files[@]}" ; do
