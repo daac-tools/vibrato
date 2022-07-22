@@ -1,6 +1,8 @@
 pub mod builder;
 pub mod category;
 
+use bincode::{Decode, Encode};
+
 pub use category::CategorySet;
 
 const CATE_IDS_BITS: usize = 18;
@@ -14,7 +16,7 @@ const LENGTH_BITS: usize = 4;
 // invoke: 1
 // group: 1
 // length: 4
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy, Decode, Encode)]
 pub struct CharInfo(u32);
 
 impl CharInfo {
@@ -76,6 +78,7 @@ impl CharInfo {
     }
 }
 
+#[derive(Decode, Encode)]
 pub struct CharProperty {
     chr2inf: Vec<CharInfo>,
 }

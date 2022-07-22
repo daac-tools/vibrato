@@ -1,6 +1,8 @@
+use bincode::{Decode, Encode};
+
 use super::ConnIdMapper;
 
-#[derive(Eq, PartialEq, Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Decode, Encode)]
 pub struct WordParam {
     pub left_id: i16,
     pub right_id: i16,
@@ -18,6 +20,7 @@ impl WordParam {
     }
 }
 
+#[derive(Decode, Encode)]
 pub struct WordParams {
     params: Vec<WordParam>,
 }

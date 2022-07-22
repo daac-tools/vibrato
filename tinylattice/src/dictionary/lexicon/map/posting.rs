@@ -1,7 +1,9 @@
 use std::ptr::NonNull;
 
 use anyhow::{anyhow, Result};
+use bincode::{Decode, Encode};
 
+#[derive(Decode, Encode)]
 pub struct Postings {
     data: Vec<u8>,
 }

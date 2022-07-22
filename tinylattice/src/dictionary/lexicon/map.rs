@@ -4,10 +4,12 @@ pub mod trie;
 use std::collections::BTreeMap;
 
 use anyhow::Result;
+use bincode::{Decode, Encode};
 
 use posting::{Postings, PostingsBuilder};
 use trie::Trie;
 
+#[derive(Decode, Encode)]
 pub struct WordMap {
     trie: Trie,
     postings: Postings,

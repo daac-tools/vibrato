@@ -1,3 +1,6 @@
+use bincode::{Decode, Encode};
+
+#[derive(Decode, Encode)]
 pub struct Trie {
     units: Vec<u32>,
 }

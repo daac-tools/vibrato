@@ -3,12 +3,15 @@ pub mod feature;
 pub mod map;
 pub mod param;
 
+use bincode::{Decode, Encode};
+
 use super::mapper::ConnIdMapper;
 pub use super::{LexType, WordIdx};
 pub use feature::WordFeatures;
 pub use map::WordMap;
 pub use param::{WordParam, WordParams};
 
+#[derive(Decode, Encode)]
 pub struct Lexicon {
     map: WordMap,
     params: WordParams,

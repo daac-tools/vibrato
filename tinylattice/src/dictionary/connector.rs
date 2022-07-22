@@ -1,7 +1,10 @@
 pub mod builder;
 
+use bincode::{Decode, Encode};
+
 use super::mapper::ConnIdMapper;
 
+#[derive(Decode, Encode)]
 pub struct Connector {
     data: Vec<i16>,
     num_right: usize,

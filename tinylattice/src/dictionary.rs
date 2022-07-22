@@ -4,13 +4,15 @@ pub mod lexicon;
 pub mod mapper;
 pub mod unknown;
 
+use bincode::{Decode, Encode};
+
 pub use character::CharProperty;
 pub use connector::Connector;
 pub use lexicon::{Lexicon, WordParam};
 pub use mapper::ConnIdMapper;
 pub use unknown::UnkHandler;
 
-#[derive(Clone, Copy, Eq, PartialEq, Debug)]
+#[derive(Clone, Copy, Eq, PartialEq, Debug, Decode, Encode)]
 pub enum LexType {
     System,
     Unknown,
@@ -45,6 +47,7 @@ impl WordIdx {
     }
 }
 
+#[derive(Decode, Encode)]
 pub struct Dictionary {
     lexicon: Lexicon,
     connector: Connector,
