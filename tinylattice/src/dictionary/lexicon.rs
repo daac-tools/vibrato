@@ -34,6 +34,13 @@ impl Lexicon {
     }
 
     #[inline(always)]
+    pub fn common_prefix_match(&self, input: &[u8], result: &mut Vec<LexMatch>) {
+        for m in self.common_prefix_iterator(input) {
+            result.push(m);
+        }
+    }
+
+    #[inline(always)]
     pub fn word_feature(&self, word_idx: WordIdx) -> &str {
         debug_assert_eq!(word_idx.lex_type(), self.lex_type);
         self.features.feature(word_idx.word_id() as usize)
