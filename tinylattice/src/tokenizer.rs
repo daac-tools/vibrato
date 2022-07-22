@@ -9,6 +9,7 @@ use lattice::{Lattice, Node};
 pub struct Tokenizer {
     dict: Dictionary,
     lattice: Lattice,
+    // Buffers
     unk_words: Vec<UnkWord>,
     top_nodes: Vec<(usize, Node)>,
 }

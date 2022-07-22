@@ -6,11 +6,18 @@ const INVALID_IDX: u16 = u16::MAX;
 #[derive(Default)]
 pub struct Lattice {
     ends: Vec<Vec<Node>>,
-    len_char: usize, // needed for avoiding to be free ends
     eos: Option<Node>,
+    len_char: usize, // needed for avoiding to be free ends
 }
 
 impl Lattice {
+    pub fn reset(&mut self, new_len_char: usize) {
+        Self::reset_vec(&mut self.ends, new_len_char + 1);
+        self.len_char = new_len_char;
+        self.eos = None;
+        self.insert_bos();
+    }
+
     fn reset_vec<T>(data: &mut Vec<Vec<T>>, new_len: usize) {
         for v in data.iter_mut() {
             v.clear();
@@ -24,14 +31,7 @@ impl Lattice {
         }
     }
 
-    pub fn reset(&mut self, new_len_char: usize) {
-        Self::reset_vec(&mut self.ends, new_len_char + 1);
-        self.len_char = new_len_char;
-        self.eos = None;
-        self.insert_bos();
-    }
-
-    /// Number of characters of the input sentence.
+    /// Returns the number of characters of the set sentence.
     #[inline(always)]
     pub const fn len_char(&self) -> usize {
         self.len_char
