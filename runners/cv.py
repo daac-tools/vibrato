@@ -3,12 +3,7 @@
 import subprocess
 import json
 import os
-import random
 from argparse import ArgumentParser
-
-
-NUM_FOLDS = 10
-random.seed(42)
 
 
 def compute_spans(N, K):
@@ -42,15 +37,14 @@ def main():
     parser.add_argument('--exe_dir', '-e', type=str, required=True)
     parser.add_argument('--sent_file', '-s', type=str, required=True)
     parser.add_argument('--resource_dir', '-r', type=str, required=True)
+    parser.add_argument('--num_folds', '-k', type=int, default=5)
     parser.add_argument('--with_mapping', '-m', action='store_true')
     args = parser.parse_args()
 
     print(args, flush=True)
 
     lines = [l.rstrip() for l in open(args.sent_file, 'rt') if len(l.rstrip()) != 0]
-    random.shuffle(lines)
-
-    test_spans = compute_spans(len(lines), NUM_FOLDS)
+    test_spans = compute_spans(len(lines), args.num_folds)
 
     for k, (i, j) in enumerate(test_spans):
         print(f'** k={k} [{i},{j-1}] **', flush=True)
