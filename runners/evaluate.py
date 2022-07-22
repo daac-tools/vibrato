@@ -16,12 +16,17 @@ def compute_spans(N, K):
     return spans
 
 
-def evaluate_nomap(args, test_lines):
+def evaluate_with_mapping(args, test_lines):
+    cmd_test = f'{args.exe_dir}/exp_timeperf -r {args.resource_dir} -m {args.map_file}'
+    subprocess.run(cmd_test, encoding='utf-8', shell=True, input='\n'.join(test_lines))
+
+
+def evaluate_without_mapping(args, test_lines):
     cmd_test = f'{args.exe_dir}/exp_timeperf -r {args.resource_dir}'
     subprocess.run(cmd_test, encoding='utf-8', shell=True, input='\n'.join(test_lines))
 
 
-def evaluate_mapping(args, test_lines, train_lines):
+def evaluate_with_training(args, test_lines, train_lines):
     cmd_train = f'{args.exe_dir}/exp_mapping -r {args.resource_dir} -o tmp'
     subprocess.run(cmd_train, encoding='utf-8', shell=True, input='\n'.join(train_lines))
 
@@ -38,7 +43,8 @@ def main():
     parser.add_argument('--sent_file', '-s', type=str, required=True)
     parser.add_argument('--resource_dir', '-r', type=str, required=True)
     parser.add_argument('--num_folds', '-k', type=int, default=5)
-    parser.add_argument('--with_mapping', '-m', action='store_true')
+    parser.add_argument('--map_file', '-m', type=str, default='')
+    parser.add_argument('--with_mapping', '-M', action='store_true')
     args = parser.parse_args()
 
     print(args, flush=True)
@@ -50,10 +56,12 @@ def main():
         print(f'** k={k} [{i},{j-1}] **', flush=True)
         test_lines = lines[i:j]
         train_lines = lines[:i] + lines[j:]
-        if args.with_mapping:
-            evaluate_mapping(args, test_lines, train_lines)
+        if args.map_file:
+            evaluate_with_mapping(args, test_lines)
+        elif args.with_mapping:
+            evaluate_with_training(args, test_lines, train_lines)
         else:
-            evaluate_nomap(args, test_lines)
+            evaluate_without_mapping(args, test_lines)
 
 
 if __name__ == "__main__":
