@@ -23,5 +23,6 @@ test_files=(
 cargo build --release -p exp_timeperf --features exp-ideal
 
 for test_file in "${test_files[@]}" ; do
+    echo ${test_dir}/${test_file}
     ./target/release/exp_timeperf -r ${resources_dir} < ${test_dir}/${test_file}
 done
