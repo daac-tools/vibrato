@@ -6,10 +6,12 @@ pub struct ConnIdMapper {
 }
 
 impl ConnIdMapper {
+    #[inline(always)]
     pub fn num_left(&self) -> usize {
         self.left.len()
     }
 
+    #[inline(always)]
     pub fn num_right(&self) -> usize {
         self.right.len()
     }
