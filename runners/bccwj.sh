@@ -4,7 +4,7 @@ set -eux
 
 exe_dir="target/release"
 resources_dir=$1
-train_file="bccwj-texts/CORE.txt"
+train_file="bccwj-texts-10k/CORE.txt"
 test_dir="bccwj-texts-10k"
 test_files=(
     "LB.txt"
