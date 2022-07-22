@@ -9,10 +9,12 @@ pub struct Postings {
 }
 
 impl Postings {
+    /// # Safety
+    /// hogehoge
     #[inline(always)]
     pub unsafe fn ids(&self, i: usize) -> PostingsIter {
         debug_assert!(i < self.data.len());
-        let ptr = self.data.as_ptr().offset(i as isize);
+        let ptr = self.data.as_ptr().add(i);
         let cnt = ptr.read() as usize + 1;
         let data_ptr = ptr.offset(1) as *const u32;
         debug_assert!(i + cnt * std::mem::size_of::<u32>() < self.data.len());

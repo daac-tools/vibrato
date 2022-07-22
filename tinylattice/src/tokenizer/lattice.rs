@@ -154,8 +154,7 @@ impl std::fmt::Debug for Lattice {
     }
 }
 
-// Def: 160 bits
-//
+/// 160 bits of each
 #[derive(Default, Debug, Clone)]
 pub struct Node {
     word_idx: WordIdx,
