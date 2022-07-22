@@ -19,7 +19,7 @@ impl Lexicon {
             entries.push(Self::parse_csv(&rec)?);
         }
 
-        let map = WordMap::new(entries.iter().map(|e| &e.surface));
+        let map = WordMap::new(entries.iter().map(|e| &e.surface))?;
         let params = WordParams::new(entries.iter().map(|e| e.param));
         let features = WordFeatures::new(entries.iter().map(|e| &e.feature));
 

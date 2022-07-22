@@ -98,7 +98,7 @@ mod tests {
     #[test]
     fn test_common_prefix_iterator() {
         let lexicon = Lexicon {
-            map: WordMap::new(["東京", "東京都", "東京", "京都"]),
+            map: WordMap::new(["東京", "東京都", "東京", "京都"]).unwrap(),
             params: WordParams::new([
                 WordParam::new(1, 2, 3),
                 WordParam::new(4, 5, 6),

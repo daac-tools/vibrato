@@ -3,6 +3,8 @@ pub mod trie;
 
 use std::collections::BTreeMap;
 
+use anyhow::Result;
+
 use posting::{Postings, PostingsBuilder};
 use trie::Trie;
 
@@ -12,7 +14,7 @@ pub struct WordMap {
 }
 
 impl WordMap {
-    pub fn new<I, W>(words: I) -> Self
+    pub fn new<I, W>(words: I) -> Result<Self>
     where
         I: IntoIterator<Item = W>,
         W: AsRef<str>,
@@ -29,12 +31,13 @@ impl WordMap {
         &'a self,
         input: &'a [u8],
     ) -> impl Iterator<Item = (u32, u32)> + 'a {
-        self.trie.common_prefix_iterator(input).flat_map(move |e| {
-            self.postings
-                .ids(e.value as usize)
-                .iter()
-                .map(move |&word_id| (word_id, e.end_byte))
-        })
+        unsafe {
+            self.trie.common_prefix_iterator(input).flat_map(move |e| {
+                self.postings
+                    .ids(e.value as usize)
+                    .map(move |word_id| (word_id, e.end_byte))
+            })
+        }
     }
 }
 
@@ -54,17 +57,17 @@ impl WordMapBuilder {
         self.map.entry(word).or_default().push(id);
     }
 
-    pub fn build(self) -> WordMap {
+    pub fn build(self) -> Result<WordMap> {
         let mut entries = vec![];
         let mut builder = PostingsBuilder::new();
         for (word, ids) in self.map {
-            let offset = builder.push(&ids);
+            let offset = builder.push(&ids)?;
             entries.push((word, offset as u32));
         }
         let trie_data = yada::builder::DoubleArrayBuilder::build(&entries).unwrap();
-        WordMap {
+        Ok(WordMap {
             trie: Trie::new(trie_data),
             postings: builder.build(),
-        }
+        })
     }
 }
