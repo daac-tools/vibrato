@@ -50,13 +50,11 @@ impl Tokenizer {
     }
 
     fn build_lattice(&mut self, sent: &Sentence) {
-        self.lattice.reset(sent.chars().len());
+        let input_chars = sent.chars();
+        self.lattice.reset(input_chars.len());
 
-        let input_bytes = sent.bytes();
-        let start_positions = &sent.c2b()[..sent.chars().len()];
-
-        for (pos_char, &pos_byte) in start_positions.iter().enumerate() {
-            if !self.lattice.has_previous_node(pos_char) {
+        for start_char in 0..input_chars.len() {
+            if !self.lattice.has_previous_node(start_char) {
                 continue;
             }
 
@@ -65,12 +63,12 @@ impl Tokenizer {
             for m in self
                 .dict
                 .lexicon()
-                .common_prefix_iterator(&input_bytes[pos_byte..])
+                .common_prefix_iterator(&input_chars[start_char..])
             {
-                assert!(m.end_byte() + pos_byte <= input_bytes.len());
+                assert!(start_char + m.end_char() <= input_chars.len());
                 self.lattice.insert_node(
-                    pos_char,
-                    sent.char_position(m.end_byte() + pos_byte),
+                    start_char,
+                    start_char + m.end_char(),
                     m.word_idx(),
                     m.word_param(),
                     self.dict.connector(),
@@ -79,9 +77,12 @@ impl Tokenizer {
             }
 
             self.unk_words.clear();
-            self.dict
-                .unk_handler()
-                .gen_unk_words(sent, pos_char, has_matched, &mut self.unk_words);
+            self.dict.unk_handler().gen_unk_words(
+                sent,
+                start_char,
+                has_matched,
+                &mut self.unk_words,
+            );
 
             for w in &self.unk_words {
                 self.lattice.insert_node(
