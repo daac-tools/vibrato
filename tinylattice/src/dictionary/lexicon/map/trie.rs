@@ -18,8 +18,8 @@ impl Encode for Trie {
 
 impl Decode for Trie {
     fn decode<D: Decoder>(decoder: &mut D) -> Result<Self, DecodeError> {
-        let da_data: Vec<u8> = Decode::decode(decoder)?;
-        let (da, _) = crawdad::Trie::deserialize_from_slice(&da_data);
+        let data: Vec<u8> = Decode::decode(decoder)?;
+        let (da, _) = crawdad::Trie::deserialize_from_slice(&data);
         Ok(Self { da })
     }
 }

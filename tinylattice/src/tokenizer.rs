@@ -9,7 +9,6 @@ use lattice::{Lattice, Node};
 pub struct Tokenizer {
     dict: Dictionary,
     lattice: Lattice,
-    // Buffers
     unk_words: Vec<UnkWord>,
     top_nodes: Vec<(usize, Node)>,
 }
@@ -65,7 +64,7 @@ impl Tokenizer {
                 .lexicon()
                 .common_prefix_iterator(&input_chars[start_char..])
             {
-                assert!(start_char + m.end_char() <= input_chars.len());
+                debug_assert!(start_char + m.end_char() <= input_chars.len());
                 self.lattice.insert_node(
                     start_char,
                     start_char + m.end_char(),
@@ -94,6 +93,7 @@ impl Tokenizer {
                 );
             }
         }
+
         self.lattice.insert_eos(self.dict.connector());
     }
 
