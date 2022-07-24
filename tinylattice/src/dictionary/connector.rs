@@ -49,7 +49,7 @@ impl Connector {
         self.num_right
     }
 
-    pub(crate) fn map_ids(&mut self, mapper: &ConnIdMapper) {
+    pub(crate) fn do_mapping(&mut self, mapper: &ConnIdMapper) {
         assert_eq!(mapper.num_left(), self.num_left);
         assert_eq!(mapper.num_right(), self.num_right);
 

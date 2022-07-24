@@ -90,10 +90,10 @@ impl Dictionary {
         &self.unk_handler
     }
 
-    pub fn map_ids(&mut self, mapper: &ConnIdMapper) {
-        self.lexicon.map_ids(mapper);
-        self.connector.map_ids(mapper);
-        self.unk_handler.map_ids(mapper);
+    pub fn do_mapping(&mut self, mapper: &ConnIdMapper) {
+        self.lexicon.do_mapping(mapper);
+        self.connector.do_mapping(mapper);
+        self.unk_handler.do_mapping(mapper);
     }
 
     #[inline(always)]

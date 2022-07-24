@@ -45,8 +45,8 @@ impl Lexicon {
         self.features.feature(word_idx.word_id() as usize)
     }
 
-    pub(crate) fn map_ids(&mut self, mapper: &ConnIdMapper) {
-        self.params.map_ids(mapper);
+    pub(crate) fn do_mapping(&mut self, mapper: &ConnIdMapper) {
+        self.params.do_mapping(mapper);
     }
 }
 

@@ -59,7 +59,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let l_ranks = lid_probs.into_iter().map(|p| u16::try_from(p.0).unwrap());
         let r_ranks = rid_probs.into_iter().map(|p| u16::try_from(p.0).unwrap());
         let mapper = ConnIdMapper::from_ranks(l_ranks, r_ranks)?;
-        dict.map_ids(&mapper);
+        dict.do_mapping(&mapper);
 
         println!("{} seconds", start.elapsed().as_secs_f64());
     }

@@ -45,7 +45,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let l_filename = format!("{}.lmap", mapping_basename);
         let r_filename = format!("{}.rmap", mapping_basename);
         let mapper = ConnIdMapper::from_reader(File::open(l_filename)?, File::open(r_filename)?)?;
-        dict.map_ids(&mapper);
+        dict.do_mapping(&mapper);
     }
 
     let mut tokenizer = Tokenizer::new(&dict);
