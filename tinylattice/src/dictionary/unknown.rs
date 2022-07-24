@@ -16,7 +16,7 @@ pub struct UnkEntry {
     pub feature: String,
 }
 
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone)]
 pub struct UnkWord {
     start_char: u16,
     end_char: u16,
@@ -70,7 +70,7 @@ impl UnkHandler {
 
         if cinfo.group() {
             grouped = true;
-            f = self.push_entries(pos_char, pos_char + groupable, cinfo, f);
+            f = self.scan_entries(pos_char, pos_char + groupable, cinfo, f);
         }
 
         for i in 1..=cinfo.length().min(groupable) {
@@ -81,12 +81,12 @@ impl UnkHandler {
             if sent.chars().len() < end_char {
                 break;
             }
-            f = self.push_entries(pos_char, end_char, cinfo, f);
+            f = self.scan_entries(pos_char, end_char, cinfo, f);
         }
     }
 
     #[inline(always)]
-    fn push_entries<F>(&self, start_char: usize, end_char: usize, cinfo: CharInfo, mut f: F) -> F
+    fn scan_entries<F>(&self, start_char: usize, end_char: usize, cinfo: CharInfo, mut f: F) -> F
     where
         F: FnMut(UnkWord),
     {

@@ -94,7 +94,7 @@ impl Lattice {
         let mut min_idx = INVALID_IDX;
         let mut min_cost = MAX_COST;
         for (i, left_node) in self.ends[start_char].iter().enumerate() {
-            assert!(left_node.is_connected_to_bos());
+            debug_assert!(left_node.is_connected_to_bos());
             #[cfg(feature = "exp-ideal")]
             let conn_cost = 0;
             #[cfg(not(feature = "exp-ideal"))]
