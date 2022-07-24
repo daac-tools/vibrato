@@ -24,7 +24,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     let mut reader = BufReader::new(File::open(args.sysdic_filename)?);
-    let dict = bincode::decode_from_std_read(&mut reader, bincode::config::standard())?;
+    let config = bincode::config::standard()
+        .with_little_endian()
+        .with_fixed_int_encoding()
+        .write_fixed_array_length();
+    let dict = bincode::decode_from_std_read(&mut reader, config)?;
 
     let mut tokenizer = Tokenizer::new(&dict);
     let lines: Vec<_> = std::io::stdin()
