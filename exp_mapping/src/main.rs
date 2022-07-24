@@ -28,12 +28,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     let chardef_filename = format!("{}/char.def", &args.resource_dirname);
     let unkdef_filename = format!("{}/unk.def", &args.resource_dirname);
 
-    let mut tokenizer = Tokenizer::new(Dictionary::new(
+    let dict = Dictionary::new(
         Lexicon::from_reader(File::open(sysdic_filename)?, LexType::System)?,
         Connector::from_reader(File::open(matrix_filename)?)?,
         CharProperty::from_reader(File::open(chardef_filename)?)?,
         UnkHandler::from_reader(File::open(unkdef_filename)?)?,
-    ));
+    );
+    let mut tokenizer = Tokenizer::new(&dict);
 
     let mut sentence = Sentence::new();
     let mut lid_to_rid_occ = tokenizer.new_connid_occ();

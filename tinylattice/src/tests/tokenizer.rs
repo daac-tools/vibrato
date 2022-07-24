@@ -17,7 +17,7 @@ fn test_tokenize_tokyo() {
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
 
-    let mut tokenizer = Tokenizer::new(dict);
+    let mut tokenizer = Tokenizer::new(&dict);
     let mut sentence = Sentence::new();
 
     sentence.set_sentence("東京都");
@@ -46,7 +46,7 @@ fn test_tokenize_kyotokyo() {
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
 
-    let mut tokenizer = Tokenizer::new(dict);
+    let mut tokenizer = Tokenizer::new(&dict);
     let mut sentence = Sentence::new();
 
     sentence.set_sentence("京都東京都京都");
@@ -85,7 +85,7 @@ fn test_tokenize_kampersanda() {
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
 
-    let mut tokenizer = Tokenizer::new(dict);
+    let mut tokenizer = Tokenizer::new(&dict);
     let mut sentence = Sentence::new();
 
     sentence.set_sentence("kampersanda");
@@ -114,7 +114,7 @@ fn test_tokenize_tokyoken() {
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
 
-    let mut tokenizer = Tokenizer::new(dict);
+    let mut tokenizer = Tokenizer::new(&dict);
     let mut sentence = Sentence::new();
 
     sentence.set_sentence("東京県に行く");

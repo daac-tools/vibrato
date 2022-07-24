@@ -48,7 +48,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         dict.map_ids(&mapper);
     }
 
-    let mut tokenizer = Tokenizer::new(dict);
+    let mut tokenizer = Tokenizer::new(&dict);
     let lines: Vec<_> = std::io::stdin()
         .lock()
         .lines()

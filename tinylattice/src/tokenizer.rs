@@ -5,14 +5,14 @@ use crate::sentence::Sentence;
 use crate::Morpheme;
 use lattice::{Lattice, Node};
 
-pub struct Tokenizer {
-    dict: Dictionary,
+pub struct Tokenizer<'a> {
+    dict: &'a Dictionary,
     lattice: Lattice,
     top_nodes: Vec<(usize, Node)>,
 }
 
-impl Tokenizer {
-    pub fn new(dict: Dictionary) -> Self {
+impl<'a> Tokenizer<'a> {
+    pub fn new(dict: &'a Dictionary) -> Self {
         Self {
             dict,
             lattice: Lattice::default(),
@@ -146,7 +146,7 @@ mod tests {
             UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
         );
 
-        let mut tokenizer = Tokenizer::new(dict);
+        let mut tokenizer = Tokenizer::new(&dict);
         let mut sentence = Sentence::new();
 
         sentence.set_sentence("自然言語処理");
@@ -195,7 +195,7 @@ mod tests {
             UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
         );
 
-        let mut tokenizer = Tokenizer::new(dict);
+        let mut tokenizer = Tokenizer::new(&dict);
         let mut sentence = Sentence::new();
 
         sentence.set_sentence("自然日本語処理");
@@ -244,7 +244,7 @@ mod tests {
             UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
         );
 
-        let mut tokenizer = Tokenizer::new(dict);
+        let mut tokenizer = Tokenizer::new(&dict);
         let mut sentence = Sentence::new();
 
         sentence.set_sentence("不自然言語処理");

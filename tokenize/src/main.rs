@@ -45,7 +45,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         dict.map_ids(&mapper);
     }
 
-    let mut tokenizer = Tokenizer::new(dict);
+    let mut tokenizer = Tokenizer::new(&dict);
     let mut sentence = Sentence::new();
 
     for line in std::io::stdin().lock().lines() {
