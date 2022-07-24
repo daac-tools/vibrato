@@ -97,12 +97,14 @@ impl<'a> Tokenizer<'a> {
         self.lattice.insert_eos(self.dict.connector());
     }
 
+    #[doc(hidden)]
     pub fn new_connid_occ(&self) -> Vec<Vec<usize>> {
         let num_left = self.dict.connector().num_left();
         let num_right = self.dict.connector().num_right();
         vec![vec![0; num_right]; num_left]
     }
 
+    #[doc(hidden)]
     pub fn count_connid_occ(&self, lid_to_rid_occ: &mut [Vec<usize>]) {
         self.lattice.count_connid_occ(lid_to_rid_occ);
     }

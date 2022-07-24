@@ -90,6 +90,7 @@ impl Dictionary {
         &self.unk_handler
     }
 
+    #[doc(hidden)]
     pub fn do_mapping(&mut self, mapper: &ConnIdMapper) {
         self.lexicon.do_mapping(mapper);
         self.connector.do_mapping(mapper);
