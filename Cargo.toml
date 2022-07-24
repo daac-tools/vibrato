@@ -6,4 +6,5 @@ members = [
     "exp_mapping",
     "exp_timeperf",
     "compile",
+    "benchmark",
 ]
