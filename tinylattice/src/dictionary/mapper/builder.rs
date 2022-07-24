@@ -5,6 +5,34 @@ use anyhow::{anyhow, Result};
 use super::ConnIdMapper;
 
 impl ConnIdMapper {
+    pub fn from_ranks<L, R>(l_ranks: L, r_ranks: R) -> Result<Self>
+    where
+        L: IntoIterator<Item = u16>,
+        R: IntoIterator<Item = u16>,
+    {
+        let left = Self::compile(l_ranks)?;
+        let right = Self::compile(r_ranks)?;
+        Ok(Self { left, right })
+    }
+
+    fn compile<I>(ranks: I) -> Result<Vec<(u16, u16)>>
+    where
+        I: IntoIterator<Item = u16>,
+    {
+        let mut mapping = vec![(0, 0)];
+        for old_id in ranks {
+            if old_id == 0 {
+                return Err(anyhow!("Id zero is reserved"));
+            }
+            mapping.push((old_id, 0));
+        }
+        for new_id in 1..mapping.len() {
+            let old_id = mapping[new_id].0 as usize;
+            mapping[old_id].1 = new_id as u16;
+        }
+        Ok(mapping)
+    }
+
     pub fn from_reader<R>(l_rdr: R, r_rdr: R) -> Result<Self>
     where
         R: Read,
