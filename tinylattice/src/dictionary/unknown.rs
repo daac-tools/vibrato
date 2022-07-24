@@ -56,13 +56,10 @@ pub struct UnkHandler {
 }
 
 impl UnkHandler {
-    pub fn gen_unk_words(
-        &self,
-        sent: &Sentence,
-        pos_char: usize,
-        has_matched: bool,
-        unk_words: &mut Vec<UnkWord>,
-    ) {
+    pub fn gen_unk_words<F>(&self, sent: &Sentence, pos_char: usize, has_matched: bool, mut f: F)
+    where
+        F: FnMut(UnkWord),
+    {
         let cinfo = sent.char_info(pos_char);
         if has_matched && !cinfo.invoke() {
             return;
@@ -73,7 +70,7 @@ impl UnkHandler {
 
         if cinfo.group() {
             grouped = true;
-            self.push_entries(pos_char, pos_char + groupable, cinfo, unk_words);
+            f = self.push_entries(pos_char, pos_char + groupable, cinfo, f);
         }
 
         for i in 1..=cinfo.length().min(groupable) {
@@ -84,23 +81,20 @@ impl UnkHandler {
             if sent.chars().len() < end_char {
                 break;
             }
-            self.push_entries(pos_char, end_char, cinfo, unk_words);
+            f = self.push_entries(pos_char, end_char, cinfo, f);
         }
     }
 
     #[inline(always)]
-    fn push_entries(
-        &self,
-        start_char: usize,
-        end_char: usize,
-        cinfo: CharInfo,
-        unk_words: &mut Vec<UnkWord>,
-    ) {
+    fn push_entries<F>(&self, start_char: usize, end_char: usize, cinfo: CharInfo, mut f: F) -> F
+    where
+        F: FnMut(UnkWord),
+    {
         let start = self.offsets[cinfo.base_id() as usize];
         let end = self.offsets[cinfo.base_id() as usize + 1];
         for word_id in start..end {
             let e = &self.entries[word_id];
-            unk_words.push(UnkWord {
+            f(UnkWord {
                 start_char: start_char as u16,
                 end_char: end_char as u16,
                 left_id: e.left_id,
@@ -109,6 +103,7 @@ impl UnkHandler {
                 word_id: word_id as u16,
             });
         }
+        f
     }
 
     pub fn word_feature(&self, word_idx: WordIdx) -> &str {

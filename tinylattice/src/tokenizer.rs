@@ -9,7 +9,6 @@ use lattice::{Lattice, Node};
 pub struct Tokenizer {
     dict: Dictionary,
     lattice: Lattice,
-    unk_words: Vec<UnkWord>,
     top_nodes: Vec<(usize, Node)>,
 }
 
@@ -18,7 +17,6 @@ impl Tokenizer {
         Self {
             dict,
             lattice: Lattice::default(),
-            unk_words: Vec::with_capacity(16),
             top_nodes: vec![],
         }
     }
@@ -75,23 +73,17 @@ impl Tokenizer {
                 has_matched = true;
             }
 
-            self.unk_words.clear();
-            self.dict.unk_handler().gen_unk_words(
-                sent,
-                start_char,
-                has_matched,
-                &mut self.unk_words,
-            );
-
-            for w in &self.unk_words {
-                self.lattice.insert_node(
-                    w.start_char(),
-                    w.end_char(),
-                    w.word_idx(),
-                    w.word_param(),
-                    self.dict.connector(),
-                );
-            }
+            self.dict
+                .unk_handler()
+                .gen_unk_words(sent, start_char, has_matched, |w: UnkWord| {
+                    self.lattice.insert_node(
+                        w.start_char(),
+                        w.end_char(),
+                        w.word_idx(),
+                        w.word_param(),
+                        self.dict.connector(),
+                    );
+                });
         }
 
         self.lattice.insert_eos(self.dict.connector());
