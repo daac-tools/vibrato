@@ -6,7 +6,7 @@ use std::time::Instant;
 use tinylattice::dictionary::{
     CharProperty, ConnIdMapper, Connector, Dictionary, LexType, Lexicon, UnkHandler,
 };
-use tinylattice::{Sentence, Tokenizer};
+use tinylattice::Tokenizer;
 
 use clap::Parser;
 
@@ -46,14 +46,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         start = Instant::now();
 
         let mut tokenizer = Tokenizer::new(&dict);
-        let mut sentence = Sentence::new();
         let mut lid_to_rid_occ = tokenizer.new_connid_occ();
 
         let reader = BufReader::new(File::open(train_filename)?);
         for line in reader.lines() {
             let line = line?;
-            sentence.set_sentence(line);
-            tokenizer.tokenize(&mut sentence);
+            tokenizer.tokenize(line).unwrap();
             tokenizer.count_connid_occ(&mut lid_to_rid_occ);
         }
 

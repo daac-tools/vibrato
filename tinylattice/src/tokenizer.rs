@@ -1,39 +1,48 @@
 pub mod lattice;
 
+use std::cell::RefCell;
+use std::rc::Rc;
+
 pub use crate::dictionary::Dictionary;
+use crate::morpheme::MorphemeList;
 use crate::sentence::Sentence;
-use crate::Morpheme;
-use lattice::{Lattice, Node};
+use lattice::Lattice;
 
 pub struct Tokenizer<'a> {
     dict: &'a Dictionary,
+    sent: Rc<RefCell<Sentence>>,
     lattice: Lattice,
-    top_nodes: Vec<(usize, Node)>,
+    mlist: MorphemeList<'a>,
 }
 
 impl<'a> Tokenizer<'a> {
     pub fn new(dict: &'a Dictionary) -> Self {
         Self {
             dict,
+            sent: Rc::new(RefCell::new(Sentence::new())),
             lattice: Lattice::default(),
-            top_nodes: vec![],
+            mlist: MorphemeList::new(dict),
         }
     }
 
     #[inline(always)]
-    pub fn tokenize(&mut self, sent: &mut Sentence) {
-        if sent.raw().is_empty() {
-            return;
+    pub fn tokenize<S>(&mut self, input: S) -> Option<&MorphemeList>
+    where
+        S: AsRef<str>,
+    {
+        let input = input.as_ref();
+        if input.is_empty() {
+            return None;
         }
-        sent.compile(self.dict.char_prop());
-        self.build_lattice(sent);
-        self.compute_top_nodes();
-        self.set_morphs(sent);
-    }
+        self.sent.borrow_mut().set_sentence(input);
+        self.sent.borrow_mut().compile(self.dict.char_prop());
+        self.build_lattice();
 
-    #[inline(always)]
-    pub fn feature(&self, morph: &Morpheme) -> &str {
-        self.dict.word_feature(morph.word_idx())
+        self.mlist.sent = self.sent.clone();
+        self.mlist.nodes.clear();
+        self.lattice.append_top_nodes(&mut self.mlist.nodes);
+
+        Some(&self.mlist)
     }
 
     #[inline(always)]
@@ -46,7 +55,8 @@ impl<'a> Tokenizer<'a> {
         &self.lattice
     }
 
-    fn build_lattice(&mut self, sent: &Sentence) {
+    fn build_lattice(&mut self) {
+        let sent = self.sent.borrow();
         let input_chars = sent.chars();
         self.lattice.reset(input_chars.len());
 
@@ -75,7 +85,7 @@ impl<'a> Tokenizer<'a> {
 
             self.dict
                 .unk_handler()
-                .gen_unk_words(sent, start_char, has_matched, |w| {
+                .gen_unk_words(&sent, start_char, has_matched, |w| {
                     self.lattice.insert_node(
                         w.start_char(),
                         w.end_char(),
@@ -89,28 +99,28 @@ impl<'a> Tokenizer<'a> {
         self.lattice.insert_eos(self.dict.connector());
     }
 
-    fn compute_top_nodes(&mut self) {
-        self.top_nodes.clear();
-        self.lattice.append_top_nodes(&mut self.top_nodes);
-    }
+    // fn compute_top_nodes(&mut self) {
+    //     self.mlist.nodes.clear();
+    //     self.lattice.append_top_nodes(&mut self.mlist.nodes);
+    // }
 
-    fn set_morphs(&mut self, sent: &mut Sentence) {
-        let mut morphs = sent.take_morphs();
-        morphs.clear();
-        morphs.resize(self.top_nodes.len(), Morpheme::default());
-        for (i, (end_char, node)) in self.top_nodes.iter().rev().enumerate() {
-            let end_char = *end_char;
-            morphs[i] = Morpheme {
-                start_byte: sent.byte_position(node.start_char()) as u16,
-                end_byte: sent.byte_position(end_char) as u16,
-                start_char: node.start_char() as u16,
-                end_char: end_char as u16,
-                word_idx: node.word_idx(),
-                total_cost: node.min_cost(),
-            };
-        }
-        sent.set_morphs(morphs);
-    }
+    // fn set_morphs(&mut self, sent: &mut Sentence) {
+    //     let mut morphs = sent.take_morphs();
+    //     morphs.clear();
+    //     morphs.resize(self.top_nodes.len(), Morpheme::default());
+    //     for (i, (end_char, node)) in self.top_nodes.iter().rev().enumerate() {
+    //         let end_char = *end_char;
+    //         morphs[i] = Morpheme {
+    //             start_byte: sent.byte_position(node.start_char()) as u16,
+    //             end_byte: sent.byte_position(end_char) as u16,
+    //             start_char: node.start_char() as u16,
+    //             end_char: end_char as u16,
+    //             word_idx: node.word_idx(),
+    //             total_cost: node.min_cost(),
+    //         };
+    //     }
+    //     sent.set_morphs(morphs);
+    // }
 
     pub fn new_connid_occ(&self) -> Vec<Vec<usize>> {
         let num_left = self.dict.connector().num_left();
@@ -125,16 +135,18 @@ impl<'a> Tokenizer<'a> {
 
 #[cfg(test)]
 mod tests {
+    use std::ops::Deref;
+
     use super::*;
     use crate::dictionary::*;
 
     #[test]
     fn test_tokenize_1() {
-        let lexicon_csv = "自然,0,0,1
-言語,0,0,4
-処理,0,0,3
-自然言語,0,0,6
-言語処理,0,0,5";
+        let lexicon_csv = "自然,0,0,1,sizen
+言語,0,0,4,gengo
+処理,0,0,3,shori
+自然言語,0,0,6,sizengengo
+言語処理,0,0,5,gengoshori";
         let matrix_def = "1 1\n0 0 0";
         let char_def = "DEFAULT 0 1 0";
         let unk_def = "DEFAULT,0,0,100,*";
@@ -147,43 +159,30 @@ mod tests {
         );
 
         let mut tokenizer = Tokenizer::new(&dict);
-        let mut sentence = Sentence::new();
+        let morphs = tokenizer.tokenize("自然言語処理").unwrap();
 
-        sentence.set_sentence("自然言語処理");
-        tokenizer.tokenize(&mut sentence);
+        assert_eq!(morphs.len(), 2);
 
-        assert_eq!(
-            sentence.morphs(),
-            vec![
-                // 自然
-                Morpheme {
-                    start_byte: 0,
-                    end_byte: 6,
-                    start_char: 0,
-                    end_char: 2,
-                    word_idx: WordIdx::new(LexType::System, 0),
-                    total_cost: 1,
-                },
-                // 言語処理
-                Morpheme {
-                    start_byte: 6,
-                    end_byte: 18,
-                    start_char: 2,
-                    end_char: 6,
-                    word_idx: WordIdx::new(LexType::System, 4),
-                    total_cost: 6,
-                },
-            ]
-        );
+        assert_eq!(morphs.surface(0).deref(), "自然");
+        assert_eq!(morphs.range_char(0), 0..2);
+        assert_eq!(morphs.range_byte(0), 0..6);
+        assert_eq!(morphs.feature(0), "sizen");
+        assert_eq!(morphs.total_cost(0), 1);
+
+        assert_eq!(morphs.surface(1).deref(), "言語処理");
+        assert_eq!(morphs.range_char(1), 2..6);
+        assert_eq!(morphs.range_byte(1), 6..18);
+        assert_eq!(morphs.feature(1), "gengoshori");
+        assert_eq!(morphs.total_cost(1), 6);
     }
 
     #[test]
     fn test_tokenize_2() {
-        let lexicon_csv = "自然,0,0,1
-言語,0,0,4
-処理,0,0,3
-自然言語,0,0,6
-言語処理,0,0,5";
+        let lexicon_csv = "自然,0,0,1,sizen
+言語,0,0,4,gengo
+処理,0,0,3,shori
+自然言語,0,0,6,sizengengo
+言語処理,0,0,5,gengoshori";
         let matrix_def = "1 1\n0 0 0";
         let char_def = "DEFAULT 0 1 0";
         let unk_def = "DEFAULT,0,0,100,*";
@@ -196,43 +195,30 @@ mod tests {
         );
 
         let mut tokenizer = Tokenizer::new(&dict);
-        let mut sentence = Sentence::new();
+        let morphs = tokenizer.tokenize("自然日本語処理").unwrap();
 
-        sentence.set_sentence("自然日本語処理");
-        tokenizer.tokenize(&mut sentence);
+        assert_eq!(morphs.len(), 2);
 
-        assert_eq!(
-            sentence.morphs(),
-            vec![
-                // 自然
-                Morpheme {
-                    start_byte: 0,
-                    end_byte: 6,
-                    start_char: 0,
-                    end_char: 2,
-                    word_idx: WordIdx::new(LexType::System, 0),
-                    total_cost: 1,
-                },
-                // 日本語処理
-                Morpheme {
-                    start_byte: 6,
-                    end_byte: 21,
-                    start_char: 2,
-                    end_char: 7,
-                    word_idx: WordIdx::new(LexType::Unknown, 0),
-                    total_cost: 101,
-                },
-            ]
-        );
+        assert_eq!(morphs.surface(0).deref(), "自然");
+        assert_eq!(morphs.range_char(0), 0..2);
+        assert_eq!(morphs.range_byte(0), 0..6);
+        assert_eq!(morphs.feature(0), "sizen");
+        assert_eq!(morphs.total_cost(0), 1);
+
+        assert_eq!(morphs.surface(1).deref(), "日本語処理");
+        assert_eq!(morphs.range_char(1), 2..7);
+        assert_eq!(morphs.range_byte(1), 6..21);
+        assert_eq!(morphs.feature(1), "*");
+        assert_eq!(morphs.total_cost(1), 101);
     }
 
     #[test]
     fn test_tokenize_3() {
-        let lexicon_csv = "自然,0,0,1
-言語,0,0,4
-処理,0,0,3
-自然言語,0,0,6
-言語処理,0,0,5";
+        let lexicon_csv = "自然,0,0,1,sizen
+言語,0,0,4,gengo
+処理,0,0,3,shori
+自然言語,0,0,6,sizengengo
+言語処理,0,0,5,gengoshori";
         let matrix_def = "1 1\n0 0 0";
         let char_def = "DEFAULT 0 0 3";
         let unk_def = "DEFAULT,0,0,100,*";
@@ -245,33 +231,20 @@ mod tests {
         );
 
         let mut tokenizer = Tokenizer::new(&dict);
-        let mut sentence = Sentence::new();
+        let morphs = tokenizer.tokenize("不自然言語処理").unwrap();
 
-        sentence.set_sentence("不自然言語処理");
-        tokenizer.tokenize(&mut sentence);
+        assert_eq!(morphs.len(), 2);
 
-        assert_eq!(
-            sentence.morphs(),
-            vec![
-                // 不自然
-                Morpheme {
-                    start_byte: 0,
-                    end_byte: 9,
-                    start_char: 0,
-                    end_char: 3,
-                    word_idx: WordIdx::new(LexType::Unknown, 0),
-                    total_cost: 100,
-                },
-                // 言語処理
-                Morpheme {
-                    start_byte: 9,
-                    end_byte: 21,
-                    start_char: 3,
-                    end_char: 7,
-                    word_idx: WordIdx::new(LexType::System, 4),
-                    total_cost: 105,
-                },
-            ]
-        );
+        assert_eq!(morphs.surface(0).deref(), "不自然");
+        assert_eq!(morphs.range_char(0), 0..3);
+        assert_eq!(morphs.range_byte(0), 0..9);
+        assert_eq!(morphs.feature(0), "*");
+        assert_eq!(morphs.total_cost(0), 100);
+
+        assert_eq!(morphs.surface(1).deref(), "言語処理");
+        assert_eq!(morphs.range_char(1), 3..7);
+        assert_eq!(morphs.range_byte(1), 9..21);
+        assert_eq!(morphs.feature(1), "gengoshori");
+        assert_eq!(morphs.total_cost(1), 105);
     }
 }

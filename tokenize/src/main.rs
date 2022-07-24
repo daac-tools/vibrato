@@ -2,8 +2,7 @@ use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
-use tinylattice::dictionary::LexType;
-use tinylattice::{Sentence, Tokenizer};
+use tinylattice::Tokenizer;
 
 use clap::Parser;
 
@@ -22,31 +21,22 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut reader = BufReader::new(File::open(args.sysdic_filename)?);
     let dict = bincode::decode_from_std_read(&mut reader, bincode::config::standard())?;
-
     let mut tokenizer = Tokenizer::new(&dict);
-    let mut sentence = Sentence::new();
 
-    let wakachi = args.wakachi;
     for line in std::io::stdin().lock().lines() {
         let line = line?;
-
-        sentence.set_sentence(line);
-        tokenizer.tokenize(&mut sentence);
-        let morphs = sentence.morphs();
-
-        if wakachi {
-            let surfaces = sentence.surfaces();
-            println!("{}", surfaces.join(" "));
+        let morphs = tokenizer.tokenize(line).unwrap();
+        if args.wakachi {
+            for i in 0..morphs.len() {
+                print!(
+                    "{}{}",
+                    morphs.surface(i),
+                    if i != morphs.len() - 1 { ' ' } else { '\n' }
+                );
+            }
         } else {
-            for m in morphs {
-                match m.word_idx().lex_type() {
-                    LexType::System => {
-                        println!("{}\t{}", sentence.surface(m), tokenizer.feature(m),)
-                    }
-                    LexType::Unknown => {
-                        println!("{}\t{} (UNK)", sentence.surface(m), tokenizer.feature(m),)
-                    }
-                }
+            for i in 0..morphs.len() {
+                println!("{}\t{}", morphs.surface(i), morphs.feature(i))
             }
             println!("EOS");
         }

@@ -6,7 +6,7 @@ use exp_timer::Timer;
 use tinylattice::dictionary::{
     CharProperty, ConnIdMapper, Connector, Dictionary, LexType, Lexicon, UnkHandler,
 };
-use tinylattice::{Sentence, Tokenizer};
+use tinylattice::Tokenizer;
 
 use clap::Parser;
 
@@ -55,14 +55,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         .map(|l| l.unwrap())
         .collect();
 
-    let mut measure = |t: &mut Timer, s: &mut Sentence| {
+    let mut measure = |t: &mut Timer| {
         let mut n_words = 0;
         for _ in 0..RUNS {
             t.start();
             for line in &lines {
-                s.set_sentence(line);
-                tokenizer.tokenize(s);
-                n_words += s.morphs().len();
+                if let Some(morphs) = tokenizer.tokenize(line) {
+                    n_words += morphs.len();
+                }
             }
             t.stop();
         }
@@ -70,18 +70,17 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
 
     let mut t = Timer::new();
-    let mut s = Sentence::new();
 
     // Warmup
     t.reset();
-    measure(&mut t, &mut s);
+    measure(&mut t);
     println!("Warmup: {}", t.average());
 
     let (mut min, mut max, mut avg) = (0.0, 0.0, 0.0);
 
     for _ in 0..TRIALS {
         t.reset();
-        measure(&mut t, &mut s);
+        measure(&mut t);
         t.discard_min();
         t.discard_max();
         min += t.min();

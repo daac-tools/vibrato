@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::{BufRead, BufWriter, Write};
 
 use tinylattice::dictionary::{CharProperty, Connector, Dictionary, LexType, Lexicon, UnkHandler};
-use tinylattice::{Sentence, Tokenizer};
+use tinylattice::Tokenizer;
 
 use clap::Parser;
 
@@ -35,14 +35,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         UnkHandler::from_reader(File::open(unkdef_filename)?)?,
     );
     let mut tokenizer = Tokenizer::new(&dict);
-
-    let mut sentence = Sentence::new();
     let mut lid_to_rid_occ = tokenizer.new_connid_occ();
 
     for line in std::io::stdin().lock().lines() {
         let line = line?;
-        sentence.set_sentence(line);
-        tokenizer.tokenize(&mut sentence);
+        tokenizer.tokenize(line).unwrap();
         tokenizer.count_connid_occ(&mut lid_to_rid_occ);
     }
     let (lid_probs, rid_probs) = compute_probs(&lid_to_rid_occ);

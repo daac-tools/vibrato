@@ -1,5 +1,4 @@
 use crate::dictionary::character::{CharInfo, CharProperty};
-use crate::Morpheme;
 
 #[derive(Default, Clone)]
 pub struct Sentence {
@@ -9,7 +8,6 @@ pub struct Sentence {
     b2c: Vec<usize>,
     cinfos: Vec<CharInfo>,
     groupable: Vec<usize>,
-    morphs: Vec<Morpheme>,
 }
 
 impl Sentence {
@@ -25,7 +23,6 @@ impl Sentence {
         self.b2c.clear();
         self.cinfos.clear();
         self.groupable.clear();
-        self.morphs.clear();
     }
 
     pub fn set_sentence<S>(&mut self, input: S)
@@ -94,34 +91,6 @@ impl Sentence {
     #[inline(always)]
     pub fn chars(&self) -> &[char] {
         &self.chars
-    }
-
-    #[inline(always)]
-    pub fn surface(&self, morph: &Morpheme) -> &str {
-        &self.raw()[morph.range_byte()]
-    }
-
-    #[inline(always)]
-    pub fn surfaces(&self) -> Vec<&str> {
-        self.morphs()
-            .iter()
-            .map(|m| &self.raw()[m.range_byte()])
-            .collect()
-    }
-
-    #[inline(always)]
-    pub fn morphs(&self) -> &[Morpheme] {
-        &self.morphs
-    }
-
-    #[inline(always)]
-    pub(crate) fn take_morphs(&mut self) -> Vec<Morpheme> {
-        std::mem::take(&mut self.morphs)
-    }
-
-    #[inline(always)]
-    pub(crate) fn set_morphs(&mut self, morphs: Vec<Morpheme>) {
-        self.morphs = morphs;
     }
 
     /// Returns byte offsets of current chars
