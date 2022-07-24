@@ -1,14 +1,14 @@
-pub mod character;
-pub mod connector;
-pub mod lexicon;
-pub mod mapper;
-pub mod unknown;
+pub(crate) mod character;
+pub(crate) mod connector;
+pub(crate) mod lexicon;
+pub(crate) mod mapper;
+pub(crate) mod unknown;
 
 use bincode::{Decode, Encode};
 
 pub use character::CharProperty;
 pub use connector::Connector;
-pub use lexicon::{Lexicon, WordParam};
+pub use lexicon::Lexicon;
 pub use mapper::ConnIdMapper;
 pub use unknown::UnkHandler;
 
@@ -90,17 +90,17 @@ impl Dictionary {
         &self.unk_handler
     }
 
-    #[inline(always)]
-    pub fn word_feature(&self, word_idx: WordIdx) -> &str {
-        match word_idx.lex_type() {
-            LexType::System => self.lexicon().word_feature(word_idx),
-            LexType::Unknown => self.unk_handler().word_feature(word_idx),
-        }
-    }
-
     pub fn map_ids(&mut self, mapper: &ConnIdMapper) {
         self.lexicon.map_ids(mapper);
         self.connector.map_ids(mapper);
         self.unk_handler.map_ids(mapper);
+    }
+
+    #[inline(always)]
+    pub(crate) fn word_feature(&self, word_idx: WordIdx) -> &str {
+        match word_idx.lex_type() {
+            LexType::System => self.lexicon().word_feature(word_idx),
+            LexType::Unknown => self.unk_handler().word_feature(word_idx),
+        }
     }
 }

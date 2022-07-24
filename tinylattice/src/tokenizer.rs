@@ -1,13 +1,16 @@
-pub mod lattice;
+mod lattice;
 
 use std::cell::RefCell;
 use std::rc::Rc;
 
-pub use crate::dictionary::Dictionary;
+use crate::dictionary::Dictionary;
 use crate::morpheme::MorphemeList;
 use crate::sentence::Sentence;
 use lattice::Lattice;
 
+pub(crate) use lattice::Node;
+
+/// Tokenizer
 pub struct Tokenizer<'a> {
     dict: &'a Dictionary,
     sent: Rc<RefCell<Sentence>>, // shared with MorphemeList
@@ -16,6 +19,7 @@ pub struct Tokenizer<'a> {
 }
 
 impl<'a> Tokenizer<'a> {
+    /// Creates an instance of [`Tokenizer`].
     pub fn new(dict: &'a Dictionary) -> Self {
         Self {
             dict,
@@ -25,6 +29,7 @@ impl<'a> Tokenizer<'a> {
         }
     }
 
+    /// Tokenizes an input text.
     pub fn tokenize<S>(&mut self, input: S) -> &MorphemeList
     where
         S: AsRef<str>,

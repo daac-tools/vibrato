@@ -1,5 +1,5 @@
-pub mod builder;
-pub mod category;
+mod builder;
+mod category;
 
 use bincode::{Decode, Encode};
 

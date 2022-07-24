@@ -1,4 +1,4 @@
-pub mod builder;
+mod builder;
 
 pub struct ConnIdMapper {
     left: Vec<(u16, u16)>,

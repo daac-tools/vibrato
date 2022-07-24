@@ -1,9 +1,10 @@
-pub mod builder;
+mod builder;
 
 use bincode::{Decode, Encode};
 
 use super::mapper::ConnIdMapper;
 
+/// Matrix of connection costs.
 #[derive(Decode, Encode)]
 pub struct Connector {
     data: Vec<i16>,

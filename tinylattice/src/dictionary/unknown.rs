@@ -1,10 +1,11 @@
-pub mod builder;
+mod builder;
 
 use bincode::{Decode, Encode};
 
 use super::mapper::ConnIdMapper;
-use super::{LexType, WordIdx, WordParam};
+use super::{LexType, WordIdx};
 use crate::dictionary::character::CharInfo;
+use crate::dictionary::lexicon::WordParam;
 use crate::sentence::Sentence;
 
 #[derive(Default, Debug, Clone, Decode, Encode)]
@@ -50,8 +51,7 @@ impl UnkWord {
 
 #[derive(Decode, Encode)]
 pub struct UnkHandler {
-    // indexed by category id
-    offsets: Vec<usize>,
+    offsets: Vec<usize>, // indexed by category id
     entries: Vec<UnkEntry>,
 }
 

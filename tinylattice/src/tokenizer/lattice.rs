@@ -1,4 +1,5 @@
-use crate::dictionary::{Connector, WordIdx, WordParam};
+use crate::dictionary::lexicon::WordParam;
+use crate::dictionary::{Connector, WordIdx};
 
 const MAX_COST: i32 = i32::MAX;
 const INVALID_IDX: u16 = u16::MAX;

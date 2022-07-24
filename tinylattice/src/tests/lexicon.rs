@@ -1,4 +1,5 @@
-use crate::dictionary::{lexicon::LexMatch, LexType, Lexicon, WordIdx, WordParam};
+use crate::dictionary::lexicon::{LexMatch, WordParam};
+use crate::dictionary::{LexType, Lexicon, WordIdx};
 
 const LEX_CSV: &str = include_str!("./resources/lex.csv");
 

@@ -1,16 +1,19 @@
-pub mod builder;
-pub mod feature;
-pub mod map;
-pub mod param;
+mod builder;
+mod feature;
+mod map;
+mod param;
 
 use bincode::{Decode, Encode};
 
 use super::mapper::ConnIdMapper;
-pub use super::{LexType, WordIdx};
-pub use feature::WordFeatures;
-pub use map::WordMap;
-pub use param::{WordParam, WordParams};
+use super::{LexType, WordIdx};
+use feature::WordFeatures;
+use map::WordMap;
+use param::WordParams;
 
+pub use param::WordParam;
+
+/// Lexicon of words.
 #[derive(Decode, Encode)]
 pub struct Lexicon {
     map: WordMap,
