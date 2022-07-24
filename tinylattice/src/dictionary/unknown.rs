@@ -5,7 +5,7 @@ use bincode::{Decode, Encode};
 use super::mapper::ConnIdMapper;
 use super::{LexType, WordIdx, WordParam};
 use crate::dictionary::character::CharInfo;
-use crate::Sentence;
+use crate::sentence::Sentence;
 
 #[derive(Default, Debug, Clone, Decode, Encode)]
 pub struct UnkEntry {

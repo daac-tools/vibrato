@@ -7,5 +7,4 @@ pub mod utils;
 #[cfg(test)]
 pub mod tests;
 
-pub use sentence::Sentence;
 pub use tokenizer::{Dictionary, Tokenizer};

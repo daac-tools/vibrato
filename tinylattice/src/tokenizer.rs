@@ -10,7 +10,7 @@ use lattice::Lattice;
 
 pub struct Tokenizer<'a> {
     dict: &'a Dictionary,
-    sent: Rc<RefCell<Sentence>>,
+    sent: Rc<RefCell<Sentence>>, // shared with MorphemeList
     lattice: Lattice,
     mlist: MorphemeList<'a>,
 }
@@ -43,16 +43,6 @@ impl<'a> Tokenizer<'a> {
         self.lattice.append_top_nodes(&mut self.mlist.nodes);
 
         Some(&self.mlist)
-    }
-
-    #[inline(always)]
-    pub const fn dictionary(&self) -> &Dictionary {
-        &self.dict
-    }
-
-    #[inline(always)]
-    pub const fn lattice(&self) -> &Lattice {
-        &self.lattice
     }
 
     fn build_lattice(&mut self) {
@@ -98,29 +88,6 @@ impl<'a> Tokenizer<'a> {
 
         self.lattice.insert_eos(self.dict.connector());
     }
-
-    // fn compute_top_nodes(&mut self) {
-    //     self.mlist.nodes.clear();
-    //     self.lattice.append_top_nodes(&mut self.mlist.nodes);
-    // }
-
-    // fn set_morphs(&mut self, sent: &mut Sentence) {
-    //     let mut morphs = sent.take_morphs();
-    //     morphs.clear();
-    //     morphs.resize(self.top_nodes.len(), Morpheme::default());
-    //     for (i, (end_char, node)) in self.top_nodes.iter().rev().enumerate() {
-    //         let end_char = *end_char;
-    //         morphs[i] = Morpheme {
-    //             start_byte: sent.byte_position(node.start_char()) as u16,
-    //             end_byte: sent.byte_position(end_char) as u16,
-    //             start_char: node.start_char() as u16,
-    //             end_char: end_char as u16,
-    //             word_idx: node.word_idx(),
-    //             total_cost: node.min_cost(),
-    //         };
-    //     }
-    //     sent.set_morphs(morphs);
-    // }
 
     pub fn new_connid_occ(&self) -> Vec<Vec<usize>> {
         let num_left = self.dict.connector().num_left();
