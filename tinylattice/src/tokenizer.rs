@@ -217,4 +217,28 @@ mod tests {
         assert_eq!(morphs.feature(1), "gengoshori");
         assert_eq!(morphs.total_cost(1), 105);
     }
+
+    #[test]
+    fn test_tokenize_empty() {
+        let lexicon_csv = "自然,0,0,1,sizen
+言語,0,0,4,gengo
+処理,0,0,3,shori
+自然言語,0,0,6,sizengengo
+言語処理,0,0,5,gengoshori";
+        let matrix_def = "1 1\n0 0 0";
+        let char_def = "DEFAULT 0 0 3";
+        let unk_def = "DEFAULT,0,0,100,*";
+
+        let dict = Dictionary::new(
+            Lexicon::from_reader(lexicon_csv.as_bytes(), LexType::System).unwrap(),
+            Connector::from_reader(matrix_def.as_bytes()).unwrap(),
+            CharProperty::from_reader(char_def.as_bytes()).unwrap(),
+            UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
+        );
+
+        let mut tokenizer = Tokenizer::new(&dict);
+        let morphs = tokenizer.tokenize("");
+
+        assert_eq!(morphs.len(), 0);
+    }
 }

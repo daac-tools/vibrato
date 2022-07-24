@@ -120,3 +120,18 @@ fn test_tokenize_tokyoken() {
 
     assert_eq!(morphs.len(), 4);
 }
+
+#[test]
+fn test_tokenize_empty() {
+    let dict = Dictionary::new(
+        Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
+        Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
+        UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
+    );
+
+    let mut tokenizer = Tokenizer::new(&dict);
+    let morphs = tokenizer.tokenize("");
+
+    assert_eq!(morphs.len(), 0);
+}
