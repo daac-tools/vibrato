@@ -24,7 +24,7 @@ pub struct Lexicon {
 
 impl Lexicon {
     #[inline(always)]
-    pub fn common_prefix_iterator<'a>(
+    pub(crate) fn common_prefix_iterator<'a>(
         &'a self,
         input: &'a [char],
     ) -> impl Iterator<Item = LexMatch> + 'a {
@@ -40,12 +40,12 @@ impl Lexicon {
     }
 
     #[inline(always)]
-    pub fn word_feature(&self, word_idx: WordIdx) -> &str {
+    pub(crate) fn word_feature(&self, word_idx: WordIdx) -> &str {
         debug_assert_eq!(word_idx.lex_type(), self.lex_type);
         self.features.feature(word_idx.word_id() as usize)
     }
 
-    pub fn map_ids(&mut self, mapper: &ConnIdMapper) {
+    pub(crate) fn map_ids(&mut self, mapper: &ConnIdMapper) {
         self.params.map_ids(mapper);
     }
 }

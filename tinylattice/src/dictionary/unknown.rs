@@ -49,6 +49,7 @@ impl UnkWord {
     }
 }
 
+/// Handler of unknown words.
 #[derive(Decode, Encode)]
 pub struct UnkHandler {
     offsets: Vec<usize>, // indexed by category id
@@ -56,8 +57,13 @@ pub struct UnkHandler {
 }
 
 impl UnkHandler {
-    pub fn gen_unk_words<F>(&self, sent: &Sentence, start_char: usize, has_matched: bool, mut f: F)
-    where
+    pub(crate) fn gen_unk_words<F>(
+        &self,
+        sent: &Sentence,
+        start_char: usize,
+        has_matched: bool,
+        mut f: F,
+    ) where
         F: FnMut(UnkWord),
     {
         let cinfo = sent.char_info(start_char);
@@ -106,12 +112,12 @@ impl UnkHandler {
         f
     }
 
-    pub fn word_feature(&self, word_idx: WordIdx) -> &str {
+    pub(crate) fn word_feature(&self, word_idx: WordIdx) -> &str {
         debug_assert_eq!(word_idx.lex_type(), LexType::Unknown);
         &self.entries[word_idx.word_id() as usize].feature
     }
 
-    pub fn map_ids(&mut self, mapper: &ConnIdMapper) {
+    pub(crate) fn map_ids(&mut self, mapper: &ConnIdMapper) {
         for e in &mut self.entries {
             e.left_id = mapper.left(e.left_id as u16) as i16;
             e.right_id = mapper.right(e.right_id as u16) as i16;

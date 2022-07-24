@@ -85,7 +85,7 @@ pub struct CharProperty {
 
 impl CharProperty {
     #[inline(always)]
-    pub fn char_info(&self, c: char) -> CharInfo {
+    pub(crate) fn char_info(&self, c: char) -> CharInfo {
         self.chr2inf
             .get(c as usize)
             .map_or_else(|| self.chr2inf[0], |cinfo| *cinfo)
