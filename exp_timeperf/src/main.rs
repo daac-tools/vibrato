@@ -60,9 +60,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         for _ in 0..RUNS {
             t.start();
             for line in &lines {
-                if let Some(morphs) = tokenizer.tokenize(line) {
-                    n_words += morphs.len();
-                }
+                let morphs = tokenizer.tokenize(line);
+                n_words += morphs.len();
             }
             t.stop();
         }

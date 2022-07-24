@@ -51,7 +51,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let reader = BufReader::new(File::open(train_filename)?);
         for line in reader.lines() {
             let line = line?;
-            tokenizer.tokenize(line).unwrap();
+            tokenizer.tokenize(line);
             tokenizer.count_connid_occ(&mut lid_to_rid_occ);
         }
 

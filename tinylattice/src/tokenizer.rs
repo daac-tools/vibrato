@@ -26,23 +26,26 @@ impl<'a> Tokenizer<'a> {
     }
 
     #[inline(always)]
-    pub fn tokenize<S>(&mut self, input: S) -> Option<&MorphemeList>
+    pub fn tokenize<S>(&mut self, input: S) -> &MorphemeList
     where
         S: AsRef<str>,
     {
+        self.mlist.sent = Rc::default();
+        self.mlist.nodes.clear();
+
         let input = input.as_ref();
         if input.is_empty() {
-            return None;
+            return &self.mlist;
         }
+
         self.sent.borrow_mut().set_sentence(input);
         self.sent.borrow_mut().compile(self.dict.char_prop());
         self.build_lattice();
 
         self.mlist.sent = self.sent.clone();
-        self.mlist.nodes.clear();
         self.lattice.append_top_nodes(&mut self.mlist.nodes);
 
-        Some(&self.mlist)
+        &self.mlist
     }
 
     fn build_lattice(&mut self) {
@@ -126,7 +129,7 @@ mod tests {
         );
 
         let mut tokenizer = Tokenizer::new(&dict);
-        let morphs = tokenizer.tokenize("自然言語処理").unwrap();
+        let morphs = tokenizer.tokenize("自然言語処理");
 
         assert_eq!(morphs.len(), 2);
 
@@ -162,7 +165,7 @@ mod tests {
         );
 
         let mut tokenizer = Tokenizer::new(&dict);
-        let morphs = tokenizer.tokenize("自然日本語処理").unwrap();
+        let morphs = tokenizer.tokenize("自然日本語処理");
 
         assert_eq!(morphs.len(), 2);
 
@@ -198,7 +201,7 @@ mod tests {
         );
 
         let mut tokenizer = Tokenizer::new(&dict);
-        let morphs = tokenizer.tokenize("不自然言語処理").unwrap();
+        let morphs = tokenizer.tokenize("不自然言語処理");
 
         assert_eq!(morphs.len(), 2);
 

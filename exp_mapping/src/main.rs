@@ -39,7 +39,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     for line in std::io::stdin().lock().lines() {
         let line = line?;
-        tokenizer.tokenize(line).unwrap();
+        tokenizer.tokenize(line);
         tokenizer.count_connid_occ(&mut lid_to_rid_occ);
     }
     let (lid_probs, rid_probs) = compute_probs(&lid_to_rid_occ);

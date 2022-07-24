@@ -25,7 +25,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     for line in std::io::stdin().lock().lines() {
         let line = line?;
-        let morphs = tokenizer.tokenize(line).unwrap();
+        let morphs = tokenizer.tokenize(line);
         if args.wakachi {
             for i in 0..morphs.len() {
                 print!(
