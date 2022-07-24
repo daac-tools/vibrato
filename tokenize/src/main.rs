@@ -23,6 +23,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let dict = bincode::decode_from_std_read(&mut reader, bincode::config::standard())?;
     let mut tokenizer = Tokenizer::new(&dict);
 
+    #[allow(clippy::significant_drop_in_scrutinee)]
     for line in std::io::stdin().lock().lines() {
         let line = line?;
         let morphs = tokenizer.tokenize(line);

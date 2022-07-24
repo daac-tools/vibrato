@@ -3,6 +3,54 @@ use crate::dictionary::{Connector, WordIdx, WordParam};
 const MAX_COST: i32 = i32::MAX;
 const INVALID_IDX: u16 = u16::MAX;
 
+/// 160 bits of each
+#[derive(Default, Debug, Clone)]
+pub struct Node {
+    word_idx: WordIdx,
+    start_char: u16,
+    left_id: i16,
+    right_id: i16,
+    min_idx: u16,
+    min_cost: i32,
+}
+
+impl Node {
+    #[inline(always)]
+    pub const fn word_idx(&self) -> WordIdx {
+        self.word_idx
+    }
+
+    #[inline(always)]
+    pub const fn start_char(&self) -> usize {
+        self.start_char as usize
+    }
+
+    #[inline(always)]
+    pub const fn left_id(&self) -> usize {
+        self.left_id as usize
+    }
+
+    #[inline(always)]
+    pub const fn right_id(&self) -> usize {
+        self.right_id as usize
+    }
+
+    #[inline(always)]
+    pub const fn min_idx(&self) -> usize {
+        self.min_idx as usize
+    }
+
+    #[inline(always)]
+    pub const fn min_cost(&self) -> i32 {
+        self.min_cost
+    }
+
+    #[inline(always)]
+    pub const fn is_connected_to_bos(&self) -> bool {
+        self.min_cost != MAX_COST
+    }
+}
+
 #[derive(Default)]
 pub struct Lattice {
     ends: Vec<Vec<Node>>,
@@ -102,7 +150,7 @@ impl Lattice {
 
             let new_cost = left_node.min_cost() + conn_cost;
 
-            // <= allows the same analysis as MeCab
+            // Use <= to produce the same tokenization as MeCab
             if new_cost <= min_cost {
                 min_idx = i as u16;
                 min_cost = new_cost;
@@ -151,53 +199,5 @@ impl std::fmt::Debug for Lattice {
             writeln!(f, "{} => {:?}", i, e)?;
         }
         writeln!(f, "]}}")
-    }
-}
-
-/// 160 bits of each
-#[derive(Default, Debug, Clone)]
-pub struct Node {
-    word_idx: WordIdx,
-    start_char: u16,
-    left_id: i16,
-    right_id: i16,
-    min_idx: u16,
-    min_cost: i32,
-}
-
-impl Node {
-    #[inline(always)]
-    pub const fn word_idx(&self) -> WordIdx {
-        self.word_idx
-    }
-
-    #[inline(always)]
-    pub const fn start_char(&self) -> usize {
-        self.start_char as usize
-    }
-
-    #[inline(always)]
-    pub const fn left_id(&self) -> usize {
-        self.left_id as usize
-    }
-
-    #[inline(always)]
-    pub const fn right_id(&self) -> usize {
-        self.right_id as usize
-    }
-
-    #[inline(always)]
-    pub const fn min_idx(&self) -> usize {
-        self.min_idx as usize
-    }
-
-    #[inline(always)]
-    pub const fn min_cost(&self) -> i32 {
-        self.min_cost
-    }
-
-    #[inline(always)]
-    pub const fn is_connected_to_bos(&self) -> bool {
-        self.min_cost != MAX_COST
     }
 }

@@ -25,7 +25,6 @@ impl<'a> Tokenizer<'a> {
         }
     }
 
-    #[inline(always)]
     pub fn tokenize<S>(&mut self, input: S) -> &MorphemeList
     where
         S: AsRef<str>,
@@ -51,6 +50,7 @@ impl<'a> Tokenizer<'a> {
     fn build_lattice(&mut self) {
         let sent = self.sent.borrow();
         let input_chars = sent.chars();
+
         self.lattice.reset(input_chars.len());
 
         for start_char in 0..input_chars.len() {

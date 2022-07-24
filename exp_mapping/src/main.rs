@@ -37,11 +37,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut tokenizer = Tokenizer::new(&dict);
     let mut lid_to_rid_occ = tokenizer.new_connid_occ();
 
+    #[allow(clippy::significant_drop_in_scrutinee)]
     for line in std::io::stdin().lock().lines() {
         let line = line?;
         tokenizer.tokenize(line);
         tokenizer.count_connid_occ(&mut lid_to_rid_occ);
     }
+
     let (lid_probs, rid_probs) = compute_probs(&lid_to_rid_occ);
 
     {

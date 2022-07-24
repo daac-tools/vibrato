@@ -32,6 +32,11 @@ impl<'a> MorphemeList<'a> {
     }
 
     #[inline(always)]
+    pub fn is_empty(&self) -> bool {
+        self.nodes.len() == 0
+    }
+
+    #[inline(always)]
     pub fn range_char(&self, i: usize) -> Range<usize> {
         let index = self.index(i);
         let (end_char, node) = &self.nodes[index];
