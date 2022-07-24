@@ -118,13 +118,13 @@ impl Lattice {
         self.ends.get(i).map(|d| !d.is_empty()).unwrap_or(false)
     }
 
-    pub fn fill_best_path(&self, result: &mut Vec<(usize, Node)>) {
-        let mut pos_char = self.len_char();
+    pub fn append_top_nodes(&self, top_nodes: &mut Vec<(usize, Node)>) {
+        let mut end_char = self.len_char();
         let mut min_idx = self.eos.as_ref().unwrap().min_idx();
-        while pos_char != 0 {
-            let node = &self.ends[pos_char][min_idx];
-            result.push((pos_char, node.clone()));
-            (pos_char, min_idx) = (node.start_char(), node.min_idx());
+        while end_char != 0 {
+            let node = &self.ends[end_char][min_idx];
+            top_nodes.push((end_char, node.clone()));
+            (end_char, min_idx) = (node.start_char(), node.min_idx());
         }
     }
 

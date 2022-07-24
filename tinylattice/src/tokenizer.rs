@@ -1,6 +1,5 @@
 pub mod lattice;
 
-use crate::dictionary::unknown::UnkWord;
 pub use crate::dictionary::Dictionary;
 use crate::sentence::Sentence;
 use crate::Morpheme;
@@ -28,7 +27,8 @@ impl Tokenizer {
         }
         sent.compile(self.dict.char_prop());
         self.build_lattice(sent);
-        self.resolve_best_path(sent);
+        self.compute_top_nodes();
+        self.set_morphs(sent);
     }
 
     #[inline(always)]
@@ -75,7 +75,7 @@ impl Tokenizer {
 
             self.dict
                 .unk_handler()
-                .gen_unk_words(sent, start_char, has_matched, |w: UnkWord| {
+                .gen_unk_words(sent, start_char, has_matched, |w| {
                     self.lattice.insert_node(
                         w.start_char(),
                         w.end_char(),
@@ -89,15 +89,15 @@ impl Tokenizer {
         self.lattice.insert_eos(self.dict.connector());
     }
 
-    fn resolve_best_path(&mut self, sent: &mut Sentence) {
+    fn compute_top_nodes(&mut self) {
         self.top_nodes.clear();
-        self.lattice.fill_best_path(&mut self.top_nodes);
+        self.lattice.append_top_nodes(&mut self.top_nodes);
+    }
 
+    fn set_morphs(&mut self, sent: &mut Sentence) {
         let mut morphs = sent.take_morphs();
-
         morphs.clear();
         morphs.resize(self.top_nodes.len(), Morpheme::default());
-
         for (i, (end_char, node)) in self.top_nodes.iter().rev().enumerate() {
             let end_char = *end_char;
             morphs[i] = Morpheme {
@@ -109,7 +109,6 @@ impl Tokenizer {
                 total_cost: node.min_cost(),
             };
         }
-
         sent.set_morphs(morphs);
     }
 

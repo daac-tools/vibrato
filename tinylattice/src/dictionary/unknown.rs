@@ -56,32 +56,32 @@ pub struct UnkHandler {
 }
 
 impl UnkHandler {
-    pub fn gen_unk_words<F>(&self, sent: &Sentence, pos_char: usize, has_matched: bool, mut f: F)
+    pub fn gen_unk_words<F>(&self, sent: &Sentence, start_char: usize, has_matched: bool, mut f: F)
     where
         F: FnMut(UnkWord),
     {
-        let cinfo = sent.char_info(pos_char);
+        let cinfo = sent.char_info(start_char);
         if has_matched && !cinfo.invoke() {
             return;
         }
 
         let mut grouped = false;
-        let groupable = sent.groupable(pos_char);
+        let groupable = sent.groupable(start_char);
 
         if cinfo.group() {
             grouped = true;
-            f = self.scan_entries(pos_char, pos_char + groupable, cinfo, f);
+            f = self.scan_entries(start_char, start_char + groupable, cinfo, f);
         }
 
         for i in 1..=cinfo.length().min(groupable) {
             if grouped && i == groupable {
                 continue;
             }
-            let end_char = pos_char + i;
+            let end_char = start_char + i;
             if sent.chars().len() < end_char {
                 break;
             }
-            f = self.scan_entries(pos_char, end_char, cinfo, f);
+            f = self.scan_entries(start_char, end_char, cinfo, f);
         }
     }
 
