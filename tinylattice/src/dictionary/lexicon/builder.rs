@@ -14,9 +14,14 @@ impl Lexicon {
             .has_headers(false)
             .from_reader(rdr);
 
-        for rec in reader.records() {
+        for (i, rec) in reader.records().enumerate() {
             let rec = rec?;
-            entries.push(Self::parse_csv(&rec)?);
+            let e = Self::parse_csv(&rec)?;
+            if e.surface.is_empty() {
+                println!("Skipped an empty surface (at line {})", i);
+            } else {
+                entries.push(e);
+            }
         }
 
         let map = WordMap::new(entries.iter().map(|e| &e.surface))?;

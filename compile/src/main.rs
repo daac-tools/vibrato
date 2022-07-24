@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter};
+use std::time::Instant;
 
 use tinylattice::dictionary::{
     CharProperty, ConnIdMapper, Connector, Dictionary, LexType, Lexicon, UnkHandler,
@@ -30,14 +31,20 @@ fn main() -> Result<(), Box<dyn Error>> {
     let chardef_filename = format!("{}/char.def", &args.resource_dirname);
     let unkdef_filename = format!("{}/unk.def", &args.resource_dirname);
 
+    println!("Compiling the system dictionary...");
+    let mut start = Instant::now();
     let mut dict = Dictionary::new(
         Lexicon::from_reader(File::open(sysdic_filename)?, LexType::System)?,
         Connector::from_reader(File::open(matrix_filename)?)?,
         CharProperty::from_reader(File::open(chardef_filename)?)?,
         UnkHandler::from_reader(File::open(unkdef_filename)?)?,
     );
+    println!("{} seconds", start.elapsed().as_secs_f64());
 
     if let Some(train_filename) = args.train_filename {
+        println!("Training connection id mappings...");
+        start = Instant::now();
+
         let mut tokenizer = Tokenizer::new(&dict);
         let mut sentence = Sentence::new();
         let mut lid_to_rid_occ = tokenizer.new_connid_occ();
@@ -55,11 +62,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         let r_ranks = rid_probs.into_iter().map(|p| u16::try_from(p.0).unwrap());
         let mapper = ConnIdMapper::from_ranks(l_ranks, r_ranks)?;
         dict.map_ids(&mapper);
+
+        println!("{} seconds", start.elapsed().as_secs_f64());
     }
 
+    println!("Writting the system dictionary...");
     let mut writer = BufWriter::new(File::create(args.output_filename)?);
     let num_bytes = bincode::encode_into_std_write(dict, &mut writer, bincode::config::standard())?;
-    println!("MiB = {}", num_bytes as f64 / (1024. * 1024.));
+    println!("{} MiB", num_bytes as f64 / (1024. * 1024.));
 
     Ok(())
 }
