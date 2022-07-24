@@ -4,8 +4,8 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::dictionary::Dictionary;
-use crate::morpheme::MorphemeList;
 use crate::sentence::Sentence;
+use crate::token::Tokens;
 use lattice::Lattice;
 
 pub(crate) use lattice::Node;
@@ -13,9 +13,9 @@ pub(crate) use lattice::Node;
 /// Tokenizer
 pub struct Tokenizer<'a> {
     dict: &'a Dictionary,
-    sent: Rc<RefCell<Sentence>>, // shared with MorphemeList
+    sent: Rc<RefCell<Sentence>>,
     lattice: Lattice,
-    mlist: MorphemeList<'a>,
+    tokens: Tokens<'a>,
 }
 
 impl<'a> Tokenizer<'a> {
@@ -25,31 +25,31 @@ impl<'a> Tokenizer<'a> {
             dict,
             sent: Rc::new(RefCell::new(Sentence::new())),
             lattice: Lattice::default(),
-            mlist: MorphemeList::new(dict),
+            tokens: Tokens::new(dict),
         }
     }
 
     /// Tokenizes an input text.
-    pub fn tokenize<S>(&mut self, input: S) -> &MorphemeList
+    pub fn tokenize<S>(&mut self, input: S) -> &Tokens
     where
         S: AsRef<str>,
     {
-        self.mlist.sent = Rc::default();
-        self.mlist.nodes.clear();
+        self.tokens.sent = Rc::default();
+        self.tokens.nodes.clear();
 
         let input = input.as_ref();
         if input.is_empty() {
-            return &self.mlist;
+            return &self.tokens;
         }
 
         self.sent.borrow_mut().set_sentence(input);
         self.sent.borrow_mut().compile(self.dict.char_prop());
         self.build_lattice();
 
-        self.mlist.sent = self.sent.clone();
-        self.lattice.append_top_nodes(&mut self.mlist.nodes);
+        self.tokens.sent = self.sent.clone();
+        self.lattice.append_top_nodes(&mut self.tokens.nodes);
 
-        &self.mlist
+        &self.tokens
     }
 
     fn build_lattice(&mut self) {
@@ -134,21 +134,21 @@ mod tests {
         );
 
         let mut tokenizer = Tokenizer::new(&dict);
-        let morphs = tokenizer.tokenize("自然言語処理");
+        let tokens = tokenizer.tokenize("自然言語処理");
 
-        assert_eq!(morphs.len(), 2);
+        assert_eq!(tokens.len(), 2);
 
-        assert_eq!(morphs.surface(0).deref(), "自然");
-        assert_eq!(morphs.range_char(0), 0..2);
-        assert_eq!(morphs.range_byte(0), 0..6);
-        assert_eq!(morphs.feature(0), "sizen");
-        assert_eq!(morphs.total_cost(0), 1);
+        assert_eq!(tokens.surface(0).deref(), "自然");
+        assert_eq!(tokens.range_char(0), 0..2);
+        assert_eq!(tokens.range_byte(0), 0..6);
+        assert_eq!(tokens.feature(0), "sizen");
+        assert_eq!(tokens.total_cost(0), 1);
 
-        assert_eq!(morphs.surface(1).deref(), "言語処理");
-        assert_eq!(morphs.range_char(1), 2..6);
-        assert_eq!(morphs.range_byte(1), 6..18);
-        assert_eq!(morphs.feature(1), "gengoshori");
-        assert_eq!(morphs.total_cost(1), 6);
+        assert_eq!(tokens.surface(1).deref(), "言語処理");
+        assert_eq!(tokens.range_char(1), 2..6);
+        assert_eq!(tokens.range_byte(1), 6..18);
+        assert_eq!(tokens.feature(1), "gengoshori");
+        assert_eq!(tokens.total_cost(1), 6);
     }
 
     #[test]
@@ -170,21 +170,21 @@ mod tests {
         );
 
         let mut tokenizer = Tokenizer::new(&dict);
-        let morphs = tokenizer.tokenize("自然日本語処理");
+        let tokens = tokenizer.tokenize("自然日本語処理");
 
-        assert_eq!(morphs.len(), 2);
+        assert_eq!(tokens.len(), 2);
 
-        assert_eq!(morphs.surface(0).deref(), "自然");
-        assert_eq!(morphs.range_char(0), 0..2);
-        assert_eq!(morphs.range_byte(0), 0..6);
-        assert_eq!(morphs.feature(0), "sizen");
-        assert_eq!(morphs.total_cost(0), 1);
+        assert_eq!(tokens.surface(0).deref(), "自然");
+        assert_eq!(tokens.range_char(0), 0..2);
+        assert_eq!(tokens.range_byte(0), 0..6);
+        assert_eq!(tokens.feature(0), "sizen");
+        assert_eq!(tokens.total_cost(0), 1);
 
-        assert_eq!(morphs.surface(1).deref(), "日本語処理");
-        assert_eq!(morphs.range_char(1), 2..7);
-        assert_eq!(morphs.range_byte(1), 6..21);
-        assert_eq!(morphs.feature(1), "*");
-        assert_eq!(morphs.total_cost(1), 101);
+        assert_eq!(tokens.surface(1).deref(), "日本語処理");
+        assert_eq!(tokens.range_char(1), 2..7);
+        assert_eq!(tokens.range_byte(1), 6..21);
+        assert_eq!(tokens.feature(1), "*");
+        assert_eq!(tokens.total_cost(1), 101);
     }
 
     #[test]
@@ -206,21 +206,21 @@ mod tests {
         );
 
         let mut tokenizer = Tokenizer::new(&dict);
-        let morphs = tokenizer.tokenize("不自然言語処理");
+        let tokens = tokenizer.tokenize("不自然言語処理");
 
-        assert_eq!(morphs.len(), 2);
+        assert_eq!(tokens.len(), 2);
 
-        assert_eq!(morphs.surface(0).deref(), "不自然");
-        assert_eq!(morphs.range_char(0), 0..3);
-        assert_eq!(morphs.range_byte(0), 0..9);
-        assert_eq!(morphs.feature(0), "*");
-        assert_eq!(morphs.total_cost(0), 100);
+        assert_eq!(tokens.surface(0).deref(), "不自然");
+        assert_eq!(tokens.range_char(0), 0..3);
+        assert_eq!(tokens.range_byte(0), 0..9);
+        assert_eq!(tokens.feature(0), "*");
+        assert_eq!(tokens.total_cost(0), 100);
 
-        assert_eq!(morphs.surface(1).deref(), "言語処理");
-        assert_eq!(morphs.range_char(1), 3..7);
-        assert_eq!(morphs.range_byte(1), 9..21);
-        assert_eq!(morphs.feature(1), "gengoshori");
-        assert_eq!(morphs.total_cost(1), 105);
+        assert_eq!(tokens.surface(1).deref(), "言語処理");
+        assert_eq!(tokens.range_char(1), 3..7);
+        assert_eq!(tokens.range_byte(1), 9..21);
+        assert_eq!(tokens.feature(1), "gengoshori");
+        assert_eq!(tokens.total_cost(1), 105);
     }
 
     #[test]
@@ -242,8 +242,8 @@ mod tests {
         );
 
         let mut tokenizer = Tokenizer::new(&dict);
-        let morphs = tokenizer.tokenize("");
+        let tokens = tokenizer.tokenize("");
 
-        assert_eq!(morphs.len(), 0);
+        assert_eq!(tokens.len(), 0);
     }
 }

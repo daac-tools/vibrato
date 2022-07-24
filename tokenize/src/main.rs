@@ -26,18 +26,18 @@ fn main() -> Result<(), Box<dyn Error>> {
     #[allow(clippy::significant_drop_in_scrutinee)]
     for line in std::io::stdin().lock().lines() {
         let line = line?;
-        let morphs = tokenizer.tokenize(line);
+        let tokens = tokenizer.tokenize(line);
         if args.wakachi {
-            for i in 0..morphs.len() {
+            for i in 0..tokens.len() {
                 print!(
                     "{}{}",
-                    morphs.surface(i),
-                    if i != morphs.len() - 1 { ' ' } else { '\n' }
+                    tokens.surface(i),
+                    if i != tokens.len() - 1 { ' ' } else { '\n' }
                 );
             }
         } else {
-            for i in 0..morphs.len() {
-                println!("{}\t{}", morphs.surface(i), morphs.feature(i))
+            for i in 0..tokens.len() {
+                println!("{}\t{}", tokens.surface(i), tokens.feature(i))
             }
             println!("EOS");
         }

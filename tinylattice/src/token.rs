@@ -6,14 +6,14 @@ use crate::dictionary::Dictionary;
 use crate::sentence::Sentence;
 use crate::tokenizer::Node;
 
-/// List of resulting morphemes.
-pub struct MorphemeList<'a> {
+/// List of resulting tokens.
+pub struct Tokens<'a> {
     pub(crate) dict: &'a Dictionary,
     pub(crate) sent: Rc<RefCell<Sentence>>,
     pub(crate) nodes: Vec<(usize, Node)>,
 }
 
-impl<'a> MorphemeList<'a> {
+impl<'a> Tokens<'a> {
     pub(crate) fn new(dict: &'a Dictionary) -> Self {
         Self {
             dict,
@@ -27,7 +27,7 @@ impl<'a> MorphemeList<'a> {
         self.nodes.len() - i - 1
     }
 
-    /// Gets the number of morphemes.
+    /// Gets the number of tokens.
     #[inline(always)]
     pub fn len(&self) -> usize {
         self.nodes.len()
@@ -39,7 +39,7 @@ impl<'a> MorphemeList<'a> {
         self.nodes.len() == 0
     }
 
-    /// Gets the position range of the `i`-th morpheme in characters.
+    /// Gets the position range of the `i`-th token in characters.
     #[inline(always)]
     pub fn range_char(&self, i: usize) -> Range<usize> {
         let index = self.index(i);
@@ -47,7 +47,7 @@ impl<'a> MorphemeList<'a> {
         node.start_char()..*end_char
     }
 
-    /// Gets the position range of the `i`-th morpheme in bytes.
+    /// Gets the position range of the `i`-th token in bytes.
     #[inline(always)]
     pub fn range_byte(&self, i: usize) -> Range<usize> {
         let sent = self.sent.borrow();
@@ -55,14 +55,14 @@ impl<'a> MorphemeList<'a> {
         sent.byte_position(range_char.start)..sent.byte_position(range_char.end)
     }
 
-    /// Gets the surface string of the `i`-th morpheme.
+    /// Gets the surface string of the `i`-th token.
     #[inline(always)]
     pub fn surface(&self, i: usize) -> Ref<str> {
         let sent = self.sent.borrow();
         Ref::map(sent, |s| &s.raw()[self.range_byte(i)])
     }
 
-    /// Gets the feature string of the `i`-th morpheme.
+    /// Gets the feature string of the `i`-th token.
     #[inline(always)]
     pub fn feature(&self, i: usize) -> &str {
         let index = self.index(i);
@@ -70,7 +70,7 @@ impl<'a> MorphemeList<'a> {
         self.dict.word_feature(node.word_idx())
     }
 
-    /// Gets the total cost of the `i`-th morpheme's node.
+    /// Gets the total cost of the `i`-th token's node.
     #[inline(always)]
     pub fn total_cost(&self, i: usize) -> i32 {
         let index = self.index(i);

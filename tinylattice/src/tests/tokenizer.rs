@@ -18,14 +18,14 @@ fn test_tokenize_tokyo() {
     );
 
     let mut tokenizer = Tokenizer::new(&dict);
-    let morphs = tokenizer.tokenize("東京都");
+    let tokens = tokenizer.tokenize("東京都");
 
-    assert_eq!(morphs.len(), 1);
-    assert_eq!(morphs.surface(0).deref(), "東京都");
-    assert_eq!(morphs.range_char(0), 0..3);
-    assert_eq!(morphs.range_byte(0), 0..9);
+    assert_eq!(tokens.len(), 1);
+    assert_eq!(tokens.surface(0).deref(), "東京都");
+    assert_eq!(tokens.range_char(0), 0..3);
+    assert_eq!(tokens.range_byte(0), 0..9);
     assert_eq!(
-        morphs.feature(0),
+        tokens.feature(0),
         "東京都,名詞,固有名詞,地名,一般,*,*,トウキョウト,東京都,*,B,5/9,*,5/9,*"
     );
 
@@ -33,7 +33,7 @@ fn test_tokenize_tokyo() {
     //  [BOS] -- [東京都] -- [EOS]
     //     r=0  l=6   r=8  l=0
     //      c=-79
-    assert_eq!(morphs.total_cost(0), -79 + 5320);
+    assert_eq!(tokens.total_cost(0), -79 + 5320);
 }
 
 #[test]
@@ -46,29 +46,29 @@ fn test_tokenize_kyotokyo() {
     );
 
     let mut tokenizer = Tokenizer::new(&dict);
-    let morphs = tokenizer.tokenize("京都東京都京都");
+    let tokens = tokenizer.tokenize("京都東京都京都");
 
-    assert_eq!(morphs.len(), 3);
+    assert_eq!(tokens.len(), 3);
 
-    assert_eq!(morphs.surface(0).deref(), "京都");
-    assert_eq!(morphs.range_char(0), 0..2);
-    assert_eq!(morphs.range_byte(0), 0..6);
+    assert_eq!(tokens.surface(0).deref(), "京都");
+    assert_eq!(tokens.range_char(0), 0..2);
+    assert_eq!(tokens.range_byte(0), 0..6);
     assert_eq!(
-        morphs.feature(0),
+        tokens.feature(0),
         "京都,名詞,固有名詞,地名,一般,*,*,キョウト,京都,*,A,*,*,*,1/5"
     );
-    assert_eq!(morphs.surface(1).deref(), "東京都");
-    assert_eq!(morphs.range_char(1), 2..5);
-    assert_eq!(morphs.range_byte(1), 6..15);
+    assert_eq!(tokens.surface(1).deref(), "東京都");
+    assert_eq!(tokens.range_char(1), 2..5);
+    assert_eq!(tokens.range_byte(1), 6..15);
     assert_eq!(
-        morphs.feature(1),
+        tokens.feature(1),
         "東京都,名詞,固有名詞,地名,一般,*,*,トウキョウト,東京都,*,B,5/9,*,5/9,*"
     );
-    assert_eq!(morphs.surface(2).deref(), "京都");
-    assert_eq!(morphs.range_char(2), 5..7);
-    assert_eq!(morphs.range_byte(2), 15..21);
+    assert_eq!(tokens.surface(2).deref(), "京都");
+    assert_eq!(tokens.range_char(2), 5..7);
+    assert_eq!(tokens.range_byte(2), 15..21);
     assert_eq!(
-        morphs.feature(2),
+        tokens.feature(2),
         "京都,名詞,固有名詞,地名,一般,*,*,キョウト,京都,*,A,*,*,*,1/5"
     );
 
@@ -76,9 +76,9 @@ fn test_tokenize_kyotokyo() {
     //  [BOS] -- [京都] -- [東京都] -- [京都] -- [EOS]
     //     r=0  l=6  r=6  l=6  r=8  l=6  r=6  l=0
     //      c=-79     c=569     c=-352
-    assert_eq!(morphs.total_cost(0), -79 + 5293);
-    assert_eq!(morphs.total_cost(1), morphs.total_cost(0) + 569 + 5320);
-    assert_eq!(morphs.total_cost(2), morphs.total_cost(1) - 352 + 5293);
+    assert_eq!(tokens.total_cost(0), -79 + 5293);
+    assert_eq!(tokens.total_cost(1), tokens.total_cost(0) + 569 + 5320);
+    assert_eq!(tokens.total_cost(2), tokens.total_cost(1) - 352 + 5293);
 }
 
 #[test]
@@ -91,19 +91,19 @@ fn test_tokenize_kampersanda() {
     );
 
     let mut tokenizer = Tokenizer::new(&dict);
-    let morphs = tokenizer.tokenize("kampersanda");
+    let tokens = tokenizer.tokenize("kampersanda");
 
-    assert_eq!(morphs.len(), 1);
-    assert_eq!(morphs.surface(0).deref(), "kampersanda");
-    assert_eq!(morphs.range_char(0), 0..11);
-    assert_eq!(morphs.range_byte(0), 0..11);
-    assert_eq!(morphs.feature(0), "名詞,普通名詞,一般,*,*,*");
+    assert_eq!(tokens.len(), 1);
+    assert_eq!(tokens.surface(0).deref(), "kampersanda");
+    assert_eq!(tokens.range_char(0), 0..11);
+    assert_eq!(tokens.range_byte(0), 0..11);
+    assert_eq!(tokens.feature(0), "名詞,普通名詞,一般,*,*,*");
 
     //   c=0        c=11633         c=0
     //  [BOS] -- [kampersanda] -- [EOS]
     //     r=0  l=7         r=7  l=0
     //      c=887
-    assert_eq!(morphs.total_cost(0), 887 + 11633);
+    assert_eq!(tokens.total_cost(0), 887 + 11633);
 }
 
 #[test]
@@ -116,9 +116,9 @@ fn test_tokenize_tokyoken() {
     );
 
     let mut tokenizer = Tokenizer::new(&dict);
-    let morphs = tokenizer.tokenize("東京県に行く");
+    let tokens = tokenizer.tokenize("東京県に行く");
 
-    assert_eq!(morphs.len(), 4);
+    assert_eq!(tokens.len(), 4);
 }
 
 #[test]
@@ -131,7 +131,7 @@ fn test_tokenize_empty() {
     );
 
     let mut tokenizer = Tokenizer::new(&dict);
-    let morphs = tokenizer.tokenize("");
+    let tokens = tokenizer.tokenize("");
 
-    assert_eq!(morphs.len(), 0);
+    assert_eq!(tokens.len(), 0);
 }
