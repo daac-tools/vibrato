@@ -1,18 +1,20 @@
-use crate::dictionary::{lexicon::LexMatch, LexType, Lexicon, WordIdx, WordParam};
+use crate::dictionary::lexicon::{LexMatch, WordParam};
+use crate::dictionary::{LexType, Lexicon, WordIdx};
 
 const LEX_CSV: &str = include_str!("./resources/lex.csv");
 
 #[test]
 fn test_common_prefix_iterator_1() {
     let lexicon = Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap();
-    let mut it = lexicon.common_prefix_iterator("東京都に行く".as_bytes());
+    let input: Vec<_> = "東京都に行く".chars().collect();
+    let mut it = lexicon.common_prefix_iterator(&input);
     // 東
     assert_eq!(
         it.next(),
         Some(LexMatch::new(
             WordIdx::new(LexType::System, 4),
             WordParam::new(7, 7, 4675),
-            3
+            1
         ))
     );
     // 東京
@@ -21,7 +23,7 @@ fn test_common_prefix_iterator_1() {
         Some(LexMatch::new(
             WordIdx::new(LexType::System, 5),
             WordParam::new(6, 6, 2816),
-            6
+            2
         ))
     );
     // 東京都
@@ -30,7 +32,7 @@ fn test_common_prefix_iterator_1() {
         Some(LexMatch::new(
             WordIdx::new(LexType::System, 6),
             WordParam::new(6, 8, 5320),
-            9
+            3
         ))
     );
     assert_eq!(it.next(), None);
@@ -39,7 +41,7 @@ fn test_common_prefix_iterator_1() {
 #[test]
 fn test_common_prefix_iterator_2() {
     let lexicon = Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap();
-    let mut it = lexicon.common_prefix_iterator("X".as_bytes());
+    let mut it = lexicon.common_prefix_iterator(&['X']);
     for word_id in 40..46 {
         assert_eq!(
             it.next(),

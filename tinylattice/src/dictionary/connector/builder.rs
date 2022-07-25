@@ -5,11 +5,11 @@ use anyhow::{anyhow, Result};
 use super::Connector;
 
 impl Connector {
-    // num_right, num_left
-    // r0 l0
-    // r0 l1
-    // r0 l2
-    // ...
+    /// num_right, num_left
+    /// r0 l0
+    /// r0 l1
+    /// r0 l2
+    /// ...
     pub fn from_reader<R>(rdr: R) -> Result<Self>
     where
         R: Read,

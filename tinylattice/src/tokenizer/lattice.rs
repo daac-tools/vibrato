@@ -1,7 +1,56 @@
-use crate::dictionary::{Connector, WordIdx, WordParam};
+use crate::dictionary::lexicon::WordParam;
+use crate::dictionary::{Connector, WordIdx};
 
 const MAX_COST: i32 = i32::MAX;
 const INVALID_IDX: u16 = u16::MAX;
+
+/// 160 bits of each
+#[derive(Default, Debug, Clone)]
+pub struct Node {
+    word_idx: WordIdx,
+    start_char: u16,
+    left_id: i16,
+    right_id: i16,
+    min_idx: u16,
+    min_cost: i32,
+}
+
+impl Node {
+    #[inline(always)]
+    pub const fn word_idx(&self) -> WordIdx {
+        self.word_idx
+    }
+
+    #[inline(always)]
+    pub const fn start_char(&self) -> usize {
+        self.start_char as usize
+    }
+
+    #[inline(always)]
+    pub const fn left_id(&self) -> usize {
+        self.left_id as usize
+    }
+
+    #[inline(always)]
+    pub const fn right_id(&self) -> usize {
+        self.right_id as usize
+    }
+
+    #[inline(always)]
+    pub const fn min_idx(&self) -> usize {
+        self.min_idx as usize
+    }
+
+    #[inline(always)]
+    pub const fn min_cost(&self) -> i32 {
+        self.min_cost
+    }
+
+    #[inline(always)]
+    pub const fn is_connected_to_bos(&self) -> bool {
+        self.min_cost != MAX_COST
+    }
+}
 
 #[derive(Default)]
 pub struct Lattice {
@@ -94,7 +143,7 @@ impl Lattice {
         let mut min_idx = INVALID_IDX;
         let mut min_cost = MAX_COST;
         for (i, left_node) in self.ends[start_char].iter().enumerate() {
-            assert!(left_node.is_connected_to_bos());
+            debug_assert!(left_node.is_connected_to_bos());
             #[cfg(feature = "exp-ideal")]
             let conn_cost = 0;
             #[cfg(not(feature = "exp-ideal"))]
@@ -102,7 +151,7 @@ impl Lattice {
 
             let new_cost = left_node.min_cost() + conn_cost;
 
-            // <= allows the same analysis as MeCab
+            // Use <= to produce the same tokenization as MeCab
             if new_cost <= min_cost {
                 min_idx = i as u16;
                 min_cost = new_cost;
@@ -118,13 +167,13 @@ impl Lattice {
         self.ends.get(i).map(|d| !d.is_empty()).unwrap_or(false)
     }
 
-    pub fn fill_best_path(&self, result: &mut Vec<(usize, Node)>) {
-        let mut pos_char = self.len_char();
+    pub fn append_top_nodes(&self, top_nodes: &mut Vec<(usize, Node)>) {
+        let mut end_char = self.len_char();
         let mut min_idx = self.eos.as_ref().unwrap().min_idx();
-        while pos_char != 0 {
-            let node = &self.ends[pos_char][min_idx];
-            result.push((pos_char, node.clone()));
-            (pos_char, min_idx) = (node.start_char(), node.min_idx());
+        while end_char != 0 {
+            let node = &self.ends[end_char][min_idx];
+            top_nodes.push((end_char, node.clone()));
+            (end_char, min_idx) = (node.start_char(), node.min_idx());
         }
     }
 
@@ -151,53 +200,5 @@ impl std::fmt::Debug for Lattice {
             writeln!(f, "{} => {:?}", i, e)?;
         }
         writeln!(f, "]}}")
-    }
-}
-
-/// 160 bits of each
-#[derive(Default, Debug, Clone)]
-pub struct Node {
-    word_idx: WordIdx,
-    start_char: u16,
-    left_id: i16,
-    right_id: i16,
-    min_idx: u16,
-    min_cost: i32,
-}
-
-impl Node {
-    #[inline(always)]
-    pub const fn word_idx(&self) -> WordIdx {
-        self.word_idx
-    }
-
-    #[inline(always)]
-    pub const fn start_char(&self) -> usize {
-        self.start_char as usize
-    }
-
-    #[inline(always)]
-    pub const fn left_id(&self) -> usize {
-        self.left_id as usize
-    }
-
-    #[inline(always)]
-    pub const fn right_id(&self) -> usize {
-        self.right_id as usize
-    }
-
-    #[inline(always)]
-    pub const fn min_idx(&self) -> usize {
-        self.min_idx as usize
-    }
-
-    #[inline(always)]
-    pub const fn min_cost(&self) -> i32 {
-        self.min_cost
-    }
-
-    #[inline(always)]
-    pub const fn is_connected_to_bos(&self) -> bool {
-        self.min_cost != MAX_COST
     }
 }

@@ -1,9 +1,10 @@
-pub mod builder;
+mod builder;
 
 use bincode::{Decode, Encode};
 
 use super::mapper::ConnIdMapper;
 
+/// Matrix of connection costs.
 #[derive(Decode, Encode)]
 pub struct Connector {
     data: Vec<i16>,
@@ -12,7 +13,7 @@ pub struct Connector {
 }
 
 impl Connector {
-    pub fn new(data: Vec<i16>, num_right: usize, num_left: usize) -> Self {
+    pub(crate) fn new(data: Vec<i16>, num_right: usize, num_left: usize) -> Self {
         Self {
             data,
             num_right,
@@ -31,24 +32,24 @@ impl Connector {
 
     /// Gets the value of the connection matrix
     #[inline(always)]
-    pub fn cost(&self, right_id: usize, left_id: usize) -> i16 {
+    pub(crate) fn cost(&self, right_id: usize, left_id: usize) -> i16 {
         let index = self.index(right_id, left_id);
         *unsafe { self.data.get_unchecked(index) }
     }
 
     /// Returns maximum number of left connection ID
     #[inline(always)]
-    pub const fn num_left(&self) -> usize {
+    pub(crate) const fn num_left(&self) -> usize {
         self.num_left
     }
 
     /// Returns maximum number of right connection ID
     #[inline(always)]
-    pub const fn num_right(&self) -> usize {
+    pub(crate) const fn num_right(&self) -> usize {
         self.num_right
     }
 
-    pub fn map_ids(&mut self, mapper: &ConnIdMapper) {
+    pub(crate) fn do_mapping(&mut self, mapper: &ConnIdMapper) {
         assert_eq!(mapper.num_left(), self.num_left);
         assert_eq!(mapper.num_right(), self.num_right);
 

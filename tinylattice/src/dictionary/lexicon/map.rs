@@ -31,13 +31,13 @@ impl WordMap {
     #[inline(always)]
     pub fn common_prefix_iterator<'a>(
         &'a self,
-        input: &'a [u8],
+        input: &'a [char],
     ) -> impl Iterator<Item = (u32, u32)> + 'a {
         unsafe {
             self.trie.common_prefix_iterator(input).flat_map(move |e| {
                 self.postings
                     .ids(e.value as usize)
-                    .map(move |word_id| (word_id, e.end_byte))
+                    .map(move |word_id| (word_id, e.end_char))
             })
         }
     }
@@ -66,9 +66,8 @@ impl WordMapBuilder {
             let offset = builder.push(&ids)?;
             entries.push((word, offset as u32));
         }
-        let trie_data = yada::builder::DoubleArrayBuilder::build(&entries).unwrap();
         Ok(WordMap {
-            trie: Trie::new(trie_data),
+            trie: Trie::from_records(&entries),
             postings: builder.build(),
         })
     }

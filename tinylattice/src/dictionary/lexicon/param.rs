@@ -26,7 +26,6 @@ pub struct WordParams {
 }
 
 impl WordParams {
-    // (left_id, right_id, word_cost)
     pub fn new<I>(params: I) -> Self
     where
         I: IntoIterator<Item = WordParam>,
@@ -41,7 +40,7 @@ impl WordParams {
         self.params[word_id]
     }
 
-    pub fn map_ids(&mut self, mapper: &ConnIdMapper) {
+    pub fn do_mapping(&mut self, mapper: &ConnIdMapper) {
         for p in &mut self.params {
             p.left_id = mapper.left(p.left_id as u16) as i16;
             p.right_id = mapper.right(p.right_id as u16) as i16;
