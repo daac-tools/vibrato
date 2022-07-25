@@ -35,15 +35,19 @@ fn main() -> Result<(), Box<dyn Error>> {
         let tokens = tokenizer.tokenize(line);
         if args.wakachi {
             for i in 0..tokens.len() {
-                print!(
-                    "{}{}",
-                    tokens.surface(i),
-                    if i != tokens.len() - 1 { ' ' } else { '\n' }
-                );
+                if i != 0 {
+                    print!(" ");
+                }
+                print!("{}", tokens.surface(i));
             }
+            println!();
         } else {
             for i in 0..tokens.len() {
-                println!("{}\t{}", tokens.surface(i), tokens.feature(i))
+                print!("{}\t{}", tokens.surface(i), tokens.feature(i));
+                if tokens.is_unknown(i) {
+                    print!(" (unk)");
+                }
+                println!();
             }
             println!("EOS");
         }

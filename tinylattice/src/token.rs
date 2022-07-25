@@ -2,7 +2,7 @@ use std::cell::{Ref, RefCell};
 use std::ops::Range;
 use std::rc::Rc;
 
-use crate::dictionary::Dictionary;
+use crate::dictionary::{Dictionary, LexType};
 use crate::sentence::Sentence;
 use crate::tokenizer::Node;
 
@@ -68,6 +68,14 @@ impl<'a> Tokens<'a> {
         let index = self.index(i);
         let (_, node) = &self.nodes[index];
         self.dict.word_feature(node.word_idx())
+    }
+
+    /// Checks if the `i`-th token is unknown one.
+    #[inline(always)]
+    pub fn is_unknown(&self, i: usize) -> bool {
+        let index = self.index(i);
+        let (_, node) = &self.nodes[index];
+        node.word_idx().lex_type() == LexType::Unknown
     }
 
     /// Gets the total cost of the `i`-th token's node.
