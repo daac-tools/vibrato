@@ -85,6 +85,11 @@ impl Dictionary {
     }
 
     #[inline(always)]
+    pub fn reset_user_lexicon(&mut self, user_lexicon: Lexicon) {
+        self.user_lexicon = Some(user_lexicon);
+    }
+
+    #[inline(always)]
     pub const fn connector(&self) -> &Connector {
         &self.connector
     }
