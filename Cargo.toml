@@ -3,7 +3,7 @@ members = [
     "tinylattice",
     "tokenize",
     "exp_timer",
-    "mapping",
+    "exp_mapping",
     "exp_timeperf",
     "compile",
     "benchmark",
