@@ -65,6 +65,20 @@ impl<'a> Tokenizer<'a> {
 
             let mut has_matched = false;
 
+            if let Some(user_lexicon) = self.dict.user_lexicon() {
+                for m in user_lexicon.common_prefix_iterator(&input_chars[start_char..]) {
+                    debug_assert!(start_char + m.end_char() <= input_chars.len());
+                    self.lattice.insert_node(
+                        start_char,
+                        start_char + m.end_char(),
+                        m.word_idx(),
+                        m.word_param(),
+                        self.dict.connector(),
+                    );
+                    has_matched = true;
+                }
+            }
+
             for m in self
                 .dict
                 .lexicon()
@@ -123,6 +137,7 @@ mod tests {
 
         let dict = Dictionary::new(
             Lexicon::from_reader(lexicon_csv.as_bytes(), LexType::System).unwrap(),
+            None,
             Connector::from_reader(matrix_def.as_bytes()).unwrap(),
             CharProperty::from_reader(char_def.as_bytes()).unwrap(),
             UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
@@ -159,6 +174,7 @@ mod tests {
 
         let dict = Dictionary::new(
             Lexicon::from_reader(lexicon_csv.as_bytes(), LexType::System).unwrap(),
+            None,
             Connector::from_reader(matrix_def.as_bytes()).unwrap(),
             CharProperty::from_reader(char_def.as_bytes()).unwrap(),
             UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
@@ -195,6 +211,7 @@ mod tests {
 
         let dict = Dictionary::new(
             Lexicon::from_reader(lexicon_csv.as_bytes(), LexType::System).unwrap(),
+            None,
             Connector::from_reader(matrix_def.as_bytes()).unwrap(),
             CharProperty::from_reader(char_def.as_bytes()).unwrap(),
             UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
@@ -231,6 +248,7 @@ mod tests {
 
         let dict = Dictionary::new(
             Lexicon::from_reader(lexicon_csv.as_bytes(), LexType::System).unwrap(),
+            None,
             Connector::from_reader(matrix_def.as_bytes()).unwrap(),
             CharProperty::from_reader(char_def.as_bytes()).unwrap(),
             UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),

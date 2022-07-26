@@ -36,6 +36,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut dict = Dictionary::new(
         Lexicon::from_reader(File::open(sysdic_filename)?, LexType::System)?,
+        None,
         Connector::from_reader(File::open(matrix_filename)?)?,
         CharProperty::from_reader(File::open(chardef_filename)?)?,
         UnkHandler::from_reader(File::open(unkdef_filename)?)?,

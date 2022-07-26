@@ -15,6 +15,7 @@ pub use unknown::UnkHandler;
 #[derive(Clone, Copy, Eq, PartialEq, Debug, Decode, Encode)]
 pub enum LexType {
     System,
+    User,
     Unknown,
 }
 
@@ -50,6 +51,7 @@ impl WordIdx {
 #[derive(Decode, Encode)]
 pub struct Dictionary {
     lexicon: Lexicon,
+    user_lexicon: Option<Lexicon>,
     connector: Connector,
     char_prop: CharProperty,
     unk_handler: UnkHandler,
@@ -58,12 +60,14 @@ pub struct Dictionary {
 impl Dictionary {
     pub const fn new(
         lexicon: Lexicon,
+        user_lexicon: Option<Lexicon>,
         connector: Connector,
         char_prop: CharProperty,
         unk_handler: UnkHandler,
     ) -> Self {
         Self {
             lexicon,
+            user_lexicon,
             connector,
             char_prop,
             unk_handler,
@@ -73,6 +77,11 @@ impl Dictionary {
     #[inline(always)]
     pub const fn lexicon(&self) -> &Lexicon {
         &self.lexicon
+    }
+
+    #[inline(always)]
+    pub const fn user_lexicon(&self) -> Option<&Lexicon> {
+        self.user_lexicon.as_ref()
     }
 
     #[inline(always)]
@@ -101,6 +110,7 @@ impl Dictionary {
     pub(crate) fn word_feature(&self, word_idx: WordIdx) -> &str {
         match word_idx.lex_type() {
             LexType::System => self.lexicon().word_feature(word_idx),
+            LexType::User => self.user_lexicon().unwrap().word_feature(word_idx),
             LexType::Unknown => self.unk_handler().word_feature(word_idx),
         }
     }

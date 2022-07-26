@@ -12,6 +12,7 @@ const UNK_DEF: &str = include_str!("./resources/unk.def");
 fn test_tokenize_tokyo() {
     let dict = Dictionary::new(
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
+        None,
         Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
         CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
@@ -40,6 +41,7 @@ fn test_tokenize_tokyo() {
 fn test_tokenize_kyotokyo() {
     let dict = Dictionary::new(
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
+        None,
         Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
         CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
@@ -85,6 +87,7 @@ fn test_tokenize_kyotokyo() {
 fn test_tokenize_kampersanda() {
     let dict = Dictionary::new(
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
+        None,
         Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
         CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
@@ -110,6 +113,7 @@ fn test_tokenize_kampersanda() {
 fn test_tokenize_tokyoken() {
     let dict = Dictionary::new(
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
+        None,
         Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
         CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
@@ -125,6 +129,7 @@ fn test_tokenize_tokyoken() {
 fn test_tokenize_empty() {
     let dict = Dictionary::new(
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
+        None,
         Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
         CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
