@@ -1,5 +1,5 @@
 use crate::dictionary::lexicon::WordParam;
-use crate::dictionary::{Connector, WordIdx};
+use crate::dictionary::{ConnIdCounter, Connector, WordIdx};
 
 const MAX_COST: i32 = i32::MAX;
 const INVALID_IDX: u16 = u16::MAX;
@@ -177,18 +177,18 @@ impl Lattice {
         }
     }
 
-    pub fn count_connid_occ(&self, lid_to_rid_occ: &mut [Vec<usize>]) {
+    pub fn add_connid_counts(&self, counter: &mut ConnIdCounter) {
         for end_char in 1..=self.len_char() {
             for r_node in &self.ends[end_char] {
                 let start_char = r_node.start_char();
                 for l_node in &self.ends[start_char] {
-                    lid_to_rid_occ[r_node.left_id()][l_node.right_id()] += 1;
+                    counter.add(r_node.left_id(), l_node.right_id(), 1);
                 }
             }
         }
         let r_node = self.eos.as_ref().unwrap();
         for l_node in &self.ends[self.len_char()] {
-            lid_to_rid_occ[r_node.left_id()][l_node.right_id()] += 1;
+            counter.add(r_node.left_id(), l_node.right_id(), 1);
         }
     }
 }

@@ -9,7 +9,7 @@ use bincode::{Decode, Encode};
 pub use character::CharProperty;
 pub use connector::Connector;
 pub use lexicon::Lexicon;
-pub use mapper::ConnIdMapper;
+pub use mapper::{ConnIdCounter, ConnIdMapper, ConnIdProbs};
 pub use unknown::UnkHandler;
 
 #[derive(Clone, Copy, Eq, PartialEq, Debug, Decode, Encode)]

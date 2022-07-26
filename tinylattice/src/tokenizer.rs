@@ -3,7 +3,7 @@ mod lattice;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::dictionary::Dictionary;
+use crate::dictionary::{ConnIdCounter, Dictionary};
 use crate::sentence::Sentence;
 use crate::token::Tokens;
 use lattice::Lattice;
@@ -98,15 +98,8 @@ impl<'a> Tokenizer<'a> {
     }
 
     #[doc(hidden)]
-    pub fn new_connid_occ(&self) -> Vec<Vec<usize>> {
-        let num_left = self.dict.connector().num_left();
-        let num_right = self.dict.connector().num_right();
-        vec![vec![0; num_right]; num_left]
-    }
-
-    #[doc(hidden)]
-    pub fn count_connid_occ(&self, lid_to_rid_occ: &mut [Vec<usize>]) {
-        self.lattice.count_connid_occ(lid_to_rid_occ);
+    pub fn add_connid_counts(&self, counter: &mut ConnIdCounter) {
+        self.lattice.add_connid_counts(counter);
     }
 }
 

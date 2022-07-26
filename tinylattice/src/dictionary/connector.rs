@@ -32,20 +32,20 @@ impl Connector {
 
     /// Gets the value of the connection matrix
     #[inline(always)]
-    pub(crate) fn cost(&self, right_id: usize, left_id: usize) -> i16 {
+    pub fn cost(&self, right_id: usize, left_id: usize) -> i16 {
         let index = self.index(right_id, left_id);
         *unsafe { self.data.get_unchecked(index) }
     }
 
     /// Returns maximum number of left connection ID
     #[inline(always)]
-    pub(crate) const fn num_left(&self) -> usize {
+    pub const fn num_left(&self) -> usize {
         self.num_left
     }
 
     /// Returns maximum number of right connection ID
     #[inline(always)]
-    pub(crate) const fn num_right(&self) -> usize {
+    pub const fn num_right(&self) -> usize {
         self.num_right
     }
 
