@@ -10,9 +10,9 @@ resources_names=(
 logs_dir=$1
 
 for resources_name in "${resources_names[@]}" ; do
-    ./runners/bccwj.sh resources_${resources_name} > ${logs_dir}/logs_${resources_name}.txt
+    ./runners/bccwj.sh resources_${resources_name} &> ${logs_dir}/logs_${resources_name}.txt
 done
 
 for resources_name in "${resources_names[@]}" ; do
-    ./runners/bccwj-ideal.sh resources_${resources_name} > ${logs_dir}/logs_${resources_name}-ideal.txt
+    ./runners/bccwj-ideal.sh resources_${resources_name} &> ${logs_dir}/logs_${resources_name}-ideal.txt
 done
