@@ -1,4 +1,4 @@
-# 🎶 vibrato: VIterbi-Based acceleRAted TOkenizer
+# 🎤 vibrato: VIterbi-Based acceleRAted TOkenizer
 
 ## Resource preparation
 
