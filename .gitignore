@@ -11,3 +11,4 @@ Cargo.lock
 
 resources_ipadic-mecab-2_7_0/
 *.dic
+user.csv
