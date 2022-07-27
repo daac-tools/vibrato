@@ -1,1 +1,1 @@
-# tiny-lattice
+# 🎶 vibrato: VIterbi Based acceleRAted TOkenizer
