@@ -4,5 +4,5 @@ members = [
     "compile",
     "tokenize",
     "benchmark",
-    "mapping",
+    "map",
 ]

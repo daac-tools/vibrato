@@ -13,8 +13,18 @@ $ ./scripts/prepare_unidic-mecab-2_1_2.sh
 ```
 $ cargo run --release -p compile -- -r resources_ipadic-mecab-2_7_0 -o system.dic
 Compiling the system dictionary...
-0.9053542 seconds
-Writting the system dictionary...
+1.593941214 seconds
+Writting the system dictionary...: system.dic
+44.63689613342285 MiB
+```
+
+## Do mapping
+
+```
+$ cargo run --release -p map -- -i system.dic -t data/wagahaiwa_nekodearu.txt -o system.mapped.dic
+Loading the dictionary...
+Training connection id mappings...
+Writting the system dictionary...: system.mapped.dic
 44.63689613342285 MiB
 ```
 
