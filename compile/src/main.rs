@@ -4,9 +4,8 @@ use std::io::{BufRead, BufReader, BufWriter};
 use std::time::Instant;
 
 use vibrato::dictionary::{
-    CharProperty, ConnIdCounter, ConnIdMapper, Connector, Dictionary, LexType, Lexicon, UnkHandler,
+    CharProperty, ConnIdMapper, Connector, Dictionary, LexType, Lexicon, UnkHandler,
 };
-use vibrato::Tokenizer;
 
 use clap::Parser;
 
@@ -16,8 +15,8 @@ struct Args {
     #[clap(short = 'r', long)]
     resource_dirname: String,
 
-    #[clap(short = 't', long)]
-    train_filename: Option<String>,
+    #[clap(short = 'm', long)]
+    mapping_basename: Option<String>,
 
     #[clap(short = 'o', long)]
     output_filename: String,
@@ -32,7 +31,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let unkdef_filename = format!("{}/unk.def", &args.resource_dirname);
 
     println!("Compiling the system dictionary...");
-    let mut start = Instant::now();
+    let start = Instant::now();
     let mut dict = Dictionary::new(
         Lexicon::from_reader(File::open(sysdic_filename)?, LexType::System)?,
         None,
@@ -40,31 +39,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         CharProperty::from_reader(File::open(chardef_filename)?)?,
         UnkHandler::from_reader(File::open(unkdef_filename)?)?,
     );
-    println!("{} seconds", start.elapsed().as_secs_f64());
 
-    if let Some(train_filename) = args.train_filename {
-        println!("Training connection id mappings...");
-        start = Instant::now();
-
-        let connector = dict.connector();
-        let mut tokenizer = Tokenizer::new(&dict);
-        let mut counter = ConnIdCounter::new(connector.num_left(), connector.num_right());
-
-        let reader = BufReader::new(File::open(train_filename)?);
-        for line in reader.lines() {
-            let line = line?;
-            tokenizer.tokenize(line);
-            tokenizer.add_connid_counts(&mut counter);
-        }
-
-        let (lid_probs, rid_probs) = counter.compute_probs();
-        let l_ranks = lid_probs.into_iter().map(|p| u16::try_from(p.0).unwrap());
-        let r_ranks = rid_probs.into_iter().map(|p| u16::try_from(p.0).unwrap());
+    if let Some(mapping_basename) = args.mapping_basename {
+        let l_ranks = read_mapping(&format!("{}.lmap", &mapping_basename))?;
+        let r_ranks = read_mapping(&format!("{}.rmap", &mapping_basename))?;
         let mapper = ConnIdMapper::from_ranks(l_ranks, r_ranks)?;
         dict.do_mapping(&mapper);
-
-        println!("{} seconds", start.elapsed().as_secs_f64());
     }
+    println!("{} seconds", start.elapsed().as_secs_f64());
 
     println!("Writting the system dictionary...");
     let mut writer = BufWriter::new(File::create(args.output_filename)?);
@@ -76,4 +58,15 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("{} MiB", num_bytes as f64 / (1024. * 1024.));
 
     Ok(())
+}
+
+fn read_mapping(filepath: &str) -> Result<Vec<u16>, Box<dyn Error>> {
+    let mut mapping = vec![];
+    let reader = BufReader::new(File::open(filepath)?);
+    for line in reader.lines() {
+        let line = line?;
+        let cols: Vec<_> = line.split("\t").collect();
+        mapping.push(cols[0].parse()?)
+    }
+    Ok(mapping)
 }
