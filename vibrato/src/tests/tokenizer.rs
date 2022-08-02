@@ -14,6 +14,7 @@ fn test_tokenize_tokyo() {
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
         None,
         Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        None,
         CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
@@ -43,6 +44,7 @@ fn test_tokenize_kyotokyo() {
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
         None,
         Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        None,
         CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
@@ -89,6 +91,7 @@ fn test_tokenize_tokyoto_with_space() {
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
         None,
         Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        None,
         CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
@@ -134,6 +137,7 @@ fn test_tokenize_tokyoto_with_space_ignored() {
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
         None,
         Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        None,
         CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
@@ -173,6 +177,7 @@ fn test_tokenize_tokyoto_with_spaces_ignored() {
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
         None,
         Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        None,
         CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
@@ -212,6 +217,7 @@ fn test_tokenize_tokyoto_startswith_spaces_ignored() {
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
         None,
         Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        None,
         CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
@@ -241,6 +247,7 @@ fn test_tokenize_tokyoto_endswith_spaces_ignored() {
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
         None,
         Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        None,
         CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
@@ -270,6 +277,7 @@ fn test_tokenize_kampersanda() {
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
         None,
         Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        None,
         CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
@@ -296,6 +304,7 @@ fn test_tokenize_kampersanda_with_max_grouping() {
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
         None,
         Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        None,
         CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
@@ -329,6 +338,7 @@ fn test_tokenize_tokyoken() {
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
         None,
         Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        None,
         CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
@@ -346,6 +356,7 @@ fn test_tokenize_kanjinumeric() {
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
         None,
         Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        None,
         CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
@@ -366,6 +377,7 @@ fn test_tokenize_empty() {
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
         None,
         Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        None,
         CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );

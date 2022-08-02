@@ -60,6 +60,7 @@ pub struct Dictionary {
     lexicon: Lexicon,
     user_lexicon: Option<Lexicon>,
     connector: Connector,
+    mapper: Option<ConnIdMapper>,
     char_prop: CharProperty,
     unk_handler: UnkHandler,
 }
@@ -69,6 +70,7 @@ impl Dictionary {
         lexicon: Lexicon,
         user_lexicon: Option<Lexicon>,
         connector: Connector,
+        mapper: Option<ConnIdMapper>,
         char_prop: CharProperty,
         unk_handler: UnkHandler,
     ) -> Self {
@@ -76,6 +78,7 @@ impl Dictionary {
             lexicon,
             user_lexicon,
             connector,
+            mapper,
             char_prop,
             unk_handler,
         }
@@ -99,6 +102,11 @@ impl Dictionary {
     #[inline(always)]
     pub const fn connector(&self) -> &Connector {
         &self.connector
+    }
+
+    #[inline(always)]
+    pub const fn mapper(&self) -> Option<&ConnIdMapper> {
+        self.mapper.as_ref()
     }
 
     #[inline(always)]

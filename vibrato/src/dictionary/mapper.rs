@@ -1,5 +1,8 @@
 mod builder;
 
+use bincode::{Decode, Encode};
+
+#[derive(Decode, Encode)]
 pub struct ConnIdMapper {
     left: Vec<(u16, u16)>,
     right: Vec<(u16, u16)>,
@@ -26,13 +29,11 @@ impl ConnIdMapper {
         self.right[id as usize].1
     }
 
-    #[allow(dead_code)]
     #[inline(always)]
     pub(crate) fn left_inv(&self, id: u16) -> u16 {
         self.left[id as usize].0
     }
 
-    #[allow(dead_code)]
     #[inline(always)]
     pub(crate) fn right_inv(&self, id: u16) -> u16 {
         self.right[id as usize].0

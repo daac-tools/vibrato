@@ -31,6 +31,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Lexicon::from_reader(File::open(sysdic_filename)?, LexType::System)?,
         None,
         Connector::from_reader(File::open(matrix_filename)?)?,
+        None,
         CharProperty::from_reader(File::open(chardef_filename)?)?,
         UnkHandler::from_reader(File::open(unkdef_filename)?)?,
     );
