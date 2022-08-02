@@ -1,6 +1,8 @@
 mod builder;
 mod category;
 
+use std::fmt;
+
 use bincode::{Decode, Encode};
 
 pub use category::CategorySet;
@@ -16,8 +18,20 @@ const LENGTH_BITS: usize = 4;
 // invoke: 1
 // group: 1
 // length: 4
-#[derive(Default, Debug, Clone, Copy, Decode, Encode)]
+#[derive(Default, Clone, Copy, Decode, Encode)]
 pub struct CharInfo(u32);
+
+impl fmt::Debug for CharInfo {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("CharInfo")
+            .field("cate_ids", &self.cate_ids().cate_strs())
+            .field("base_id", &CategorySet::cate_str(self.base_id()))
+            .field("invoke", &self.invoke())
+            .field("group", &self.group())
+            .field("length", &self.length())
+            .finish()
+    }
+}
 
 impl CharInfo {
     pub fn new(

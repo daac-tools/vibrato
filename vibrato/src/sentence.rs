@@ -1,6 +1,6 @@
 use crate::dictionary::character::{CharInfo, CharProperty};
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug)]
 pub struct Sentence {
     input: String,
     chars: Vec<char>,
@@ -63,13 +63,10 @@ impl Sentence {
 
         for i in (1..self.chars.len()).rev() {
             let lhs = self.cinfos[i - 1].cate_ids();
-            let and = lhs & rhs;
-            if !and.is_empty() {
+            if !(lhs & rhs).is_empty() {
                 self.groupable[i - 1] = self.groupable[i] + 1;
-                rhs = and;
-            } else {
-                rhs = lhs;
             }
+            rhs = lhs;
         }
     }
 
