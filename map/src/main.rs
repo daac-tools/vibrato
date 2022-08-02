@@ -50,7 +50,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let l_ranks = lid_probs.iter().map(|p| u16::try_from(p.0).unwrap());
     let r_ranks = rid_probs.iter().map(|p| u16::try_from(p.0).unwrap());
     let mapper = ConnIdMapper::from_ranks(l_ranks, r_ranks)?;
-    dict.do_mapping(&mapper);
+    dict.do_mapping(mapper);
 
     eprintln!(
         "Writting the system dictionary...: {}",

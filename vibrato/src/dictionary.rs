@@ -120,10 +120,11 @@ impl Dictionary {
     }
 
     #[doc(hidden)]
-    pub fn do_mapping(&mut self, mapper: &ConnIdMapper) {
-        self.lexicon.do_mapping(mapper);
-        self.connector.do_mapping(mapper);
-        self.unk_handler.do_mapping(mapper);
+    pub fn do_mapping(&mut self, mapper: ConnIdMapper) {
+        self.lexicon.do_mapping(&mapper);
+        self.connector.do_mapping(&mapper);
+        self.unk_handler.do_mapping(&mapper);
+        self.mapper = Some(mapper);
     }
 
     #[inline(always)]
