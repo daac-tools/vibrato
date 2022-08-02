@@ -84,6 +84,51 @@ fn test_tokenize_kyotokyo() {
 }
 
 #[test]
+fn test_tokenize_tokyo_with_space() {
+    let dict = Dictionary::new(
+        Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
+        None,
+        Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
+        UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
+    );
+
+    let mut tokenizer = Tokenizer::new(&dict);
+    let tokens = tokenizer.tokenize("東京 都");
+
+    assert_eq!(tokens.len(), 3);
+
+    assert_eq!(tokens.surface(0).deref(), "東京");
+    assert_eq!(tokens.range_char(0), 0..2);
+    assert_eq!(tokens.range_byte(0), 0..6);
+    assert_eq!(
+        tokens.feature(0),
+        "東京,名詞,固有名詞,地名,一般,*,*,トウキョウ,東京,*,A,*,*,*,*"
+    );
+
+    assert_eq!(tokens.surface(1).deref(), " ");
+    assert_eq!(tokens.range_char(1), 2..3);
+    assert_eq!(tokens.range_byte(1), 6..7);
+    assert_eq!(tokens.feature(1), " ,空白,*,*,*,*,*, , ,*,A,*,*,*,*");
+
+    assert_eq!(tokens.surface(2).deref(), "都");
+    assert_eq!(tokens.range_char(2), 3..4);
+    assert_eq!(tokens.range_byte(2), 7..10);
+    assert_eq!(
+        tokens.feature(2),
+        "都,名詞,普通名詞,一般,*,*,*,ト,都,*,A,*,*,*,*"
+    );
+
+    //   c=0     c=2816 c=-20000 c=2914   c=0
+    //  [BOS] -- [東京] -- [ ] -- [都] -- [EOS]
+    //     r=0  l=6 r=6 l=8 r=8 l=8 r=8 l=0
+    //      c=-79    c=-390  c=1134  c=-522
+    assert_eq!(tokens.total_cost(0), -79 + 2816);
+    assert_eq!(tokens.total_cost(1), tokens.total_cost(0) - 390 - 20000);
+    assert_eq!(tokens.total_cost(2), tokens.total_cost(1) + 1134 + 2914);
+}
+
+#[test]
 fn test_tokenize_kampersanda() {
     let dict = Dictionary::new(
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),

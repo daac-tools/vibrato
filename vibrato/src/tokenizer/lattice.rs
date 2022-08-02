@@ -8,7 +8,8 @@ const INVALID_IDX: u16 = u16::MAX;
 #[derive(Default, Debug, Clone)]
 pub struct Node {
     word_idx: WordIdx,
-    start_char: u16,
+    start_node: u16,
+    start_word: u16,
     left_id: i16,
     right_id: i16,
     min_idx: u16,
@@ -22,8 +23,13 @@ impl Node {
     }
 
     #[inline(always)]
-    pub const fn start_char(&self) -> usize {
-        self.start_char as usize
+    pub const fn start_node(&self) -> usize {
+        self.start_node as usize
+    }
+
+    #[inline(always)]
+    pub const fn start_word(&self) -> usize {
+        self.start_word as usize
     }
 
     #[inline(always)]
@@ -89,7 +95,8 @@ impl Lattice {
     fn insert_bos(&mut self) {
         self.ends[0].push(Node {
             word_idx: WordIdx::default(),
-            start_char: u16::MAX,
+            start_node: u16::MAX,
+            start_word: u16::MAX,
             left_id: -1,
             right_id: 0,
             min_idx: INVALID_IDX,
@@ -97,11 +104,12 @@ impl Lattice {
         });
     }
 
-    pub fn insert_eos(&mut self, connector: &Connector) {
-        let (min_idx, min_cost) = self.search_min_node(self.len_char(), 0, connector).unwrap();
+    pub fn insert_eos(&mut self, start_node: usize, connector: &Connector) {
+        let (min_idx, min_cost) = self.search_min_node(start_node, 0, connector).unwrap();
         self.eos = Some(Node {
             word_idx: WordIdx::default(),
-            start_char: self.len_char() as u16,
+            start_node: start_node as u16,
+            start_word: self.len_char() as u16,
             left_id: 0,
             right_id: -1,
             min_idx,
@@ -111,18 +119,24 @@ impl Lattice {
 
     pub fn insert_node(
         &mut self,
-        start_char: usize,
-        end_char: usize,
+        start_node: usize,
+        start_word: usize,
+        end_word: usize,
         word_idx: WordIdx,
         word_param: WordParam,
         connector: &Connector,
     ) {
+        debug_assert!(start_node <= start_word);
+        debug_assert!(start_word < end_word);
+
         let (min_idx, min_cost) = self
-            .search_min_node(start_char, word_param.left_id as usize, connector)
+            .search_min_node(start_node, word_param.left_id as usize, connector)
             .unwrap();
-        self.ends[end_char].push(Node {
+
+        self.ends[end_word].push(Node {
             word_idx,
-            start_char: start_char as u16,
+            start_node: start_node as u16,
+            start_word: start_word as u16,
             left_id: word_param.left_id,
             right_id: word_param.right_id,
             min_idx,
@@ -132,18 +146,18 @@ impl Lattice {
 
     fn search_min_node(
         &self,
-        start_char: usize,
+        start_node: usize,
         left_id: usize,
         connector: &Connector,
     ) -> Option<(u16, i32)> {
-        if self.ends[start_char].is_empty() {
+        if self.ends[start_node].is_empty() {
             return None;
         }
 
         let mut min_idx = INVALID_IDX;
         let mut min_cost = MAX_COST;
 
-        for (i, left_node) in self.ends[start_char].iter().enumerate() {
+        for (i, left_node) in self.ends[start_node].iter().enumerate() {
             debug_assert!(left_node.is_connected_to_bos());
             let conn_cost = connector.cost(left_node.right_id(), left_id) as i32;
             let new_cost = left_node.min_cost() + conn_cost;
@@ -166,20 +180,21 @@ impl Lattice {
     }
 
     pub fn append_top_nodes(&self, top_nodes: &mut Vec<(usize, Node)>) {
-        let mut end_char = self.len_char();
-        let mut min_idx = self.eos.as_ref().unwrap().min_idx();
-        while end_char != 0 {
-            let node = &self.ends[end_char][min_idx];
-            top_nodes.push((end_char, node.clone()));
-            (end_char, min_idx) = (node.start_char(), node.min_idx());
+        let eos = self.eos.as_ref().unwrap();
+        let mut end_node = eos.start_node();
+        let mut min_idx = eos.min_idx();
+        while end_node != 0 {
+            let node = &self.ends[end_node][min_idx];
+            top_nodes.push((end_node, node.clone()));
+            (end_node, min_idx) = (node.start_node(), node.min_idx());
         }
     }
 
     pub fn add_connid_counts(&self, counter: &mut ConnIdCounter) {
         for end_char in 1..=self.len_char() {
             for r_node in &self.ends[end_char] {
-                let start_char = r_node.start_char();
-                for l_node in &self.ends[start_char] {
+                let start_node = r_node.start_node();
+                for l_node in &self.ends[start_node] {
                     counter.add(r_node.left_id(), l_node.right_id(), 1);
                 }
             }

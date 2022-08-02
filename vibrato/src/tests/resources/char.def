@@ -1,10 +1,16 @@
 DEFAULT         0 1 0  # DEFAULT is a mandatory category!
+SPACE           0 1 0  
 KANJI           0 0 2
 NUMERIC         1 1 0
 ALPHA           1 1 0
 HIRAGANA        0 1 2
 KATAKANA        1 1 2
 
+0x0020 SPACE  # DO NOT REMOVE THIS LINE, 0x0020 is reserved for SPACE
+0x00D0 SPACE
+0x0009 SPACE
+0x000B SPACE
+0x000A SPACE
 0x0030..0x0039 NUMERIC  #0-9
 0x0041..0x005A ALPHA    #A-Z
 0x0061..0x007A ALPHA    #a-z
