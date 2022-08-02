@@ -13,5 +13,8 @@ resources_ipadic-mecab-2_7_0/
 resources_unidic-mecab-2_1_2/
 resources_unidic-cwj-3_1_0/
 
+mecab-ipadic-2.7.0-20070801/
+mecab-ipadic-2.7.0-20070801.tar.gz
+
+
 *.dic
-user.csv

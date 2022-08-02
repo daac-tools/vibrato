@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::str::FromStr;
 
-use vibrato::dictionary::{Dictionary, LexType, Lexicon};
+use vibrato::dictionary::Dictionary;
 use vibrato::Tokenizer;
 
 use clap::Parser;
@@ -32,7 +32,7 @@ struct Args {
     sysdic_filename: String,
 
     #[clap(short = 'u', long)]
-    userdic_csv_filename: Option<String>,
+    userdic_filename: Option<String>,
 
     #[clap(short = 'p', long, default_value = "standard")]
     print_mode: PrintMode,
@@ -48,18 +48,23 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     eprintln!("Loading the dictionary...");
-    let mut reader = BufReader::new(File::open(args.sysdic_filename)?);
-    let config = bincode::config::standard()
-        .with_little_endian()
-        .with_fixed_int_encoding()
-        .write_fixed_array_length();
+    let mut dict: Dictionary = {
+        let mut reader = BufReader::new(File::open(args.sysdic_filename)?);
+        let config = bincode::config::standard()
+            .with_little_endian()
+            .with_fixed_int_encoding()
+            .write_fixed_array_length();
+        bincode::decode_from_std_read(&mut reader, config)?
+    };
 
-    let mut dict: Dictionary = bincode::decode_from_std_read(&mut reader, config)?;
-    if let Some(userdic_csv_filename) = args.userdic_csv_filename {
-        dict.reset_user_lexicon(Lexicon::from_reader(
-            File::open(userdic_csv_filename)?,
-            LexType::User,
-        )?);
+    if let Some(userdic_filename) = args.userdic_filename {
+        let mut reader = BufReader::new(File::open(userdic_filename)?);
+        let config = bincode::config::standard()
+            .with_little_endian()
+            .with_fixed_int_encoding()
+            .write_fixed_array_length();
+        let user_lexicon = bincode::decode_from_std_read(&mut reader, config)?;
+        dict.reset_user_lexicon(user_lexicon);
     }
 
     let mut tokenizer = Tokenizer::new(&dict);
