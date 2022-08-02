@@ -50,20 +50,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     eprintln!("Loading the dictionary...");
     let mut dict: Dictionary = {
         let mut reader = BufReader::new(File::open(args.sysdic_filename)?);
-        let config = bincode::config::standard()
-            .with_little_endian()
-            .with_fixed_int_encoding()
-            .write_fixed_array_length();
-        bincode::decode_from_std_read(&mut reader, config)?
+        bincode::decode_from_std_read(&mut reader, vibrato::common::bincode_config())?
     };
 
     if let Some(userdic_filename) = args.userdic_filename {
         let mut reader = BufReader::new(File::open(userdic_filename)?);
-        let config = bincode::config::standard()
-            .with_little_endian()
-            .with_fixed_int_encoding()
-            .write_fixed_array_length();
-        let user_lexicon = bincode::decode_from_std_read(&mut reader, config)?;
+        let user_lexicon =
+            bincode::decode_from_std_read(&mut reader, vibrato::common::bincode_config())?;
         dict.reset_user_lexicon(user_lexicon);
     }
 

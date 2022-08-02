@@ -30,11 +30,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     let mut reader = BufReader::new(File::open(args.sysdic_filename)?);
-    let config = bincode::config::standard()
-        .with_little_endian()
-        .with_fixed_int_encoding()
-        .write_fixed_array_length();
-    let dict = bincode::decode_from_std_read(&mut reader, config)?;
+    let dict = bincode::decode_from_std_read(&mut reader, vibrato::common::bincode_config())?;
 
     let mut tokenizer = Tokenizer::new(&dict);
     if args.ignore_space {

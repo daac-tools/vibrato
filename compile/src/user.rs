@@ -24,11 +24,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     eprintln!("Loading the system dictionary...");
     let mut reader = BufReader::new(File::open(args.sysdic_filename)?);
-    let config = bincode::config::standard()
-        .with_little_endian()
-        .with_fixed_int_encoding()
-        .write_fixed_array_length();
-    let dict: Dictionary = bincode::decode_from_std_read(&mut reader, config)?;
+    let dict: Dictionary =
+        bincode::decode_from_std_read(&mut reader, vibrato::common::bincode_config())?;
 
     eprintln!("Compiling the user lexicon...");
     let mut user_lexicon = Lexicon::from_reader(File::open(args.userlex_filename)?, LexType::User)?;
@@ -38,11 +35,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     eprintln!("Writting the user dictionary...: {}", &args.output_filename);
     let mut writer = BufWriter::new(File::create(args.output_filename)?);
-    let config = bincode::config::standard()
-        .with_little_endian()
-        .with_fixed_int_encoding()
-        .write_fixed_array_length();
-    let num_bytes = bincode::encode_into_std_write(user_lexicon, &mut writer, config)?;
+    let num_bytes = bincode::encode_into_std_write(
+        user_lexicon,
+        &mut writer,
+        vibrato::common::bincode_config(),
+    )?;
     eprintln!("{} MiB", num_bytes as f64 / (1024. * 1024.));
 
     Ok(())

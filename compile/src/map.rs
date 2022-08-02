@@ -28,11 +28,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     eprintln!("Loading the dictionary...");
     let mut reader = BufReader::new(File::open(args.sysdic_filename)?);
-    let config = bincode::config::standard()
-        .with_little_endian()
-        .with_fixed_int_encoding()
-        .write_fixed_array_length();
-    let mut dict: Dictionary = bincode::decode_from_std_read(&mut reader, config)?;
+    let mut dict: Dictionary =
+        bincode::decode_from_std_read(&mut reader, vibrato::common::bincode_config())?;
 
     eprintln!("Training connection id mappings...");
     let connector = dict.connector();
@@ -57,11 +54,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         &args.output_filename
     );
     let mut writer = BufWriter::new(File::create(args.output_filename)?);
-    let config = bincode::config::standard()
-        .with_little_endian()
-        .with_fixed_int_encoding()
-        .write_fixed_array_length();
-    let num_bytes = bincode::encode_into_std_write(dict, &mut writer, config)?;
+    let num_bytes =
+        bincode::encode_into_std_write(dict, &mut writer, vibrato::common::bincode_config())?;
     eprintln!("{} MiB", num_bytes as f64 / (1024. * 1024.));
 
     if let Some(mapping_basename) = args.mapping_basename {
