@@ -43,8 +43,8 @@ impl<'a> Tokens<'a> {
     #[inline(always)]
     pub fn range_char(&self, i: usize) -> Range<usize> {
         let index = self.index(i);
-        let (end_char, node) = &self.nodes[index];
-        node.start_char()..*end_char
+        let (end_word, node) = &self.nodes[index];
+        node.start_word()..*end_word
     }
 
     /// Gets the position range of the `i`-th token in bytes.

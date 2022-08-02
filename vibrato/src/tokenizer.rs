@@ -3,6 +3,7 @@ mod lattice;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use crate::dictionary::character::CategorySet;
 use crate::dictionary::{ConnIdCounter, Dictionary};
 use crate::sentence::Sentence;
 use crate::token::Tokens;
@@ -16,6 +17,9 @@ pub struct Tokenizer<'a> {
     sent: Rc<RefCell<Sentence>>,
     lattice: Lattice,
     tokens: Tokens<'a>,
+    // For MeCab compatible
+    space_cate: Option<CategorySet>,
+    max_grouping_len: Option<usize>,
 }
 
 impl<'a> Tokenizer<'a> {
@@ -26,7 +30,21 @@ impl<'a> Tokenizer<'a> {
             sent: Rc::new(RefCell::new(Sentence::new())),
             lattice: Lattice::default(),
             tokens: Tokens::new(dict),
+            space_cate: None,
+            max_grouping_len: None,
         }
+    }
+
+    /// Enables MeCab compatible mode.
+    pub fn ignore_space(mut self) -> Self {
+        self.space_cate = Some("SPACE".parse().unwrap());
+        self
+    }
+
+    /// Sets max_grouping_len
+    pub fn max_grouping_len(mut self, max_grouping_len: usize) -> Self {
+        self.max_grouping_len = Some(max_grouping_len);
+        self
     }
 
     /// Tokenizes an input text.
@@ -58,19 +76,40 @@ impl<'a> Tokenizer<'a> {
 
         self.lattice.reset(input_chars.len());
 
-        for start_char in 0..input_chars.len() {
-            if !self.lattice.has_previous_node(start_char) {
+        let mut start_node = 0;
+        let mut start_word = 0;
+
+        while start_word < input_chars.len() {
+            if !self.lattice.has_previous_node(start_node) {
+                start_word += 1;
+                start_node = start_word;
                 continue;
+            }
+
+            // on mecab compatible mode
+            if let Some(space_cate) = self.space_cate {
+                let is_space = sent.char_info(start_node).cate_ids() & space_cate;
+                start_word += if is_space.is_empty() {
+                    0
+                } else {
+                    sent.groupable(start_node)
+                };
+            }
+
+            // Does the input end with spaces?
+            if start_word == input_chars.len() {
+                break;
             }
 
             let mut has_matched = false;
 
             if let Some(user_lexicon) = self.dict.user_lexicon() {
-                for m in user_lexicon.common_prefix_iterator(&input_chars[start_char..]) {
-                    debug_assert!(start_char + m.end_char() <= input_chars.len());
+                for m in user_lexicon.common_prefix_iterator(&input_chars[start_word..]) {
+                    debug_assert!(start_word + m.end_char() <= input_chars.len());
                     self.lattice.insert_node(
-                        start_char,
-                        start_char + m.end_char(),
+                        start_node,
+                        start_word,
+                        start_word + m.end_char(),
                         m.word_idx(),
                         m.word_param(),
                         self.dict.connector(),
@@ -82,12 +121,13 @@ impl<'a> Tokenizer<'a> {
             for m in self
                 .dict
                 .lexicon()
-                .common_prefix_iterator(&input_chars[start_char..])
+                .common_prefix_iterator(&input_chars[start_word..])
             {
-                debug_assert!(start_char + m.end_char() <= input_chars.len());
+                debug_assert!(start_word + m.end_char() <= input_chars.len());
                 self.lattice.insert_node(
-                    start_char,
-                    start_char + m.end_char(),
+                    start_node,
+                    start_word,
+                    start_word + m.end_char(),
                     m.word_idx(),
                     m.word_param(),
                     self.dict.connector(),
@@ -95,20 +135,28 @@ impl<'a> Tokenizer<'a> {
                 has_matched = true;
             }
 
-            self.dict
-                .unk_handler()
-                .gen_unk_words(&sent, start_char, has_matched, |w| {
+            self.dict.unk_handler().gen_unk_words(
+                &sent,
+                start_word,
+                has_matched,
+                self.max_grouping_len,
+                |w| {
                     self.lattice.insert_node(
+                        start_node,
                         w.start_char(),
                         w.end_char(),
                         w.word_idx(),
                         w.word_param(),
                         self.dict.connector(),
                     );
-                });
+                },
+            );
+
+            start_word += 1;
+            start_node = start_word;
         }
 
-        self.lattice.insert_eos(self.dict.connector());
+        self.lattice.insert_eos(start_node, self.dict.connector());
     }
 
     #[doc(hidden)]

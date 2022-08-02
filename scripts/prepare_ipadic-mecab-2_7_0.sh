@@ -4,7 +4,7 @@ set -eux
 
 which wget
 which tar
-which nkf
+which iconv
 which sort
 
 resources_dir="resources_ipadic-mecab-2_7_0"
@@ -18,9 +18,9 @@ wget http://jaist.dl.sourceforge.net/project/mecab/mecab-ipadic/2.7.0-20070801/m
 tar -xzf mecab-ipadic-2.7.0-20070801.tar.gz
 
 mkdir ${resources_dir}
-env LC_ALL=C cat mecab-ipadic-2.7.0-20070801/*.csv | nkf -Ew | sort > ${resources_dir}/lex.csv
-cat mecab-ipadic-2.7.0-20070801/char.def | nkf -Ew > ${resources_dir}/char.def
-cat mecab-ipadic-2.7.0-20070801/unk.def | nkf -Ew > ${resources_dir}/unk.def
+env LC_ALL=C cat mecab-ipadic-2.7.0-20070801/*.csv | iconv -f EUCJP -t UTF8 | sort > ${resources_dir}/lex.csv
+cat mecab-ipadic-2.7.0-20070801/char.def | iconv -f EUCJP -t UTF8 > ${resources_dir}/char.def
+cat mecab-ipadic-2.7.0-20070801/unk.def | iconv -f EUCJP -t UTF8 > ${resources_dir}/unk.def
 mv mecab-ipadic-2.7.0-20070801/matrix.def ${resources_dir}/
 
 rm -rf mecab-ipadic-2.7.0-20070801

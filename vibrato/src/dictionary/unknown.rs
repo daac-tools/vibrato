@@ -61,7 +61,8 @@ impl UnkHandler {
         &self,
         sent: &Sentence,
         start_char: usize,
-        has_matched: bool,
+        mut has_matched: bool,
+        max_grouping_len: Option<usize>,
         mut f: F,
     ) where
         F: FnMut(UnkWord),
@@ -76,7 +77,13 @@ impl UnkHandler {
 
         if cinfo.group() {
             grouped = true;
-            f = self.scan_entries(start_char, start_char + groupable, cinfo, f);
+            // Checks the number of grouped characters other than the first one
+            // following the original MeCab implementation.
+            let max_grouping_len = max_grouping_len.map_or(usize::MAX, |l| l + 1);
+            if groupable <= max_grouping_len {
+                f = self.scan_entries(start_char, start_char + groupable, cinfo, f);
+                has_matched = true;
+            }
         }
 
         for i in 1..=cinfo.length().min(groupable) {
@@ -88,6 +95,12 @@ impl UnkHandler {
                 break;
             }
             f = self.scan_entries(start_char, end_char, cinfo, f);
+            has_matched = true;
+        }
+
+        // Generates at least one unknown word.
+        if !has_matched {
+            self.scan_entries(start_char, start_char + 1, cinfo, f);
         }
     }
 

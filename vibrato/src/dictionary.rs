@@ -13,10 +13,17 @@ pub use mapper::{ConnIdCounter, ConnIdMapper, ConnIdProbs};
 pub use unknown::UnkHandler;
 
 #[derive(Clone, Copy, Eq, PartialEq, Debug, Decode, Encode)]
+#[repr(u8)]
 pub enum LexType {
     System,
     User,
     Unknown,
+}
+
+impl Default for LexType {
+    fn default() -> Self {
+        LexType::System
+    }
 }
 
 #[derive(Clone, Copy, Eq, PartialEq, Debug)]

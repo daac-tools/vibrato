@@ -18,6 +18,12 @@ const TRIALS: usize = 10;
 struct Args {
     #[clap(short = 'i', long)]
     sysdic_filename: String,
+
+    #[clap(short = 'S', long)]
+    ignore_space: bool,
+
+    #[clap(short = 'M', long)]
+    max_grouping_len: Option<usize>,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -31,6 +37,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     let dict = bincode::decode_from_std_read(&mut reader, config)?;
 
     let mut tokenizer = Tokenizer::new(&dict);
+    if args.ignore_space {
+        tokenizer = tokenizer.ignore_space();
+    }
+    if let Some(max_grouping_len) = args.max_grouping_len {
+        tokenizer = tokenizer.max_grouping_len(max_grouping_len);
+    }
+
     let lines: Vec<_> = std::io::stdin()
         .lock()
         .lines()

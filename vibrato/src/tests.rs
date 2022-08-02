@@ -1,3 +1,4 @@
 mod connector;
 mod lexicon;
-mod tokenizer;
+mod tokenizer_mecab;
+mod tokenizer_standard;
