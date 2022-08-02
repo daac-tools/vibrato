@@ -229,7 +229,7 @@ fn test_tokenize_kampersanda() {
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
 
-    let mut tokenizer = Tokenizer::new(&dict).ignore_space().max_groupable_len(10);
+    let mut tokenizer = Tokenizer::new(&dict).ignore_space().max_grouping_len(10);
     let tokens = tokenizer.tokenize("kampersanda");
 
     assert_eq!(tokens.len(), 2);

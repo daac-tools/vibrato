@@ -9,17 +9,17 @@ use vibrato::Tokenizer;
 use clap::Parser;
 
 #[derive(Clone, Debug)]
-enum TokMode {
+enum PrintMode {
     Standard,
     Wakati,
 }
 
-impl FromStr for TokMode {
+impl FromStr for PrintMode {
     type Err = &'static str;
     fn from_str(mode: &str) -> Result<Self, Self::Err> {
         match mode {
-            "standard" => Ok(TokMode::Standard),
-            "wakati" => Ok(TokMode::Wakati),
+            "standard" => Ok(PrintMode::Standard),
+            "wakati" => Ok(PrintMode::Wakati),
             _ => Err("Could not parse a mode"),
         }
     }
@@ -34,11 +34,11 @@ struct Args {
     #[clap(short = 'u', long)]
     userdic_csv_filename: Option<String>,
 
-    #[clap(short = 'm', long, default_value = "standard")]
-    mode: TokMode,
+    #[clap(short = 'p', long, default_value = "standard")]
+    print_mode: PrintMode,
 
-    #[clap(short = 'M', long)]
-    mecab_mode: bool,
+    #[clap(short = 'S', long)]
+    ignore_space: bool,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -60,7 +60,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     let mut tokenizer = Tokenizer::new(&dict);
-    if args.mecab_mode {
+    if args.ignore_space {
         tokenizer = tokenizer.ignore_space();
     }
 
@@ -70,8 +70,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     for line in std::io::stdin().lock().lines() {
         let line = line?;
         let tokens = tokenizer.tokenize(line);
-        match args.mode {
-            TokMode::Standard => {
+        match args.print_mode {
+            PrintMode::Standard => {
                 for i in 0..tokens.len() {
                     print!("{}\t{}", tokens.surface(i), tokens.feature(i));
                     if tokens.is_unknown(i) {
@@ -81,7 +81,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
                 println!("EOS");
             }
-            TokMode::Wakati => {
+            PrintMode::Wakati => {
                 for i in 0..tokens.len() {
                     if i != 0 {
                         print!(" ");

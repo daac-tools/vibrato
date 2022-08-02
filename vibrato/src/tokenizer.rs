@@ -19,7 +19,7 @@ pub struct Tokenizer<'a> {
     tokens: Tokens<'a>,
     // For MeCab compatible
     space_cate: Option<CategorySet>,
-    max_groupable_len: usize,
+    max_grouping_len: usize,
 }
 
 impl<'a> Tokenizer<'a> {
@@ -31,7 +31,7 @@ impl<'a> Tokenizer<'a> {
             lattice: Lattice::default(),
             tokens: Tokens::new(dict),
             space_cate: None,
-            max_groupable_len: usize::MAX,
+            max_grouping_len: usize::MAX,
         }
     }
 
@@ -41,9 +41,9 @@ impl<'a> Tokenizer<'a> {
         self
     }
 
-    /// Sets max_groupable_len
-    pub fn max_groupable_len(mut self, max_groupable_len: usize) -> Self {
-        self.max_groupable_len = max_groupable_len;
+    /// Sets max_grouping_len
+    pub fn max_grouping_len(mut self, max_grouping_len: usize) -> Self {
+        self.max_grouping_len = max_grouping_len;
         self
     }
 
@@ -139,7 +139,7 @@ impl<'a> Tokenizer<'a> {
                 &sent,
                 start_word,
                 has_matched,
-                self.max_groupable_len,
+                self.max_grouping_len,
                 |w| {
                     self.lattice.insert_node(
                         start_node,

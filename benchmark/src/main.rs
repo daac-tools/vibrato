@@ -19,8 +19,8 @@ struct Args {
     #[clap(short = 'i', long)]
     sysdic_filename: String,
 
-    #[clap(short = 'M', long)]
-    mecab_mode: bool,
+    #[clap(short = 'S', long)]
+    ignore_space: bool,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -34,7 +34,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let dict = bincode::decode_from_std_read(&mut reader, config)?;
 
     let mut tokenizer = Tokenizer::new(&dict);
-    if args.mecab_mode {
+    if args.ignore_space {
         tokenizer = tokenizer.ignore_space();
     }
 
