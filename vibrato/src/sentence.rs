@@ -1,6 +1,6 @@
 use crate::dictionary::character::{CharInfo, CharProperty};
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug)]
 pub struct Sentence {
     input: String,
     chars: Vec<char>,

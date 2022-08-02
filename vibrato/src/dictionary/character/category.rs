@@ -85,6 +85,7 @@ impl CategorySet {
         self.bits.count_ones()
     }
 
+    #[allow(dead_code)]
     #[inline(always)]
     pub const fn id_iter(&self) -> CategoryIdIter {
         CategoryIdIter { bits: self.bits }

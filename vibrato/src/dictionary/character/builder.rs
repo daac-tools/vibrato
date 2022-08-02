@@ -8,7 +8,9 @@ use super::{CategorySet, CharInfo, CharProperty};
 struct CharRange {
     start: usize,
     end: usize,
-    categories: CategorySet,
+    // Need to use Vec, not CategorySet, to preserve the id order defined
+    // in char.def and follow the original MeCab implementation.
+    cate_ids: Vec<u32>,
 }
 
 impl CharProperty {
@@ -41,11 +43,12 @@ impl CharProperty {
             }
         }
 
-        let init_cinfo = Self::encode_cate_info("DEFAULT".parse().unwrap(), &cate2info);
+        let init_cinfo =
+            Self::encode_cate_info(&[CategorySet::DEFAULT.first_id().unwrap()], &cate2info);
         let mut chr2inf = vec![init_cinfo; 1 << 16];
 
         for r in &char_ranges {
-            let cinfo = Self::encode_cate_info(r.categories, &cate2info);
+            let cinfo = Self::encode_cate_info(&r.cate_ids, &cate2info);
             for e in chr2inf.iter_mut().take(r.end).skip(r.start) {
                 *e = cinfo;
             }
@@ -54,11 +57,11 @@ impl CharProperty {
         Ok(Self { chr2inf })
     }
 
-    fn encode_cate_info(categories: CategorySet, cate2info: &BTreeMap<u32, CharInfo>) -> CharInfo {
-        let mut base = *cate2info.get(&categories.first_id().unwrap()).unwrap();
+    fn encode_cate_info(target_ids: &[u32], cate2info: &BTreeMap<u32, CharInfo>) -> CharInfo {
+        let mut base = *cate2info.get(target_ids.first().unwrap()).unwrap();
         let mut cate_ids = base.cate_ids();
-        for cate_id in categories.id_iter() {
-            let cinfo = cate2info.get(&cate_id).unwrap();
+        for target_id in target_ids {
+            let cinfo = cate2info.get(target_id).unwrap();
             cate_ids |= CategorySet::from_id(cinfo.base_id());
         }
         base.set_cate_ids(cate_ids);
@@ -107,15 +110,15 @@ impl CharProperty {
             return Err(anyhow!("InvalidFormat: {}", line));
         }
 
-        let mut categories = CategorySet::new();
-        for cate in cols[1..].iter().take_while(|&&col| !col.starts_with('#')) {
-            categories |= cate.parse()?;
+        let mut cate_ids = vec![];
+        for &cate in cols[1..].iter().take_while(|&&col| !col.starts_with('#')) {
+            cate_ids.push(cate.parse::<CategorySet>()?.first_id().unwrap());
         }
 
         Ok(CharRange {
             start,
             end,
-            categories,
+            cate_ids,
         })
     }
 }
