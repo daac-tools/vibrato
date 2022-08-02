@@ -77,7 +77,9 @@ impl UnkHandler {
 
         if cinfo.group() {
             grouped = true;
-            if groupable <= max_grouping_len {
+            // Checks the number of grouped characters other than the first one
+            // following the original MeCab implementation.
+            if groupable <= max_grouping_len + 1 {
                 f = self.scan_entries(start_char, start_char + groupable, cinfo, f);
                 has_matched = true;
             }
