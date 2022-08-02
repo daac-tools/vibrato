@@ -85,10 +85,35 @@ impl CategorySet {
         self.bits.count_ones()
     }
 
-    #[allow(dead_code)]
     #[inline(always)]
     pub const fn id_iter(&self) -> CategoryIdIter {
         CategoryIdIter { bits: self.bits }
+    }
+
+    pub fn cate_str(cate_id: u32) -> Option<String> {
+        let cate = match cate_id {
+            0 => "DEFAULT",
+            1 => "SPACE",
+            2 => "KANJI",
+            3 => "SYMBOL",
+            4 => "NUMERIC",
+            5 => "ALPHA",
+            6 => "HIRAGANA",
+            7 => "KATAKANA",
+            8 => "KANJINUMERIC",
+            9 => "GREEK",
+            10 => "CYRILLIC",
+            _ => return None,
+        };
+        Some(cate.to_string())
+    }
+
+    pub fn cate_strs(&self) -> Vec<String> {
+        let mut cates = vec![];
+        for id in self.id_iter() {
+            cates.push(Self::cate_str(id).unwrap());
+        }
+        cates
     }
 }
 
