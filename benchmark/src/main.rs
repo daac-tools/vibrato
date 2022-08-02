@@ -35,7 +35,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut tokenizer = Tokenizer::new(&dict);
     if args.mecab_mode {
-        tokenizer = tokenizer.mecab();
+        tokenizer = tokenizer.ignore_space();
     }
 
     let lines: Vec<_> = std::io::stdin()

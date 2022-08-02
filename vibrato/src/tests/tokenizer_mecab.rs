@@ -18,7 +18,7 @@ fn test_tokenize_tokyo() {
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
 
-    let mut tokenizer = Tokenizer::new(&dict).mecab();
+    let mut tokenizer = Tokenizer::new(&dict).ignore_space();
     let tokens = tokenizer.tokenize("東京都");
 
     assert_eq!(tokens.len(), 1);
@@ -47,7 +47,7 @@ fn test_tokenize_kyotokyo() {
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
 
-    let mut tokenizer = Tokenizer::new(&dict).mecab();
+    let mut tokenizer = Tokenizer::new(&dict).ignore_space();
     let tokens = tokenizer.tokenize("京都東京都京都");
 
     assert_eq!(tokens.len(), 3);
@@ -93,7 +93,7 @@ fn test_tokenize_tokyo_with_space() {
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
 
-    let mut tokenizer = Tokenizer::new(&dict).mecab();
+    let mut tokenizer = Tokenizer::new(&dict).ignore_space();
     let tokens = tokenizer.tokenize("東京 都");
 
     assert_eq!(tokens.len(), 2);
@@ -132,7 +132,7 @@ fn test_tokenize_tokyo_with_spaces() {
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
 
-    let mut tokenizer = Tokenizer::new(&dict).mecab();
+    let mut tokenizer = Tokenizer::new(&dict).ignore_space();
     let tokens = tokenizer.tokenize("東京   都");
 
     assert_eq!(tokens.len(), 2);
@@ -171,7 +171,7 @@ fn test_tokenize_tokyo_startswith_spaces() {
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
 
-    let mut tokenizer = Tokenizer::new(&dict).mecab();
+    let mut tokenizer = Tokenizer::new(&dict).ignore_space();
     let tokens = tokenizer.tokenize("   東京都");
 
     assert_eq!(tokens.len(), 1);
@@ -200,7 +200,7 @@ fn test_tokenize_tokyo_endswith_spaces() {
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
 
-    let mut tokenizer = Tokenizer::new(&dict).mecab();
+    let mut tokenizer = Tokenizer::new(&dict).ignore_space();
     let tokens = tokenizer.tokenize("東京都   ");
 
     assert_eq!(tokens.len(), 1);
@@ -229,20 +229,27 @@ fn test_tokenize_kampersanda() {
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
 
-    let mut tokenizer = Tokenizer::new(&dict).mecab();
+    let mut tokenizer = Tokenizer::new(&dict).ignore_space().max_groupable_len(10);
     let tokens = tokenizer.tokenize("kampersanda");
 
-    assert_eq!(tokens.len(), 1);
-    assert_eq!(tokens.surface(0).deref(), "kampersanda");
-    assert_eq!(tokens.range_char(0), 0..11);
-    assert_eq!(tokens.range_byte(0), 0..11);
+    assert_eq!(tokens.len(), 2);
+
+    assert_eq!(tokens.surface(0).deref(), "k");
+    assert_eq!(tokens.range_char(0), 0..1);
+    assert_eq!(tokens.range_byte(0), 0..1);
     assert_eq!(tokens.feature(0), "名詞,普通名詞,一般,*,*,*");
 
-    //   c=0        c=11633         c=0
-    //  [BOS] -- [kampersanda] -- [EOS]
-    //     r=0  l=7         r=7  l=0
-    //      c=887
+    assert_eq!(tokens.surface(1).deref(), "ampersanda");
+    assert_eq!(tokens.range_char(1), 1..11);
+    assert_eq!(tokens.range_byte(1), 1..11);
+    assert_eq!(tokens.feature(1), "名詞,普通名詞,一般,*,*,*");
+
+    //   c=0   c=11633    c=11633        c=0
+    //  [BOS] -- [k] -- [ampersanda] -- [EOS]
+    //     r=0 l=7 r=7 l=7        r=7  l=0
+    //      c=887   c=2341
     assert_eq!(tokens.total_cost(0), 887 + 11633);
+    assert_eq!(tokens.total_cost(1), tokens.total_cost(0) + 2341 + 11633);
 }
 
 #[test]
@@ -255,7 +262,7 @@ fn test_tokenize_tokyoken() {
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
 
-    let mut tokenizer = Tokenizer::new(&dict).mecab();
+    let mut tokenizer = Tokenizer::new(&dict).ignore_space();
     let tokens = tokenizer.tokenize("東京県に行く");
 
     assert_eq!(tokens.len(), 4);
@@ -271,7 +278,7 @@ fn test_tokenize_empty() {
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
 
-    let mut tokenizer = Tokenizer::new(&dict).mecab();
+    let mut tokenizer = Tokenizer::new(&dict).ignore_space();
     let tokens = tokenizer.tokenize("");
 
     assert_eq!(tokens.len(), 0);

@@ -17,7 +17,9 @@ pub struct Tokenizer<'a> {
     sent: Rc<RefCell<Sentence>>,
     lattice: Lattice,
     tokens: Tokens<'a>,
+    // For MeCab compatible
     space_cate: Option<CategorySet>,
+    max_groupable_len: usize,
 }
 
 impl<'a> Tokenizer<'a> {
@@ -29,12 +31,19 @@ impl<'a> Tokenizer<'a> {
             lattice: Lattice::default(),
             tokens: Tokens::new(dict),
             space_cate: None,
+            max_groupable_len: usize::MAX,
         }
     }
 
     /// Enables MeCab compatible mode.
-    pub fn mecab(mut self) -> Self {
+    pub fn ignore_space(mut self) -> Self {
         self.space_cate = Some("SPACE".parse().unwrap());
+        self
+    }
+
+    /// Sets max_groupable_len
+    pub fn max_groupable_len(mut self, max_groupable_len: usize) -> Self {
+        self.max_groupable_len = max_groupable_len;
         self
     }
 
@@ -126,9 +135,12 @@ impl<'a> Tokenizer<'a> {
                 has_matched = true;
             }
 
-            self.dict
-                .unk_handler()
-                .gen_unk_words(&sent, start_word, has_matched, |w| {
+            self.dict.unk_handler().gen_unk_words(
+                &sent,
+                start_word,
+                has_matched,
+                self.max_groupable_len,
+                |w| {
                     self.lattice.insert_node(
                         start_node,
                         w.start_char(),
@@ -137,7 +149,8 @@ impl<'a> Tokenizer<'a> {
                         w.word_param(),
                         self.dict.connector(),
                     );
-                });
+                },
+            );
 
             start_word += 1;
             start_node = start_word;
