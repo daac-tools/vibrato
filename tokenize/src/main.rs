@@ -36,6 +36,9 @@ struct Args {
 
     #[clap(short = 'm', long, default_value = "standard")]
     mode: TokMode,
+
+    #[clap(short = 'M', long)]
+    mecab_mode: bool,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -57,6 +60,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     let mut tokenizer = Tokenizer::new(&dict);
+    if args.mecab_mode {
+        tokenizer = tokenizer.mecab();
+    }
+
     eprintln!("Ready to tokenize :)");
 
     #[allow(clippy::significant_drop_in_scrutinee)]

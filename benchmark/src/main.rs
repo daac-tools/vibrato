@@ -18,6 +18,9 @@ const TRIALS: usize = 10;
 struct Args {
     #[clap(short = 'i', long)]
     sysdic_filename: String,
+
+    #[clap(short = 'M', long)]
+    mecab_mode: bool,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -31,6 +34,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let dict = bincode::decode_from_std_read(&mut reader, config)?;
 
     let mut tokenizer = Tokenizer::new(&dict);
+    if args.mecab_mode {
+        tokenizer = tokenizer.mecab();
+    }
+
     let lines: Vec<_> = std::io::stdin()
         .lock()
         .lines()
