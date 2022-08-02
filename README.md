@@ -21,11 +21,11 @@ Writting the system dictionary...: system.dic
 ## Do mapping
 
 ```
-$ cargo run --release -p map -- -i system.dic -t data/wagahaiwa_nekodearu.txt -o system.mapped.dic
+$ cargo run --release -p compile --bin map -- -i system.dic -t data/wagahaiwa_nekodearu.txt -o system.mapped.dic
 Loading the dictionary...
 Training connection id mappings...
 Writting the system dictionary...: system.mapped.dic
-44.63689613342285 MiB
+44.642452239990234 MiB
 ```
 
 ## Tokenize

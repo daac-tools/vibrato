@@ -4,8 +4,8 @@ use bincode::{Decode, Encode};
 
 #[derive(Decode, Encode)]
 pub struct ConnIdMapper {
-    left: Vec<(u16, u16)>,
-    right: Vec<(u16, u16)>,
+    left: Vec<u16>,
+    right: Vec<u16>,
 }
 
 impl ConnIdMapper {
@@ -21,22 +21,12 @@ impl ConnIdMapper {
 
     #[inline(always)]
     pub(crate) fn left(&self, id: u16) -> u16 {
-        self.left[id as usize].1
+        self.left[id as usize]
     }
 
     #[inline(always)]
     pub(crate) fn right(&self, id: u16) -> u16 {
-        self.right[id as usize].1
-    }
-
-    #[inline(always)]
-    pub(crate) fn left_inv(&self, id: u16) -> u16 {
-        self.left[id as usize].0
-    }
-
-    #[inline(always)]
-    pub(crate) fn right_inv(&self, id: u16) -> u16 {
-        self.right[id as usize].0
+        self.right[id as usize]
     }
 }
 
