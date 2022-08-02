@@ -120,7 +120,7 @@ impl<'a> Tokenizer<'a> {
 
             for m in self
                 .dict
-                .lexicon()
+                .system_lexicon()
                 .common_prefix_iterator(&input_chars[start_word..])
             {
                 debug_assert!(start_word + m.end_char() <= input_chars.len());
