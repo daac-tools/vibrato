@@ -62,7 +62,7 @@ impl UnkHandler {
         sent: &Sentence,
         start_char: usize,
         mut has_matched: bool,
-        max_grouping_len: usize,
+        max_grouping_len: Option<usize>,
         mut f: F,
     ) where
         F: FnMut(UnkWord),
@@ -79,7 +79,8 @@ impl UnkHandler {
             grouped = true;
             // Checks the number of grouped characters other than the first one
             // following the original MeCab implementation.
-            if groupable <= max_grouping_len + 1 {
+            let max_grouping_len = max_grouping_len.map_or(usize::MAX, |l| l + 1);
+            if groupable <= max_grouping_len {
                 f = self.scan_entries(start_char, start_char + groupable, cinfo, f);
                 has_matched = true;
             }

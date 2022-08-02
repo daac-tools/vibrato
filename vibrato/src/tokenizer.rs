@@ -19,7 +19,7 @@ pub struct Tokenizer<'a> {
     tokens: Tokens<'a>,
     // For MeCab compatible
     space_cate: Option<CategorySet>,
-    max_grouping_len: usize,
+    max_grouping_len: Option<usize>,
 }
 
 impl<'a> Tokenizer<'a> {
@@ -31,7 +31,7 @@ impl<'a> Tokenizer<'a> {
             lattice: Lattice::default(),
             tokens: Tokens::new(dict),
             space_cate: None,
-            max_grouping_len: usize::MAX,
+            max_grouping_len: None,
         }
     }
 
@@ -43,7 +43,7 @@ impl<'a> Tokenizer<'a> {
 
     /// Sets max_grouping_len
     pub fn max_grouping_len(mut self, max_grouping_len: usize) -> Self {
-        self.max_grouping_len = max_grouping_len;
+        self.max_grouping_len = Some(max_grouping_len);
         self
     }
 

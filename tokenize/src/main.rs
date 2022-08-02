@@ -40,8 +40,8 @@ struct Args {
     #[clap(short = 'S', long)]
     ignore_space: bool,
 
-    #[clap(short = 'M', long, default_value = "65536")]
-    max_grouping_len: usize,
+    #[clap(short = 'M', long)]
+    max_grouping_len: Option<usize>,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -62,9 +62,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         )?);
     }
 
-    let mut tokenizer = Tokenizer::new(&dict).max_grouping_len(args.max_grouping_len);
+    let mut tokenizer = Tokenizer::new(&dict);
     if args.ignore_space {
         tokenizer = tokenizer.ignore_space();
+    }
+    if let Some(max_grouping_len) = args.max_grouping_len {
+        tokenizer = tokenizer.max_grouping_len(max_grouping_len);
     }
 
     eprintln!("Ready to tokenize :)");
