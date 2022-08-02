@@ -32,6 +32,7 @@ impl<'a> Tokenizer<'a> {
         }
     }
 
+    /// Enables MeCab compatible mode.
     pub fn mecab(mut self) -> Self {
         self.space_cate = Some("SPACE".parse().unwrap());
         self
