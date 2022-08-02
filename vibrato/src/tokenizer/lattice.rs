@@ -1,4 +1,4 @@
-use crate::dictionary::lexicon::WordParam;
+use crate::dictionary::{lexicon::WordParam, LexType};
 use crate::dictionary::{ConnIdCounter, Connector, WordIdx};
 
 const MAX_COST: i32 = i32::MAX;
@@ -7,7 +7,8 @@ const INVALID_IDX: u16 = u16::MAX;
 /// 160 bits of each
 #[derive(Default, Debug, Clone)]
 pub struct Node {
-    word_idx: WordIdx,
+    word_id: u32,
+    lex_type: LexType, // 8 bits
     start_node: u16,
     start_word: u16,
     left_id: i16,
@@ -19,7 +20,7 @@ pub struct Node {
 impl Node {
     #[inline(always)]
     pub const fn word_idx(&self) -> WordIdx {
-        self.word_idx
+        WordIdx::new(self.lex_type, self.word_id)
     }
 
     #[inline(always)]
@@ -94,7 +95,8 @@ impl Lattice {
 
     fn insert_bos(&mut self) {
         self.ends[0].push(Node {
-            word_idx: WordIdx::default(),
+            word_id: u32::MAX,
+            lex_type: LexType::default(),
             start_node: u16::MAX,
             start_word: u16::MAX,
             left_id: -1,
@@ -107,7 +109,8 @@ impl Lattice {
     pub fn insert_eos(&mut self, start_node: usize, connector: &Connector) {
         let (min_idx, min_cost) = self.search_min_node(start_node, 0, connector).unwrap();
         self.eos = Some(Node {
-            word_idx: WordIdx::default(),
+            word_id: u32::MAX,
+            lex_type: LexType::default(),
             start_node: start_node as u16,
             start_word: self.len_char() as u16,
             left_id: 0,
@@ -134,7 +137,8 @@ impl Lattice {
             .unwrap();
 
         self.ends[end_word].push(Node {
-            word_idx,
+            word_id: word_idx.word_id(),
+            lex_type: word_idx.lex_type(),
             start_node: start_node as u16,
             start_word: start_word as u16,
             left_id: word_param.left_id,
