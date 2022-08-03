@@ -24,3 +24,6 @@ mv unidic-mecab-2.1.2_src/matrix.def ${resources_dir}/
 
 rm -rf unidic-mecab-2.1.2_src
 rm unidic-mecab-2.1.2_src.zip
+
+cargo run --release -p prepare --bin system -- -r resources_unidic-mecab-2_1_2 -o unidic-mecab-2_1_2.dic
+cargo run --release -p prepare --bin map -- -i unidic-mecab-2_1_2.dic -m data/mappings/unidic-mecab-2_1_2 -o unidic-mecab-2_1_2.dic

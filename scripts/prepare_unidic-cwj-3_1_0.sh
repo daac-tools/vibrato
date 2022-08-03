@@ -24,3 +24,6 @@ mv unidic-cwj-3.1.0-full/matrix.def ${resources_dir}/
 
 rm -rf unidic-cwj-3.1.0-full
 rm -rf unidic-cwj-3.1.0-full.zip
+
+cargo run --release -p prepare --bin system -- -r resources_unidic-cwj-3_1_0 -o unidic-cwj-3_1_0.dic
+cargo run --release -p prepare --bin map -- -i unidic-cwj-3_1_0.dic -m data/mappings/unidic-cwj-3_1_0 -o unidic-cwj-3_1_0.dic

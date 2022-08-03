@@ -25,3 +25,6 @@ mv mecab-ipadic-2.7.0-20070801/matrix.def ${resources_dir}/
 
 rm -rf mecab-ipadic-2.7.0-20070801
 rm -f mecab-ipadic-2.7.0-20070801.tar.gz
+
+cargo run --release -p prepare --bin system -- -r resources_ipadic-mecab-2_7_0 -o ipadic-mecab-2_7_0.dic
+cargo run --release -p prepare --bin map -- -i ipadic-mecab-2_7_0.dic -m data/mappings/ipadic-mecab-2_7_0 -o ipadic-mecab-2_7_0.dic

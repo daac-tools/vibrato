@@ -35,8 +35,9 @@ impl ConnIdMapper {
         Ok(new_ids)
     }
 
-    pub fn from_reader<R>(l_rdr: R, r_rdr: R) -> Result<Self>
+    pub fn from_reader<L, R>(l_rdr: L, r_rdr: R) -> Result<Self>
     where
+        L: Read,
         R: Read,
     {
         let left = Self::read(l_rdr)?;
