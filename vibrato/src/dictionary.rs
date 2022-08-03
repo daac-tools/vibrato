@@ -95,8 +95,8 @@ impl Dictionary {
     }
 
     #[inline(always)]
-    pub fn reset_user_lexicon(&mut self, user_lexicon: Lexicon) {
-        self.user_lexicon = Some(user_lexicon);
+    pub fn reset_user_lexicon(&mut self, user_lexicon: Option<Lexicon>) {
+        self.user_lexicon = user_lexicon;
     }
 
     #[inline(always)]

@@ -57,7 +57,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let mut reader = BufReader::new(File::open(userdic_filename)?);
         let user_lexicon =
             bincode::decode_from_std_read(&mut reader, vibrato::common::bincode_config())?;
-        dict.reset_user_lexicon(user_lexicon);
+        dict.reset_user_lexicon(Some(user_lexicon));
     }
 
     let mut tokenizer = Tokenizer::new(&dict);
