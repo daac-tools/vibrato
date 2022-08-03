@@ -142,7 +142,7 @@ fn test_tokenize_tokyoto_with_space_ignored() {
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
 
-    let mut tokenizer = Tokenizer::new(&dict).ignore_space();
+    let mut tokenizer = Tokenizer::new(&dict).ignore_space(true);
     let tokens = tokenizer.tokenize("東京 都");
 
     assert_eq!(tokens.len(), 2);
@@ -182,7 +182,7 @@ fn test_tokenize_tokyoto_with_spaces_ignored() {
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
 
-    let mut tokenizer = Tokenizer::new(&dict).ignore_space();
+    let mut tokenizer = Tokenizer::new(&dict).ignore_space(true);
     let tokens = tokenizer.tokenize("東京   都");
 
     assert_eq!(tokens.len(), 2);
@@ -222,7 +222,7 @@ fn test_tokenize_tokyoto_startswith_spaces_ignored() {
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
 
-    let mut tokenizer = Tokenizer::new(&dict).ignore_space();
+    let mut tokenizer = Tokenizer::new(&dict).ignore_space(true);
     let tokens = tokenizer.tokenize("   東京都");
 
     assert_eq!(tokens.len(), 1);
@@ -252,7 +252,7 @@ fn test_tokenize_tokyoto_endswith_spaces_ignored() {
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
 
-    let mut tokenizer = Tokenizer::new(&dict).ignore_space();
+    let mut tokenizer = Tokenizer::new(&dict).ignore_space(true);
     let tokens = tokenizer.tokenize("東京都   ");
 
     assert_eq!(tokens.len(), 1);
@@ -309,7 +309,7 @@ fn test_tokenize_kampersanda_with_max_grouping() {
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
 
-    let mut tokenizer = Tokenizer::new(&dict).ignore_space().max_grouping_len(9);
+    let mut tokenizer = Tokenizer::new(&dict).ignore_space(true).max_grouping_len(9);
     let tokens = tokenizer.tokenize("kampersanda");
 
     assert_eq!(tokens.len(), 2);

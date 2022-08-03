@@ -36,14 +36,22 @@ impl<'a> Tokenizer<'a> {
     }
 
     /// Enables MeCab compatible mode.
-    pub fn ignore_space(mut self) -> Self {
-        self.space_cate = Some("SPACE".parse().unwrap());
+    pub fn ignore_space(mut self, yes: bool) -> Self {
+        if yes {
+            self.space_cate = Some(CategorySet::SPACE);
+        } else {
+            self.space_cate = None;
+        }
         self
     }
 
     /// Sets max_grouping_len
     pub fn max_grouping_len(mut self, max_grouping_len: usize) -> Self {
-        self.max_grouping_len = Some(max_grouping_len);
+        if max_grouping_len != 0 {
+            self.max_grouping_len = Some(max_grouping_len);
+        } else {
+            self.max_grouping_len = None;
+        }
         self
     }
 

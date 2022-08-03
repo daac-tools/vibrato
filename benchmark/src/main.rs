@@ -34,7 +34,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut tokenizer = Tokenizer::new(&dict);
     if args.ignore_space {
-        tokenizer = tokenizer.ignore_space();
+        tokenizer = tokenizer.ignore_space(true);
     }
     if let Some(max_grouping_len) = args.max_grouping_len {
         tokenizer = tokenizer.max_grouping_len(max_grouping_len);
