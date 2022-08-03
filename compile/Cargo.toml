@@ -2,6 +2,7 @@
 name = "compile"
 version = "0.1.0"
 edition = "2021"
+default-run = "system"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -9,3 +10,15 @@ edition = "2021"
 vibrato = { path = "../vibrato" }
 bincode = "2.0.0-rc.1"  # MIT
 clap = { version = "3.1", features = ["derive"] }  # MIT or Apache-2.0
+
+[[bin]]
+name = "system"
+path = "src/system.rs"
+
+[[bin]]
+name = "user"
+path = "src/user.rs"
+
+[[bin]]
+name = "map"
+path = "src/map.rs"

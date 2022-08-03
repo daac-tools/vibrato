@@ -4,6 +4,7 @@ use crate::dictionary::{CharProperty, Connector, Dictionary, LexType, Lexicon, U
 use crate::Tokenizer;
 
 const LEX_CSV: &str = include_str!("./resources/lex.csv");
+const USER_CSV: &str = include_str!("./resources/user.csv");
 const MATRIX_DEF: &str = include_str!("./resources/matrix.def");
 const CHAR_DEF: &str = include_str!("./resources/char.def");
 const UNK_DEF: &str = include_str!("./resources/unk.def");
@@ -14,6 +15,7 @@ fn test_tokenize_tokyo() {
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
         None,
         Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        None,
         CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
@@ -43,6 +45,7 @@ fn test_tokenize_kyotokyo() {
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
         None,
         Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        None,
         CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
@@ -84,11 +87,49 @@ fn test_tokenize_kyotokyo() {
 }
 
 #[test]
+fn test_tokenize_kyotokyo_with_user() {
+    let dict = Dictionary::new(
+        Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
+        Some(Lexicon::from_reader(USER_CSV.as_bytes(), LexType::User).unwrap()),
+        Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        None,
+        CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
+        UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
+    );
+
+    let mut tokenizer = Tokenizer::new(&dict);
+    let tokens = tokenizer.tokenize("京都東京都京都");
+
+    assert_eq!(tokens.len(), 2);
+
+    assert_eq!(tokens.surface(0).deref(), "京都東京都");
+    assert_eq!(tokens.range_char(0), 0..5);
+    assert_eq!(tokens.range_byte(0), 0..15);
+    assert_eq!(tokens.feature(0), "カスタム名詞");
+
+    assert_eq!(tokens.surface(1).deref(), "京都");
+    assert_eq!(tokens.range_char(1), 5..7);
+    assert_eq!(tokens.range_byte(1), 15..21);
+    assert_eq!(
+        tokens.feature(1),
+        "京都,名詞,固有名詞,地名,一般,*,*,キョウト,京都,*,A,*,*,*,1/5"
+    );
+
+    //   c=0      c=-1000      c=5293    c=0
+    //  [BOS] -- [京都東京都] -- [京都] -- [EOS]
+    //     r=0  l=6      r=8  l=6  r=6  l=0
+    //      c=-79         c=-352
+    assert_eq!(tokens.total_cost(0), -79 - 1000);
+    assert_eq!(tokens.total_cost(1), tokens.total_cost(0) - 352 + 5293);
+}
+
+#[test]
 fn test_tokenize_tokyoto_with_space() {
     let dict = Dictionary::new(
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
         None,
         Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        None,
         CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
@@ -134,11 +175,12 @@ fn test_tokenize_tokyoto_with_space_ignored() {
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
         None,
         Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        None,
         CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
 
-    let mut tokenizer = Tokenizer::new(&dict).ignore_space();
+    let mut tokenizer = Tokenizer::new(&dict).ignore_space(true);
     let tokens = tokenizer.tokenize("東京 都");
 
     assert_eq!(tokens.len(), 2);
@@ -173,11 +215,12 @@ fn test_tokenize_tokyoto_with_spaces_ignored() {
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
         None,
         Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        None,
         CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
 
-    let mut tokenizer = Tokenizer::new(&dict).ignore_space();
+    let mut tokenizer = Tokenizer::new(&dict).ignore_space(true);
     let tokens = tokenizer.tokenize("東京   都");
 
     assert_eq!(tokens.len(), 2);
@@ -212,11 +255,12 @@ fn test_tokenize_tokyoto_startswith_spaces_ignored() {
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
         None,
         Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        None,
         CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
 
-    let mut tokenizer = Tokenizer::new(&dict).ignore_space();
+    let mut tokenizer = Tokenizer::new(&dict).ignore_space(true);
     let tokens = tokenizer.tokenize("   東京都");
 
     assert_eq!(tokens.len(), 1);
@@ -241,11 +285,12 @@ fn test_tokenize_tokyoto_endswith_spaces_ignored() {
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
         None,
         Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        None,
         CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
 
-    let mut tokenizer = Tokenizer::new(&dict).ignore_space();
+    let mut tokenizer = Tokenizer::new(&dict).ignore_space(true);
     let tokens = tokenizer.tokenize("東京都   ");
 
     assert_eq!(tokens.len(), 1);
@@ -270,6 +315,7 @@ fn test_tokenize_kampersanda() {
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
         None,
         Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        None,
         CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
@@ -291,16 +337,44 @@ fn test_tokenize_kampersanda() {
 }
 
 #[test]
+fn test_tokenize_kampersanda_with_user() {
+    let dict = Dictionary::new(
+        Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
+        Some(Lexicon::from_reader(USER_CSV.as_bytes(), LexType::User).unwrap()),
+        Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        None,
+        CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
+        UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
+    );
+
+    let mut tokenizer = Tokenizer::new(&dict);
+    let tokens = tokenizer.tokenize("kampersanda");
+
+    assert_eq!(tokens.len(), 1);
+    assert_eq!(tokens.surface(0).deref(), "kampersanda");
+    assert_eq!(tokens.range_char(0), 0..11);
+    assert_eq!(tokens.range_byte(0), 0..11);
+    assert_eq!(tokens.feature(0), "カスタム名詞");
+
+    //   c=0        c=-2000        c=0
+    //  [BOS] -- [kampersanda] -- [EOS]
+    //     r=0  l=7         r=7  l=0
+    //      c=887
+    assert_eq!(tokens.total_cost(0), 887 - 2000);
+}
+
+#[test]
 fn test_tokenize_kampersanda_with_max_grouping() {
     let dict = Dictionary::new(
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
         None,
         Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        None,
         CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
 
-    let mut tokenizer = Tokenizer::new(&dict).ignore_space().max_grouping_len(9);
+    let mut tokenizer = Tokenizer::new(&dict).ignore_space(true).max_grouping_len(9);
     let tokens = tokenizer.tokenize("kampersanda");
 
     assert_eq!(tokens.len(), 2);
@@ -329,6 +403,7 @@ fn test_tokenize_tokyoken() {
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
         None,
         Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        None,
         CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
@@ -346,6 +421,7 @@ fn test_tokenize_kanjinumeric() {
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
         None,
         Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        None,
         CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );
@@ -366,6 +442,7 @@ fn test_tokenize_empty() {
         Lexicon::from_reader(LEX_CSV.as_bytes(), LexType::System).unwrap(),
         None,
         Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap(),
+        None,
         CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap(),
         UnkHandler::from_reader(UNK_DEF.as_bytes()).unwrap(),
     );

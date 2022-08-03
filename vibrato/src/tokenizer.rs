@@ -36,14 +36,22 @@ impl<'a> Tokenizer<'a> {
     }
 
     /// Enables MeCab compatible mode.
-    pub fn ignore_space(mut self) -> Self {
-        self.space_cate = Some("SPACE".parse().unwrap());
+    pub fn ignore_space(mut self, yes: bool) -> Self {
+        if yes {
+            self.space_cate = Some(CategorySet::SPACE);
+        } else {
+            self.space_cate = None;
+        }
         self
     }
 
     /// Sets max_grouping_len
     pub fn max_grouping_len(mut self, max_grouping_len: usize) -> Self {
-        self.max_grouping_len = Some(max_grouping_len);
+        if max_grouping_len != 0 {
+            self.max_grouping_len = Some(max_grouping_len);
+        } else {
+            self.max_grouping_len = None;
+        }
         self
     }
 
@@ -120,7 +128,7 @@ impl<'a> Tokenizer<'a> {
 
             for m in self
                 .dict
-                .lexicon()
+                .system_lexicon()
                 .common_prefix_iterator(&input_chars[start_word..])
             {
                 debug_assert!(start_word + m.end_char() <= input_chars.len());
@@ -187,6 +195,7 @@ mod tests {
             Lexicon::from_reader(lexicon_csv.as_bytes(), LexType::System).unwrap(),
             None,
             Connector::from_reader(matrix_def.as_bytes()).unwrap(),
+            None,
             CharProperty::from_reader(char_def.as_bytes()).unwrap(),
             UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
         );
@@ -224,6 +233,7 @@ mod tests {
             Lexicon::from_reader(lexicon_csv.as_bytes(), LexType::System).unwrap(),
             None,
             Connector::from_reader(matrix_def.as_bytes()).unwrap(),
+            None,
             CharProperty::from_reader(char_def.as_bytes()).unwrap(),
             UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
         );
@@ -261,6 +271,7 @@ mod tests {
             Lexicon::from_reader(lexicon_csv.as_bytes(), LexType::System).unwrap(),
             None,
             Connector::from_reader(matrix_def.as_bytes()).unwrap(),
+            None,
             CharProperty::from_reader(char_def.as_bytes()).unwrap(),
             UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
         );
@@ -298,6 +309,7 @@ mod tests {
             Lexicon::from_reader(lexicon_csv.as_bytes(), LexType::System).unwrap(),
             None,
             Connector::from_reader(matrix_def.as_bytes()).unwrap(),
+            None,
             CharProperty::from_reader(char_def.as_bytes()).unwrap(),
             UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
         );

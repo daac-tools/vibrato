@@ -15,22 +15,24 @@ impl ConnIdMapper {
         Ok(Self { left, right })
     }
 
-    fn compile<I>(ranks: I) -> Result<Vec<(u16, u16)>>
+    fn compile<I>(ranks: I) -> Result<Vec<u16>>
     where
         I: IntoIterator<Item = u16>,
     {
-        let mut mapping = vec![(0, 0)];
+        let mut old_ids = vec![0];
         for old_id in ranks {
             if old_id == 0 {
                 return Err(anyhow!("Id zero is reserved"));
             }
-            mapping.push((old_id, 0));
+            old_ids.push(old_id);
         }
-        for new_id in 1..mapping.len() {
-            let old_id = mapping[new_id].0 as usize;
-            mapping[old_id].1 = new_id as u16;
+        let mut new_ids = vec![0; old_ids.len()];
+        for new_id in 1..old_ids.len() {
+            let old_id = old_ids[new_id] as usize;
+            assert_ne!(old_id, 0);
+            new_ids[old_id] = new_id as u16;
         }
-        Ok(mapping)
+        Ok(new_ids)
     }
 
     pub fn from_reader<R>(l_rdr: R, r_rdr: R) -> Result<Self>
@@ -42,14 +44,14 @@ impl ConnIdMapper {
         Ok(Self { left, right })
     }
 
-    fn read<R>(rdr: R) -> Result<Vec<(u16, u16)>>
+    fn read<R>(rdr: R) -> Result<Vec<u16>>
     where
         R: Read,
     {
         let reader = BufReader::new(rdr);
         let lines = reader.lines();
 
-        let mut mapping = vec![(0, 0)];
+        let mut old_ids = vec![0];
         for line in lines {
             let line = line?;
             let cols: Vec<_> = line.split('\t').collect();
@@ -60,15 +62,15 @@ impl ConnIdMapper {
             if old_id == 0 {
                 return Err(anyhow!("Id zero is reserved: {}", line));
             }
-            mapping.push((old_id, 0));
+            old_ids.push(old_id);
         }
-
-        for new_id in 1..mapping.len() {
-            let old_id = mapping[new_id].0 as usize;
-            mapping[old_id].1 = new_id as u16;
+        let mut new_ids = vec![0; old_ids.len()];
+        for new_id in 1..old_ids.len() {
+            let old_id = old_ids[new_id] as usize;
+            assert_ne!(old_id, 0);
+            new_ids[old_id] = new_id as u16;
         }
-
-        Ok(mapping)
+        Ok(new_ids)
     }
 }
 
@@ -80,6 +82,6 @@ mod tests {
     fn test_read() {
         let data = "2\n3\n4\n1\n";
         let mapping = ConnIdMapper::read(data.as_bytes()).unwrap();
-        assert_eq!(mapping, vec![(0, 0), (2, 4), (3, 1), (4, 2), (1, 3),]);
+        assert_eq!(mapping, vec![0, 4, 1, 2, 3]);
     }
 }

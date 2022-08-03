@@ -57,33 +57,36 @@ impl WordIdx {
 
 #[derive(Decode, Encode)]
 pub struct Dictionary {
-    lexicon: Lexicon,
+    system_lexicon: Lexicon,
     user_lexicon: Option<Lexicon>,
     connector: Connector,
+    mapper: Option<ConnIdMapper>,
     char_prop: CharProperty,
     unk_handler: UnkHandler,
 }
 
 impl Dictionary {
     pub const fn new(
-        lexicon: Lexicon,
+        system_lexicon: Lexicon,
         user_lexicon: Option<Lexicon>,
         connector: Connector,
+        mapper: Option<ConnIdMapper>,
         char_prop: CharProperty,
         unk_handler: UnkHandler,
     ) -> Self {
         Self {
-            lexicon,
+            system_lexicon,
             user_lexicon,
             connector,
+            mapper,
             char_prop,
             unk_handler,
         }
     }
 
     #[inline(always)]
-    pub const fn lexicon(&self) -> &Lexicon {
-        &self.lexicon
+    pub const fn system_lexicon(&self) -> &Lexicon {
+        &self.system_lexicon
     }
 
     #[inline(always)]
@@ -92,13 +95,18 @@ impl Dictionary {
     }
 
     #[inline(always)]
-    pub fn reset_user_lexicon(&mut self, user_lexicon: Lexicon) {
-        self.user_lexicon = Some(user_lexicon);
+    pub fn reset_user_lexicon(&mut self, user_lexicon: Option<Lexicon>) {
+        self.user_lexicon = user_lexicon;
     }
 
     #[inline(always)]
     pub const fn connector(&self) -> &Connector {
         &self.connector
+    }
+
+    #[inline(always)]
+    pub const fn mapper(&self) -> Option<&ConnIdMapper> {
+        self.mapper.as_ref()
     }
 
     #[inline(always)]
@@ -112,16 +120,20 @@ impl Dictionary {
     }
 
     #[doc(hidden)]
-    pub fn do_mapping(&mut self, mapper: &ConnIdMapper) {
-        self.lexicon.do_mapping(mapper);
-        self.connector.do_mapping(mapper);
-        self.unk_handler.do_mapping(mapper);
+    pub fn do_mapping(&mut self, mapper: ConnIdMapper) {
+        self.system_lexicon.do_mapping(&mapper);
+        if let Some(user_lexicon) = self.user_lexicon.as_mut() {
+            user_lexicon.do_mapping(&mapper);
+        }
+        self.connector.do_mapping(&mapper);
+        self.unk_handler.do_mapping(&mapper);
+        self.mapper = Some(mapper);
     }
 
     #[inline(always)]
     pub(crate) fn word_feature(&self, word_idx: WordIdx) -> &str {
         match word_idx.lex_type() {
-            LexType::System => self.lexicon().word_feature(word_idx),
+            LexType::System => self.system_lexicon().word_feature(word_idx),
             LexType::User => self.user_lexicon().unwrap().word_feature(word_idx),
             LexType::Unknown => self.unk_handler().word_feature(word_idx),
         }
