@@ -1,4 +1,4 @@
-# 🎤 vibrato/prepare
+# vibrato/prepare
 
 This workspace provides several tools to compile Vibrato's dictionaries.
 
