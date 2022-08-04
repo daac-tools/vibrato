@@ -9,17 +9,17 @@ use vibrato::Tokenizer;
 use clap::Parser;
 
 #[derive(Clone, Debug)]
-enum PrintMode {
-    Standard,
+enum OutputMode {
+    Mecab,
     Wakati,
 }
 
-impl FromStr for PrintMode {
+impl FromStr for OutputMode {
     type Err = &'static str;
     fn from_str(mode: &str) -> Result<Self, Self::Err> {
         match mode {
-            "standard" => Ok(PrintMode::Standard),
-            "wakati" => Ok(PrintMode::Wakati),
+            "mecab" => Ok(OutputMode::Mecab),
+            "wakati" => Ok(OutputMode::Wakati),
             _ => Err("Could not parse a mode"),
         }
     }
@@ -34,8 +34,8 @@ struct Args {
     #[clap(short = 'u', long)]
     userdic_filename: Option<String>,
 
-    #[clap(short = 'p', long, default_value = "standard")]
-    print_mode: PrintMode,
+    #[clap(short = 'O', long, default_value = "mecab")]
+    output_mode: OutputMode,
 
     #[clap(short = 'S', long)]
     ignore_space: bool,
@@ -68,14 +68,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         tokenizer = tokenizer.max_grouping_len(max_grouping_len);
     }
 
-    eprintln!("Ready to tokenize :)");
+    eprintln!("Ready to tokenize");
 
     #[allow(clippy::significant_drop_in_scrutinee)]
     for line in std::io::stdin().lock().lines() {
         let line = line?;
         let tokens = tokenizer.tokenize(line);
-        match args.print_mode {
-            PrintMode::Standard => {
+        match args.output_mode {
+            OutputMode::Mecab => {
                 for i in 0..tokens.len() {
                     print!("{}\t{}", tokens.surface(i), tokens.feature(i));
                     if tokens.is_unknown(i) {
@@ -85,7 +85,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
                 println!("EOS");
             }
-            PrintMode::Wakati => {
+            OutputMode::Wakati => {
                 for i in 0..tokens.len() {
                     if i != 0 {
                         print!(" ");

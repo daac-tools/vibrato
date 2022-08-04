@@ -6,7 +6,8 @@ which wget
 which unzip
 which sort
 
-resources_dir="resources_unidic-cwj-3_1_0"
+corpus_name="unidic-cwj-3_1_0"
+resources_dir="resources_"${corpus_name}
 
 if [ -d ${resources_dir} ]; then
   echo "Directory ${resources_dir} already exits."
@@ -23,7 +24,9 @@ mv unidic-cwj-3.1.0-full/unk.def ${resources_dir}/
 mv unidic-cwj-3.1.0-full/matrix.def ${resources_dir}/
 
 rm -rf unidic-cwj-3.1.0-full
-rm -rf unidic-cwj-3.1.0-full.zip
+rm -f unidic-cwj-3.1.0-full.zip
 
-cargo run --release -p prepare --bin system -- -r resources_unidic-cwj-3_1_0 -o unidic-cwj-3_1_0.dic
-cargo run --release -p prepare --bin map -- -i unidic-cwj-3_1_0.dic -m data/mappings/unidic-cwj-3_1_0 -o unidic-cwj-3_1_0.dic
+cargo run --release -p prepare --bin system -- -r ${resources_dir} -o ${resources_dir}/system.dic
+cargo run --release -p prepare --bin map -- -i ${resources_dir}/system.dic -m data/mappings/${corpus_name} -o ${resources_dir}/system.dic
+
+rm -f ${resources_dir}/lex.csv ${resources_dir}/char.def ${resources_dir}/unk.def ${resources_dir}/matrix.def

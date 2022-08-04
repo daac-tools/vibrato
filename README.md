@@ -12,42 +12,51 @@ Vibrato is a fast implementation of tokenization (or morphological analysis) bas
 This software is implemented in Rust.
 Install `rustc` and `cargo` following [the documentation](https://www.rust-lang.org/tools/install) beforehand.
 
-### Resource preparation
+### 1. Resource preparation
 
-You can compile the system dictionary from language resources in the MeCab format.
-The simplest way is using a public resource such as IPADIC or UniDic.
+You can compile a system dictionary from language resources in the MeCab format.
+The simplest way is using publicly-available resources such as IPADIC or UniDic.
 
-The directory `scripts` provides several scripts to download and prepare public language resources.
+The directory `scripts` provides scripts to prepare system dictionaries from several public resources.
+
+```shell
+$ ls -1 scripts
+prepare_ipadic-mecab-2_7_0.sh
+prepare_unidic-cwj-3_1_0.sh
+prepare_unidic-mecab-2_1_2.sh
+```
+
+For example, if you want to use [mecab-ipadic v2.7.0](https://taku910.github.io/mecab/), run `prepare_ipadic-mecab-2_7_0.sh`.
 
 ```shell
 $ ./scripts/prepare_ipadic-mecab-2_7_0.sh
-$ wc -c ipadic-mecab-2_7_0.dic
-46811004 ipadic-mecab-2_7_0.dic
+$ ls resources_ipadic-mecab-2_7_0
+system.dic
 ```
 
-### Tokenization
+### 2. Tokenization
+
+To tokenize sentences using the system dictionary, run the following command.
 
 ```
-$ echo '本とカレーの街神保町へようこそ。' | cargo run --release -p tokenize -- -i ipadic-mecab-2_7_0.dic
-Loading the dictionary...
-Ready to tokenize :)
-本      名詞,一般,*,*,*,*,本,ホン,ホン
-と      助詞,並立助詞,*,*,*,*,と,ト,ト
-カレー  名詞,固有名詞,地域,一般,*,*,カレー,カレー,カレー
-の      助詞,連体化,*,*,*,*,の,ノ,ノ
-街      名詞,一般,*,*,*,*,街,マチ,マチ
-神保    名詞,固有名詞,地域,一般,*,*,神保,ジンボウ,ジンボー
-町      名詞,接尾,地域,*,*,*,町,マチ,マチ
-へ      助詞,格助詞,一般,*,*,*,へ,ヘ,エ
-ようこそ        感動詞,*,*,*,*,*,ようこそ,ヨウコソ,ヨーコソ
-。      記号,句点,*,*,*,*,。,。,。
+$ echo '本とカレーの街神保町へようこそ。' | cargo run --release -p tokenize -- -i resources_ipadic-mecab-2_7_0/system.dic
+本	名詞,一般,*,*,*,*,本,ホン,ホン
+と	助詞,並立助詞,*,*,*,*,と,ト,ト
+カレー	名詞,固有名詞,地域,一般,*,*,カレー,カレー,カレー
+の	助詞,連体化,*,*,*,*,の,ノ,ノ
+街	名詞,一般,*,*,*,*,街,マチ,マチ
+神保	名詞,固有名詞,地域,一般,*,*,神保,ジンボウ,ジンボー
+町	名詞,接尾,地域,*,*,*,町,マチ,マチ
+へ	助詞,格助詞,一般,*,*,*,へ,ヘ,エ
+ようこそ	感動詞,*,*,*,*,*,ようこそ,ヨウコソ,ヨーコソ
+。	記号,句点,*,*,*,*,。,。,。
 EOS
 ```
 
+If you want to output tokens separated by spaces, specify `-O wakati`.
+
 ```
-$ echo '本とカレーの街神保町へようこそ。' | cargo run --release -p tokenize -- -i ipadic-mecab-2_7_0.dic -p wakati
-Loading the dictionary...
-Ready to tokenize :)
+$ echo '本とカレーの街神保町へようこそ。' | cargo run --release -p tokenize -- -i resources_ipadic-mecab-2_7_0/system.dic -O wakati
 本 と カレー の 街 神保 町 へ ようこそ 。
 ```
 
