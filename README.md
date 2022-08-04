@@ -38,8 +38,13 @@ system.dic
 
 To tokenize sentences using the system dictionary, run the following command.
 
-```
+```shell
 $ echo '本とカレーの街神保町へようこそ。' | cargo run --release -p tokenize -- -i resources_ipadic-mecab-2_7_0/system.dic
+```
+
+The resultant tokens will be output in the Mecab format.
+
+```
 本	名詞,一般,*,*,*,*,本,ホン,ホン
 と	助詞,並立助詞,*,*,*,*,と,ト,ト
 カレー	名詞,固有名詞,地域,一般,*,*,カレー,カレー,カレー
@@ -55,13 +60,52 @@ EOS
 
 If you want to output tokens separated by spaces, specify `-O wakati`.
 
-```
+```shell
 $ echo '本とカレーの街神保町へようこそ。' | cargo run --release -p tokenize -- -i resources_ipadic-mecab-2_7_0/system.dic -O wakati
 本 と カレー の 街 神保 町 へ ようこそ 。
 ```
 
+## MeCab-compatible options
 
-### Compiling system dictionary
+Vibrato is a reimplementation of the MeCab algorithm,
+but with the default settings it can produce different tokens from MeCab.
+
+For example, Vibrato recognize spaces (more precisely, `SPACE` defined in `char.def`) as tokens in default.
+
+```shell
+$ echo 'mens second bag' | cargo run --release -p tokenize -- -i resources_ipadic-mecab-2_7_0/system.dic
+mens	名詞,固有名詞,組織,*,*,*,*
+ 	記号,空白,*,*,*,*,*
+second	名詞,固有名詞,組織,*,*,*,*
+ 	記号,空白,*,*,*,*,*
+bag	名詞,固有名詞,組織,*,*,*,*
+EOS
+```
+
+However, MeCab ignores such spaces.
+
+```shell
+$ echo "mens second bag" | mecab
+mens	名詞,固有名詞,組織,*,*,*,*
+second	名詞,一般,*,*,*,*,*
+bag	名詞,固有名詞,組織,*,*,*,*
+EOS
+```
+
+If you want to obtain the same result as MeCab, specify the arguments `-S` and `-M 24`.
+
+```shell
+$ echo 'mens second bag' | cargo run --release -p tokenize -- -i resources_ipadic-mecab-2_7_0/system.dic -S -M 24
+mens	名詞,固有名詞,組織,*,*,*,*
+second	名詞,一般,*,*,*,*,*
+bag	名詞,固有名詞,組織,*,*,*,*
+EOS
+```
+
+`-S` indicates if spaces are ignored.
+`-M` indicates the maximum grouping length for unknown words.
+
+## Compiling system dictionary
 
 You can compile the system dictionary from the prepared resource and output `system.dic`, with the following commend.
 

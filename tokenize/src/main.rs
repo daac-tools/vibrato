@@ -77,11 +77,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         match args.output_mode {
             OutputMode::Mecab => {
                 for i in 0..tokens.len() {
-                    print!("{}\t{}", tokens.surface(i), tokens.feature(i));
-                    if tokens.is_unknown(i) {
-                        print!(" (unk)");
-                    }
-                    println!();
+                    println!("{}\t{}", tokens.surface(i), tokens.feature(i));
                 }
                 println!("EOS");
             }
