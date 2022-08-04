@@ -10,7 +10,7 @@ Vibrato is a fast implementation of tokenization (or morphological analysis) bas
 ## Example usage
 
 This software is implemented in Rust.
-Install `rustc` and `cargo` following [the documentation](https://www.rust-lang.org/tools/install) beforehand.
+Install `rustc` and `cargo` following the [official instructions](https://www.rust-lang.org/tools/install) beforehand.
 
 ### 1. Resource preparation
 
