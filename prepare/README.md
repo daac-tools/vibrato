@@ -2,7 +2,7 @@
 
 This workspace provides several tools to compile Vibrato's dictionaries.
 
-## Compiling system dictionary
+## 1. Compiling system dictionary
 
 You can compile system dictionaries from language resources in the MeCab format.
 The simplest way is using publicly-available resources such as UniDic or IPADIC.
@@ -23,7 +23,7 @@ $ cargo run --release --bin system -- -r unidic-mecab-2.1.2_src -o system.dic
 
 This command requires the four files, `lex.csv`, `matrix.def`, `char.def`, and `unk.def`, to be in the directory specified by `-r`.
 
-## Training mapping of connection ids
+## 2. Training mapping of connection ids
 
 Vibrato supports faster tokenization by improving the locality of reference through mapping connection ids.
 
@@ -36,7 +36,7 @@ $ cargo run --release --bin train -- -i system.dic -o trained < train.txt
 
 The two files, `trained.lmap` and `trained.rmap`, will be produced.
 
-## Editing dictionary with mapping
+## 3. Editing dictionary with mapping
 
 To edit a system dictionary with the trained mapping,
 run the following command.
