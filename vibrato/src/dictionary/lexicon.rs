@@ -39,8 +39,10 @@ impl Lexicon {
             })
     }
 
-    /// Edits connection ids with the given mapping.
-    pub fn do_mapping(&mut self, mapper: &ConnIdMapper) {
+    /// Do NOT make this function public to maintain consistency in
+    /// the connection-id mapping among members of `Dictionary`.
+    /// The consistency is managed in `Dictionary`.
+    pub(crate) fn do_mapping(&mut self, mapper: &ConnIdMapper) {
         self.params.do_mapping(mapper);
     }
 

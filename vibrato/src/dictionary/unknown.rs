@@ -130,6 +130,9 @@ impl UnkHandler {
         &self.entries[word_idx.word_id() as usize].feature
     }
 
+    /// Do NOT make this function public to maintain consistency in
+    /// the connection-id mapping among members of `Dictionary`.
+    /// The consistency is managed in `Dictionary`.
     pub(crate) fn do_mapping(&mut self, mapper: &ConnIdMapper) {
         for e in &mut self.entries {
             e.left_id = mapper.left(e.left_id as u16) as i16;

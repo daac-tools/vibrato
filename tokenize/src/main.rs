@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::str::FromStr;
 
-use vibrato::dictionary::Dictionary;
+use vibrato::dictionary::{Dictionary, LexType, Lexicon};
 use vibrato::Tokenizer;
 
 use clap::Parser;
@@ -32,7 +32,7 @@ struct Args {
     sysdic_filename: String,
 
     #[clap(short = 'u', long)]
-    userdic_filename: Option<String>,
+    userlex_csv_filename: Option<String>,
 
     #[clap(short = 'O', long, default_value = "mecab")]
     output_mode: OutputMode,
@@ -53,10 +53,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         bincode::decode_from_std_read(&mut reader, vibrato::common::bincode_config())?
     };
 
-    if let Some(userdic_filename) = args.userdic_filename {
-        let mut reader = BufReader::new(File::open(userdic_filename)?);
-        let user_lexicon =
-            bincode::decode_from_std_read(&mut reader, vibrato::common::bincode_config())?;
+    if let Some(userlex_csv_filename) = args.userlex_csv_filename {
+        let user_lexicon = Lexicon::from_reader(File::open(userlex_csv_filename)?, LexType::User)?;
         dict.reset_user_lexicon(Some(user_lexicon));
     }
 

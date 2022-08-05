@@ -133,16 +133,10 @@ $ cat data/user.csv
 ようこそ,3,3,-1000,感動詞,ヨーコソ,Welcome,欢迎欢迎,Benvenuto,Willkommen
 ```
 
-To compile your user dictionary, run the following command.
-
-```
-$ cargo run --release -p prepare --bin user -- -i resources_ipadic-mecab-2_7_0/system.dic -u data/user.csv -o resources_ipadic-mecab-2_7_0/user.dic
-```
-
 To use the user dictionary, specify the file with the `-u` argument.
 
 ```
-$ echo '本とカレーの街神保町へようこそ。' | cargo run --release -p tokenize -- -i resources_ipadic-mecab-2_7_0/system.dic -u resources_ipadic-mecab-2_7_0/user.dic
+$ echo '本とカレーの街神保町へようこそ。' | cargo run --release -p tokenize -- -i resources_ipadic-mecab-2_7_0/system.dic -u data/user.csv
 本とカレーの街	カスタム名詞,ホントカレーノマチ
 神保町	カスタム名詞,ジンボチョウ
 へ	助詞,格助詞,一般,*,*,*,へ,ヘ,エ

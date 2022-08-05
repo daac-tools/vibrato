@@ -49,6 +49,9 @@ impl Connector {
         self.num_right
     }
 
+    /// Do NOT make this function public to maintain consistency in
+    /// the connection-id mapping among members of `Dictionary`.
+    /// The consistency is managed in `Dictionary`.
     pub(crate) fn do_mapping(&mut self, mapper: &ConnIdMapper) {
         assert_eq!(mapper.num_left(), self.num_left);
         assert_eq!(mapper.num_right(), self.num_right);

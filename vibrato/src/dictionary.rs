@@ -110,6 +110,11 @@ impl Dictionary {
     #[inline(always)]
     pub fn reset_user_lexicon(&mut self, user_lexicon: Option<Lexicon>) {
         self.user_lexicon = user_lexicon;
+        if let Some(user_lexicon) = self.user_lexicon.as_mut() {
+            if let Some(mapper) = self.mapper.as_ref() {
+                user_lexicon.do_mapping(mapper);
+            }
+        }
     }
 
     /// Gets the reference to the connection matrix.
