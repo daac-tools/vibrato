@@ -5,11 +5,11 @@ use anyhow::{anyhow, Result};
 use super::Connector;
 
 impl Connector {
-    /// num_right, num_left
-    /// r0 l0
-    /// r0 l1
-    /// r0 l2
-    /// ...
+    /// Creates a new instance from `matrix.def`.
+    ///
+    /// # Arguments
+    ///
+    ///  - `rdr`: A reader of the file.
     pub fn from_reader<R>(rdr: R) -> Result<Self>
     where
         R: Read,

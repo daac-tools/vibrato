@@ -39,14 +39,15 @@ impl Lexicon {
             })
     }
 
+    /// Edits connection ids with the given mapping.
+    pub fn do_mapping(&mut self, mapper: &ConnIdMapper) {
+        self.params.do_mapping(mapper);
+    }
+
     #[inline(always)]
     pub(crate) fn word_feature(&self, word_idx: WordIdx) -> &str {
         debug_assert_eq!(word_idx.lex_type(), self.lex_type);
         self.features.feature(word_idx.word_id() as usize)
-    }
-
-    pub fn do_mapping(&mut self, mapper: &ConnIdMapper) {
-        self.params.do_mapping(mapper);
     }
 }
 

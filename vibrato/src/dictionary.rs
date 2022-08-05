@@ -1,3 +1,4 @@
+//! Dictionary for tokenization.
 pub(crate) mod character;
 pub(crate) mod connector;
 pub(crate) mod lexicon;
@@ -12,11 +13,15 @@ pub use lexicon::Lexicon;
 pub use mapper::{ConnIdCounter, ConnIdMapper, ConnIdProbs};
 pub use unknown::UnkHandler;
 
+/// Type of lexicon that contains the word.
 #[derive(Clone, Copy, Eq, PartialEq, Debug, Decode, Encode)]
 #[repr(u8)]
 pub enum LexType {
+    /// System lexicon.
     System,
+    /// User lexicon.
     User,
+    /// Unknown.
     Unknown,
 }
 
@@ -26,6 +31,7 @@ impl Default for LexType {
     }
 }
 
+/// Identifier of a word.
 #[derive(Clone, Copy, Eq, PartialEq, Debug)]
 pub struct WordIdx {
     lex_type: LexType,
@@ -39,22 +45,26 @@ impl Default for WordIdx {
 }
 
 impl WordIdx {
+    /// Creates a new instance.
     #[inline(always)]
     pub const fn new(lex_type: LexType, word_id: u32) -> Self {
         Self { lex_type, word_id }
     }
 
+    /// The lexicon type.
     #[inline(always)]
     pub const fn lex_type(&self) -> LexType {
         self.lex_type
     }
 
+    /// The word id.
     #[inline(always)]
     pub const fn word_id(&self) -> u32 {
         self.word_id
     }
 }
 
+/// Dictionary for tokenization.
 #[derive(Decode, Encode)]
 pub struct Dictionary {
     system_lexicon: Lexicon,
@@ -66,6 +76,7 @@ pub struct Dictionary {
 }
 
 impl Dictionary {
+    /// Creates a new instance.
     pub const fn new(
         system_lexicon: Lexicon,
         user_lexicon: Option<Lexicon>,
@@ -84,42 +95,49 @@ impl Dictionary {
         }
     }
 
+    /// Gets the reference to the system lexicon.
     #[inline(always)]
     pub const fn system_lexicon(&self) -> &Lexicon {
         &self.system_lexicon
     }
 
+    /// Gets the reference to the user lexicon.
     #[inline(always)]
     pub const fn user_lexicon(&self) -> Option<&Lexicon> {
         self.user_lexicon.as_ref()
     }
 
+    /// Resets the user lexicon.
     #[inline(always)]
     pub fn reset_user_lexicon(&mut self, user_lexicon: Option<Lexicon>) {
         self.user_lexicon = user_lexicon;
     }
 
+    /// Gets the reference to the connection matrix.
     #[inline(always)]
     pub const fn connector(&self) -> &Connector {
         &self.connector
     }
 
+    /// Gets the reference to the mapper for connection ids.
     #[inline(always)]
     pub const fn mapper(&self) -> Option<&ConnIdMapper> {
         self.mapper.as_ref()
     }
 
+    /// Gets the reference to the character property.
     #[inline(always)]
     pub const fn char_prop(&self) -> &CharProperty {
         &self.char_prop
     }
 
+    /// Gets the reference to the handler of unknown words.
     #[inline(always)]
     pub const fn unk_handler(&self) -> &UnkHandler {
         &self.unk_handler
     }
 
-    #[doc(hidden)]
+    /// Edits connection ids with the given mapping.
     pub fn do_mapping(&mut self, mapper: ConnIdMapper) {
         self.system_lexicon.do_mapping(&mapper);
         if let Some(user_lexicon) = self.user_lexicon.as_mut() {

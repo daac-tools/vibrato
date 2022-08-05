@@ -13,11 +13,14 @@ const BASE_ID_BITS: usize = 8;
 const BASE_ID_MASK: u32 = (1 << BASE_ID_BITS) - 1;
 const LENGTH_BITS: usize = 4;
 
-// cate_ids: 18
-// base_id: 8
-// invoke: 1
-// group: 1
-// length: 4
+/// Information of a character defined in `char.def`.
+///
+/// The memory layout is
+///  - cate_ids: 18 bits
+///  -  base_id:  8 bits
+///  -   invoke:  1 bit
+///  -    group:  1 bit
+///  -   length:  4 bits
 #[derive(Default, Clone, Copy, Decode, Encode)]
 pub struct CharInfo(u32);
 
@@ -92,6 +95,7 @@ impl CharInfo {
     }
 }
 
+/// Mapping from characters to their information.
 #[derive(Decode, Encode)]
 pub struct CharProperty {
     chr2inf: Vec<CharInfo>,

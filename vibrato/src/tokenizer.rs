@@ -1,3 +1,4 @@
+//! Viterbi-based tokenizer.
 mod lattice;
 
 use std::cell::RefCell;

@@ -1,3 +1,4 @@
+//! Tokens
 use std::cell::{Ref, RefCell};
 use std::ops::Range;
 use std::rc::Rc;
@@ -6,7 +7,7 @@ use crate::dictionary::{Dictionary, LexType};
 use crate::sentence::Sentence;
 use crate::tokenizer::Node;
 
-/// List of resulting tokens.
+/// List of tokens.
 pub struct Tokens<'a> {
     pub(crate) dict: &'a Dictionary,
     pub(crate) sent: Rc<RefCell<Sentence>>,
@@ -86,3 +87,10 @@ impl<'a> Tokens<'a> {
         node.min_cost()
     }
 }
+
+// pub struct Token<'a> {
+//     index: usize,
+//     tokens: Tokens<'a>,
+// }
+
+// impl<'a> Tokens<'a> {}

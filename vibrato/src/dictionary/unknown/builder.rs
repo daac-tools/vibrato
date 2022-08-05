@@ -7,6 +7,11 @@ use crate::dictionary::character::CategorySet;
 use super::{UnkEntry, UnkHandler};
 
 impl UnkHandler {
+    /// Creates a new instance from `unk.def`.
+    ///
+    /// # Arguments
+    ///
+    ///  - `rdr`: A reader of the file.
     pub fn from_reader<R>(rdr: R) -> Result<Self>
     where
         R: Read,

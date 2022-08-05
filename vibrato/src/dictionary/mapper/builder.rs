@@ -5,6 +5,12 @@ use anyhow::{anyhow, Result};
 use super::ConnIdMapper;
 
 impl ConnIdMapper {
+    /// Creates a new instance from mappings.
+    ///
+    /// # Arguments
+    ///
+    ///  - `l_ranks`: A list of connection left-ids sorted by rank.
+    ///  - `r_ranks`: A list of connection right-ids sorted by rank.
     pub fn from_ranks<L, R>(l_ranks: L, r_ranks: R) -> Result<Self>
     where
         L: IntoIterator<Item = u16>,
@@ -34,6 +40,13 @@ impl ConnIdMapper {
         Ok(new_ids)
     }
 
+    /// Creates a new instance from tsv files in which the first column indicates
+    /// connection ids sorted by rank.
+    ///
+    /// # Arguments
+    ///
+    ///  - `l_rdr`: A reader of the file for left-ids.
+    ///  - `r_rdr`: A reader of the file for right-ids.
     pub fn from_reader<L, R>(l_rdr: L, r_rdr: R) -> Result<Self>
     where
         L: Read,

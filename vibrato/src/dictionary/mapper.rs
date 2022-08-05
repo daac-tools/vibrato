@@ -2,6 +2,7 @@ mod builder;
 
 use bincode::{Decode, Encode};
 
+/// Mapper for connection ids.
 #[derive(Decode, Encode)]
 pub struct ConnIdMapper {
     left: Vec<u16>,
@@ -30,13 +31,16 @@ impl ConnIdMapper {
     }
 }
 
+/// Trained probabilities of connection ids.
 pub type ConnIdProbs = Vec<(usize, f64)>;
 
+/// Counter to train mappings of connection ids.
 pub struct ConnIdCounter {
     lid_to_rid_count: Vec<Vec<usize>>,
 }
 
 impl ConnIdCounter {
+    /// Creates a new counter for the matrix of `num_left \times num_right`.
     pub fn new(num_left: usize, num_right: usize) -> Self {
         Self {
             lid_to_rid_count: vec![vec![0; num_right]; num_left],
@@ -44,10 +48,11 @@ impl ConnIdCounter {
     }
 
     #[inline(always)]
-    pub fn add(&mut self, left_id: usize, right_id: usize, num: usize) {
+    pub(crate) fn add(&mut self, left_id: usize, right_id: usize, num: usize) {
         self.lid_to_rid_count[left_id][right_id] += num;
     }
 
+    /// Computes the trained probabilities of connection ids.
     pub fn compute_probs(&self) -> (ConnIdProbs, ConnIdProbs) {
         let lid_to_rid_count = &self.lid_to_rid_count;
 

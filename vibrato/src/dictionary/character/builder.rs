@@ -14,6 +14,11 @@ struct CharRange {
 }
 
 impl CharProperty {
+    /// Creates a new instance from `char.def`.
+    ///
+    /// # Arguments
+    ///
+    ///  - `rdr`: A reader of the file.
     pub fn from_reader<R>(rdr: R) -> Result<Self>
     where
         R: Read,
