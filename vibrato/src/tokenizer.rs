@@ -7,7 +7,7 @@ use std::rc::Rc;
 use crate::dictionary::character::CategorySet;
 use crate::dictionary::{ConnIdCounter, Dictionary};
 use crate::sentence::Sentence;
-use crate::token::Tokens;
+use crate::token::TokenList;
 use lattice::Lattice;
 
 pub(crate) use lattice::Node;
@@ -17,7 +17,7 @@ pub struct Tokenizer<'a> {
     dict: &'a Dictionary,
     sent: Rc<RefCell<Sentence>>,
     lattice: Lattice,
-    tokens: Tokens<'a>,
+    tokens: TokenList<'a>,
     // For MeCab compatible
     space_cate: Option<CategorySet>,
     max_grouping_len: Option<usize>,
@@ -30,7 +30,7 @@ impl<'a> Tokenizer<'a> {
             dict,
             sent: Rc::new(RefCell::new(Sentence::new())),
             lattice: Lattice::default(),
-            tokens: Tokens::new(dict),
+            tokens: TokenList::new(dict),
             space_cate: None,
             max_grouping_len: None,
         }
@@ -57,7 +57,7 @@ impl<'a> Tokenizer<'a> {
     }
 
     /// Tokenizes an input text.
-    pub fn tokenize<S>(&mut self, input: S) -> &Tokens
+    pub fn tokenize<S>(&mut self, input: S) -> &TokenList
     where
         S: AsRef<str>,
     {
@@ -204,18 +204,22 @@ mod tests {
         let tokens = tokenizer.tokenize("自然言語処理");
 
         assert_eq!(tokens.len(), 2);
-
-        assert_eq!(tokens.surface(0).deref(), "自然");
-        assert_eq!(tokens.range_char(0), 0..2);
-        assert_eq!(tokens.range_byte(0), 0..6);
-        assert_eq!(tokens.feature(0), "sizen");
-        assert_eq!(tokens.total_cost(0), 1);
-
-        assert_eq!(tokens.surface(1).deref(), "言語処理");
-        assert_eq!(tokens.range_char(1), 2..6);
-        assert_eq!(tokens.range_byte(1), 6..18);
-        assert_eq!(tokens.feature(1), "gengoshori");
-        assert_eq!(tokens.total_cost(1), 6);
+        {
+            let t = tokens.get(0);
+            assert_eq!(t.surface().deref(), "自然");
+            assert_eq!(t.range_char(), 0..2);
+            assert_eq!(t.range_byte(), 0..6);
+            assert_eq!(t.feature(), "sizen");
+            assert_eq!(t.total_cost(), 1);
+        }
+        {
+            let t = tokens.get(1);
+            assert_eq!(t.surface().deref(), "言語処理");
+            assert_eq!(t.range_char(), 2..6);
+            assert_eq!(t.range_byte(), 6..18);
+            assert_eq!(t.feature(), "gengoshori");
+            assert_eq!(t.total_cost(), 6);
+        }
     }
 
     #[test]
@@ -241,18 +245,22 @@ mod tests {
         let tokens = tokenizer.tokenize("自然日本語処理");
 
         assert_eq!(tokens.len(), 2);
-
-        assert_eq!(tokens.surface(0).deref(), "自然");
-        assert_eq!(tokens.range_char(0), 0..2);
-        assert_eq!(tokens.range_byte(0), 0..6);
-        assert_eq!(tokens.feature(0), "sizen");
-        assert_eq!(tokens.total_cost(0), 1);
-
-        assert_eq!(tokens.surface(1).deref(), "日本語処理");
-        assert_eq!(tokens.range_char(1), 2..7);
-        assert_eq!(tokens.range_byte(1), 6..21);
-        assert_eq!(tokens.feature(1), "*");
-        assert_eq!(tokens.total_cost(1), 101);
+        {
+            let t = tokens.get(0);
+            assert_eq!(t.surface().deref(), "自然");
+            assert_eq!(t.range_char(), 0..2);
+            assert_eq!(t.range_byte(), 0..6);
+            assert_eq!(t.feature(), "sizen");
+            assert_eq!(t.total_cost(), 1);
+        }
+        {
+            let t = tokens.get(1);
+            assert_eq!(t.surface().deref(), "日本語処理");
+            assert_eq!(t.range_char(), 2..7);
+            assert_eq!(t.range_byte(), 6..21);
+            assert_eq!(t.feature(), "*");
+            assert_eq!(t.total_cost(), 101);
+        }
     }
 
     #[test]
@@ -278,18 +286,22 @@ mod tests {
         let tokens = tokenizer.tokenize("不自然言語処理");
 
         assert_eq!(tokens.len(), 2);
-
-        assert_eq!(tokens.surface(0).deref(), "不自然");
-        assert_eq!(tokens.range_char(0), 0..3);
-        assert_eq!(tokens.range_byte(0), 0..9);
-        assert_eq!(tokens.feature(0), "*");
-        assert_eq!(tokens.total_cost(0), 100);
-
-        assert_eq!(tokens.surface(1).deref(), "言語処理");
-        assert_eq!(tokens.range_char(1), 3..7);
-        assert_eq!(tokens.range_byte(1), 9..21);
-        assert_eq!(tokens.feature(1), "gengoshori");
-        assert_eq!(tokens.total_cost(1), 105);
+        {
+            let t = tokens.get(0);
+            assert_eq!(t.surface().deref(), "不自然");
+            assert_eq!(t.range_char(), 0..3);
+            assert_eq!(t.range_byte(), 0..9);
+            assert_eq!(t.feature(), "*");
+            assert_eq!(t.total_cost(), 100);
+        }
+        {
+            let t = tokens.get(1);
+            assert_eq!(t.surface().deref(), "言語処理");
+            assert_eq!(t.range_char(), 3..7);
+            assert_eq!(t.range_byte(), 9..21);
+            assert_eq!(t.feature(), "gengoshori");
+            assert_eq!(t.total_cost(), 105);
+        }
     }
 
     #[test]
