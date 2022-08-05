@@ -41,7 +41,7 @@ impl Trie {
     ) -> impl Iterator<Item = TrieMatch> + 'a {
         self.da
             .common_prefix_search(input.iter().cloned())
-            .map(move |(value, end_char)| TrieMatch::new(value, end_char as u32))
+            .map(move |(value, end_char)| TrieMatch::new(value, u32::try_from(end_char).unwrap()))
     }
 }
 

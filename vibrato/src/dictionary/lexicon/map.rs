@@ -6,6 +6,7 @@ use std::collections::BTreeMap;
 use anyhow::Result;
 use bincode::{Decode, Encode};
 
+use crate::utils::FromU32;
 use posting::{Postings, PostingsBuilder};
 use trie::Trie;
 
@@ -23,7 +24,7 @@ impl WordMap {
     {
         let mut b = WordMapBuilder::new();
         for (i, w) in words.into_iter().enumerate() {
-            b.add_record(w.as_ref().to_owned(), i as u32);
+            b.add_record(w.as_ref().to_owned(), u32::try_from(i).unwrap());
         }
         b.build()
     }
@@ -36,7 +37,7 @@ impl WordMap {
         unsafe {
             self.trie.common_prefix_iterator(input).flat_map(move |e| {
                 self.postings
-                    .ids(e.value as usize)
+                    .ids(usize::from_u32(e.value))
                     .map(move |word_id| (word_id, e.end_char))
             })
         }

@@ -22,12 +22,12 @@ impl ConnIdMapper {
 
     #[inline(always)]
     pub(crate) fn left(&self, id: u16) -> u16 {
-        self.left[id as usize]
+        self.left[usize::from(id)]
     }
 
     #[inline(always)]
     pub(crate) fn right(&self, id: u16) -> u16 {
-        self.right[id as usize]
+        self.right[usize::from(id)]
     }
 }
 

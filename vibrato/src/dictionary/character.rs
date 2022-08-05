@@ -5,6 +5,8 @@ use std::fmt;
 
 use bincode::{Decode, Encode};
 
+use crate::utils::FromU32;
+
 pub use category::CategorySet;
 
 const CATE_IDS_BITS: usize = 18;
@@ -58,7 +60,7 @@ impl CharInfo {
                 | (base_id << CATE_IDS_BITS)
                 | (u32::from(invoke) << (CATE_IDS_BITS + BASE_ID_BITS))
                 | (u32::from(group) << (CATE_IDS_BITS + BASE_ID_BITS + 1))
-                | ((length as u32) << (CATE_IDS_BITS + BASE_ID_BITS + 2)),
+                | ((u32::try_from(length).unwrap()) << (CATE_IDS_BITS + BASE_ID_BITS + 2)),
         ))
     }
 
@@ -90,8 +92,8 @@ impl CharInfo {
     }
 
     #[inline(always)]
-    pub const fn length(&self) -> usize {
-        (self.0 >> (CATE_IDS_BITS + BASE_ID_BITS + 2)) as usize
+    pub fn length(&self) -> usize {
+        usize::from_u32(self.0 >> (CATE_IDS_BITS + BASE_ID_BITS + 2))
     }
 }
 

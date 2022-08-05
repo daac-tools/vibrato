@@ -37,7 +37,7 @@ impl<'a> TokenList<'a> {
 
     /// Creates an iterator of tokens.
     #[inline(always)]
-    pub fn iter(&'a self) -> TokenIter<'a> {
+    pub const fn iter(&'a self) -> TokenIter<'a> {
         TokenIter { list: self, i: 0 }
     }
 

@@ -7,13 +7,13 @@ compile_error!("`target_pointer_width` must be larger than or equal to 32");
 
 pub mod common;
 pub mod dictionary;
+mod sentence;
 pub mod token;
 pub mod tokenizer;
-
-mod sentence;
+mod utils;
 
 #[cfg(test)]
-pub mod tests;
+mod tests;
 
 pub use dictionary::Dictionary;
 pub use tokenizer::Tokenizer;

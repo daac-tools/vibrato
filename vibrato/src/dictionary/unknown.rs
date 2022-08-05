@@ -7,12 +7,13 @@ use super::{LexType, WordIdx};
 use crate::dictionary::character::CharInfo;
 use crate::dictionary::lexicon::WordParam;
 use crate::sentence::Sentence;
+use crate::utils::FromU32;
 
 #[derive(Default, Debug, Clone, Decode, Encode)]
 pub struct UnkEntry {
     pub cate_id: u16,
-    pub left_id: i16,
-    pub right_id: i16,
+    pub left_id: u16,
+    pub right_id: u16,
     pub word_cost: i16,
     pub feature: String,
 }
@@ -21,8 +22,8 @@ pub struct UnkEntry {
 pub struct UnkWord {
     start_char: u16,
     end_char: u16,
-    left_id: i16,
-    right_id: i16,
+    left_id: u16,
+    right_id: u16,
     word_cost: i16,
     word_id: u16,
 }
@@ -44,8 +45,8 @@ impl UnkWord {
     }
 
     #[inline(always)]
-    pub const fn word_idx(&self) -> WordIdx {
-        WordIdx::new(LexType::Unknown, self.word_id as u32)
+    pub fn word_idx(&self) -> WordIdx {
+        WordIdx::new(LexType::Unknown, u32::from(self.word_id))
     }
 }
 
@@ -109,17 +110,17 @@ impl UnkHandler {
     where
         F: FnMut(UnkWord),
     {
-        let start = self.offsets[cinfo.base_id() as usize];
-        let end = self.offsets[cinfo.base_id() as usize + 1];
+        let start = self.offsets[usize::from_u32(cinfo.base_id())];
+        let end = self.offsets[usize::from_u32(cinfo.base_id()) + 1];
         for word_id in start..end {
             let e = &self.entries[word_id];
             f(UnkWord {
-                start_char: start_char as u16,
-                end_char: end_char as u16,
+                start_char: u16::try_from(start_char).unwrap(),
+                end_char: u16::try_from(end_char).unwrap(),
                 left_id: e.left_id,
                 right_id: e.right_id,
                 word_cost: e.word_cost,
-                word_id: word_id as u16,
+                word_id: u16::try_from(word_id).unwrap(),
             });
         }
         f
@@ -135,8 +136,8 @@ impl UnkHandler {
     /// The consistency is managed in `Dictionary`.
     pub(crate) fn do_mapping(&mut self, mapper: &ConnIdMapper) {
         for e in &mut self.entries {
-            e.left_id = mapper.left(e.left_id as u16) as i16;
-            e.right_id = mapper.right(e.right_id as u16) as i16;
+            e.left_id = mapper.left(e.left_id);
+            e.right_id = mapper.right(e.right_id);
         }
     }
 }

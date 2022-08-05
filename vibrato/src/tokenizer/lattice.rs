@@ -11,8 +11,8 @@ pub struct Node {
     lex_type: LexType, // 8 bits
     start_node: u16,
     start_word: u16,
-    left_id: i16,
-    right_id: i16,
+    left_id: u16,
+    right_id: u16,
     min_idx: u16,
     min_cost: i32,
 }
@@ -24,28 +24,28 @@ impl Node {
     }
 
     #[inline(always)]
-    pub const fn start_node(&self) -> usize {
-        self.start_node as usize
+    pub fn start_node(&self) -> usize {
+        usize::from(self.start_node)
     }
 
     #[inline(always)]
-    pub const fn start_word(&self) -> usize {
-        self.start_word as usize
+    pub fn start_word(&self) -> usize {
+        usize::from(self.start_word)
     }
 
     #[inline(always)]
-    pub const fn left_id(&self) -> usize {
-        self.left_id as usize
+    pub fn left_id(&self) -> usize {
+        usize::from(self.left_id)
     }
 
     #[inline(always)]
-    pub const fn right_id(&self) -> usize {
-        self.right_id as usize
+    pub fn right_id(&self) -> usize {
+        usize::from(self.right_id)
     }
 
     #[inline(always)]
-    pub const fn min_idx(&self) -> usize {
-        self.min_idx as usize
+    pub fn min_idx(&self) -> usize {
+        usize::from(self.min_idx)
     }
 
     #[inline(always)]
@@ -99,7 +99,7 @@ impl Lattice {
             lex_type: LexType::default(),
             start_node: u16::MAX,
             start_word: u16::MAX,
-            left_id: -1,
+            left_id: u16::MAX,
             right_id: 0,
             min_idx: INVALID_IDX,
             min_cost: 0,
@@ -111,10 +111,10 @@ impl Lattice {
         self.eos = Some(Node {
             word_id: u32::MAX,
             lex_type: LexType::default(),
-            start_node: start_node as u16,
-            start_word: self.len_char() as u16,
+            start_node: u16::try_from(start_node).unwrap(),
+            start_word: u16::try_from(self.len_char()).unwrap(),
             left_id: 0,
-            right_id: -1,
+            right_id: u16::MAX,
             min_idx,
             min_cost,
         });
@@ -133,14 +133,14 @@ impl Lattice {
         debug_assert!(start_word < end_word);
 
         let (min_idx, min_cost) = self
-            .search_min_node(start_node, word_param.left_id as usize, connector)
+            .search_min_node(start_node, usize::from(word_param.left_id), connector)
             .unwrap();
 
         self.ends[end_word].push(Node {
             word_id: word_idx.word_id(),
             lex_type: word_idx.lex_type(),
-            start_node: start_node as u16,
-            start_word: start_word as u16,
+            start_node: u16::try_from(start_node).unwrap(),
+            start_word: u16::try_from(start_word).unwrap(),
             left_id: word_param.left_id,
             right_id: word_param.right_id,
             min_idx,
@@ -163,12 +163,12 @@ impl Lattice {
 
         for (i, left_node) in self.ends[start_node].iter().enumerate() {
             debug_assert!(left_node.is_connected_to_bos());
-            let conn_cost = connector.cost(left_node.right_id(), left_id) as i32;
+            let conn_cost = i32::from(connector.cost(left_node.right_id(), left_id));
             let new_cost = left_node.min_cost() + conn_cost;
 
             // Use <= to produce the same tokenization as MeCab
             if new_cost <= min_cost {
-                min_idx = i as u16;
+                min_idx = u16::try_from(i).unwrap();
                 min_cost = new_cost;
             }
         }
