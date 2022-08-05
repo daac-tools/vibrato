@@ -21,7 +21,7 @@ pub enum LexType {
     System,
     /// User lexicon.
     User,
-    /// Unknown.
+    /// Unknown words.
     Unknown,
 }
 

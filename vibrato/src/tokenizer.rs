@@ -12,7 +12,7 @@ use lattice::Lattice;
 
 pub(crate) use lattice::Node;
 
-/// Tokenizer
+/// Tokenizer.
 pub struct Tokenizer<'a> {
     dict: &'a Dictionary,
     sent: Rc<RefCell<Sentence>>,
@@ -24,7 +24,11 @@ pub struct Tokenizer<'a> {
 }
 
 impl<'a> Tokenizer<'a> {
-    /// Creates an instance of [`Tokenizer`].
+    /// Creates a new instance.
+    ///
+    /// # Arguments
+    ///
+    ///  - `dict`: Dictionary to be used.
     pub fn new(dict: &'a Dictionary) -> Self {
         Self {
             dict,
@@ -36,7 +40,10 @@ impl<'a> Tokenizer<'a> {
         }
     }
 
-    /// Enables MeCab compatible mode.
+    /// Ignores spaces from tokens.
+    ///
+    /// This option is for compatibility with MeCab.
+    /// Enable this if you want to obtain the same results as MeCab.
     pub const fn ignore_space(mut self, yes: bool) -> Self {
         if yes {
             self.space_cate = Some(CategorySet::SPACE);
@@ -46,7 +53,16 @@ impl<'a> Tokenizer<'a> {
         self
     }
 
-    /// Sets max_grouping_len
+    /// Specifies the maximum grouping length for unknown words.
+    /// By default, the length is infinity.
+    ///
+    /// This option is for compatibility with MeCab.
+    /// Specifies the argument with `24` if you want to obtain the same results as MeCab.
+    ///
+    /// # Arguments
+    ///
+    ///  - `max_grouping_len`: The maximum grouping length for unknown words.
+    ///                        The default value is 0, indicating the infinity length.
     pub const fn max_grouping_len(mut self, max_grouping_len: usize) -> Self {
         if max_grouping_len != 0 {
             self.max_grouping_len = Some(max_grouping_len);
