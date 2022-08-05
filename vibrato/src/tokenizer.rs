@@ -196,7 +196,6 @@ mod tests {
             Lexicon::from_reader(lexicon_csv.as_bytes(), LexType::System).unwrap(),
             None,
             Connector::from_reader(matrix_def.as_bytes()).unwrap(),
-            None,
             CharProperty::from_reader(char_def.as_bytes()).unwrap(),
             UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
         );
@@ -234,7 +233,6 @@ mod tests {
             Lexicon::from_reader(lexicon_csv.as_bytes(), LexType::System).unwrap(),
             None,
             Connector::from_reader(matrix_def.as_bytes()).unwrap(),
-            None,
             CharProperty::from_reader(char_def.as_bytes()).unwrap(),
             UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
         );
@@ -272,7 +270,6 @@ mod tests {
             Lexicon::from_reader(lexicon_csv.as_bytes(), LexType::System).unwrap(),
             None,
             Connector::from_reader(matrix_def.as_bytes()).unwrap(),
-            None,
             CharProperty::from_reader(char_def.as_bytes()).unwrap(),
             UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
         );
@@ -310,7 +307,6 @@ mod tests {
             Lexicon::from_reader(lexicon_csv.as_bytes(), LexType::System).unwrap(),
             None,
             Connector::from_reader(matrix_def.as_bytes()).unwrap(),
-            None,
             CharProperty::from_reader(char_def.as_bytes()).unwrap(),
             UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
         );

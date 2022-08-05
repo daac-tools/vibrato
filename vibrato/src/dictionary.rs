@@ -81,7 +81,6 @@ impl Dictionary {
         system_lexicon: Lexicon,
         user_lexicon: Option<Lexicon>,
         connector: Connector,
-        mapper: Option<ConnIdMapper>,
         char_prop: CharProperty,
         unk_handler: UnkHandler,
     ) -> Self {
@@ -89,7 +88,7 @@ impl Dictionary {
             system_lexicon,
             user_lexicon,
             connector,
-            mapper,
+            mapper: None,
             char_prop,
             unk_handler,
         }
