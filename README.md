@@ -30,6 +30,11 @@ For example, if you want to use [mecab-ipadic v2.7.0](https://taku910.github.io/
 
 ```
 $ ./scripts/prepare_ipadic-mecab-2_7_0.sh
+```
+
+The system dictionary `resources_ipadic-mecab-2_7_0/system.dic` will be produced.
+
+```
 $ ls resources_ipadic-mecab-2_7_0
 system.dic
 ```
@@ -80,7 +85,7 @@ bag	名詞,固有名詞,組織,*,*,*,*
 EOS
 ```
 
-However, Vibrato recognizes such spaces as tokens in default.
+However, Vibrato handles such spaces as tokens with the default settings.
 
 ```
 $ echo 'mens second bag' | cargo run --release -p tokenize -- -i resources_ipadic-mecab-2_7_0/system.dic
