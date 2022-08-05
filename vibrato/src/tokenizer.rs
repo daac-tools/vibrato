@@ -36,7 +36,7 @@ impl<'a> Tokenizer<'a> {
     }
 
     /// Enables MeCab compatible mode.
-    pub fn ignore_space(mut self, yes: bool) -> Self {
+    pub const fn ignore_space(mut self, yes: bool) -> Self {
         if yes {
             self.space_cate = Some(CategorySet::SPACE);
         } else {
@@ -46,7 +46,7 @@ impl<'a> Tokenizer<'a> {
     }
 
     /// Sets max_grouping_len
-    pub fn max_grouping_len(mut self, max_grouping_len: usize) -> Self {
+    pub const fn max_grouping_len(mut self, max_grouping_len: usize) -> Self {
         if max_grouping_len != 0 {
             self.max_grouping_len = Some(max_grouping_len);
         } else {

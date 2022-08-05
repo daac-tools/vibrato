@@ -18,8 +18,8 @@ impl FromStr for OutputMode {
     type Err = &'static str;
     fn from_str(mode: &str) -> Result<Self, Self::Err> {
         match mode {
-            "mecab" => Ok(OutputMode::Mecab),
-            "wakati" => Ok(OutputMode::Wakati),
+            "mecab" => Ok(Self::Mecab),
+            "wakati" => Ok(Self::Wakati),
             _ => Err("Could not parse a mode"),
         }
     }

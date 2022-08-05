@@ -27,10 +27,9 @@ impl ConnIdMapper {
             old_ids.push(old_id);
         }
         let mut new_ids = vec![0; old_ids.len()];
-        for new_id in 1..old_ids.len() {
-            let old_id = old_ids[new_id] as usize;
+        for (new_id, &old_id) in old_ids.iter().enumerate().skip(1) {
             assert_ne!(old_id, 0);
-            new_ids[old_id] = new_id as u16;
+            new_ids[old_id as usize] = new_id as u16;
         }
         Ok(new_ids)
     }
@@ -52,7 +51,7 @@ impl ConnIdMapper {
         let reader = BufReader::new(rdr);
         let lines = reader.lines();
 
-        let mut old_ids = vec![0];
+        let mut old_ids = vec![0u16];
         for line in lines {
             let line = line?;
             let cols: Vec<_> = line.split('\t').collect();
@@ -66,10 +65,9 @@ impl ConnIdMapper {
             old_ids.push(old_id);
         }
         let mut new_ids = vec![0; old_ids.len()];
-        for new_id in 1..old_ids.len() {
-            let old_id = old_ids[new_id] as usize;
+        for (new_id, &old_id) in old_ids.iter().enumerate().skip(1) {
             assert_ne!(old_id, 0);
-            new_ids[old_id] = new_id as u16;
+            new_ids[old_id as usize] = new_id as u16;
         }
         Ok(new_ids)
     }

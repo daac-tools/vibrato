@@ -22,7 +22,7 @@ pub enum LexType {
 
 impl Default for LexType {
     fn default() -> Self {
-        LexType::System
+        Self::System
     }
 }
 
