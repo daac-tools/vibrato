@@ -60,7 +60,7 @@ impl CharInfo {
                 | (base_id << CATE_IDS_BITS)
                 | (u32::from(invoke) << (CATE_IDS_BITS + BASE_ID_BITS))
                 | (u32::from(group) << (CATE_IDS_BITS + BASE_ID_BITS + 1))
-                | ((u32::try_from(length).unwrap()) << (CATE_IDS_BITS + BASE_ID_BITS + 2)),
+                | ((length as u32) << (CATE_IDS_BITS + BASE_ID_BITS + 2)),
         ))
     }
 

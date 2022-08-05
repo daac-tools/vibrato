@@ -111,8 +111,8 @@ impl Lattice {
         self.eos = Some(Node {
             word_id: u32::MAX,
             lex_type: LexType::default(),
-            start_node: u16::try_from(start_node).unwrap(),
-            start_word: u16::try_from(self.len_char()).unwrap(),
+            start_node: start_node as u16,
+            start_word: self.len_char() as u16,
             left_id: 0,
             right_id: u16::MAX,
             min_idx,
@@ -139,8 +139,10 @@ impl Lattice {
         self.ends[end_word].push(Node {
             word_id: word_idx.word_id(),
             lex_type: word_idx.lex_type(),
-            start_node: u16::try_from(start_node).unwrap(),
-            start_word: u16::try_from(start_word).unwrap(),
+            // start_node: u16::try_from(start_node).unwrap(),
+            // start_word: u16::try_from(start_word).unwrap(),
+            start_node: start_node as u16,
+            start_word: start_word as u16,
             left_id: word_param.left_id,
             right_id: word_param.right_id,
             min_idx,
@@ -168,7 +170,8 @@ impl Lattice {
 
             // Use <= to produce the same tokenization as MeCab
             if new_cost <= min_cost {
-                min_idx = u16::try_from(i).unwrap();
+                // min_idx = u16::try_from(i).unwrap();
+                min_idx = i as u16;
                 min_cost = new_cost;
             }
         }

@@ -115,12 +115,12 @@ impl UnkHandler {
         for word_id in start..end {
             let e = &self.entries[word_id];
             f(UnkWord {
-                start_char: u16::try_from(start_char).unwrap(),
-                end_char: u16::try_from(end_char).unwrap(),
+                start_char: start_char as u16,
+                end_char: end_char as u16,
                 left_id: e.left_id,
                 right_id: e.right_id,
                 word_cost: e.word_cost,
-                word_id: u16::try_from(word_id).unwrap(),
+                word_id: word_id as u16,
             });
         }
         f

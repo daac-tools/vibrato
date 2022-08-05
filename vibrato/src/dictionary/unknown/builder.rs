@@ -51,7 +51,7 @@ impl UnkHandler {
         let word_cost = cols[3].parse()?;
         let feature = cols.get(4..).map_or("".to_string(), |x| x.join(","));
 
-        let cate_id = category.first_id().unwrap() as u16;
+        let cate_id = u16::try_from(category.first_id().unwrap()).unwrap();
 
         Ok(UnkEntry {
             cate_id,
