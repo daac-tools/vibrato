@@ -3,9 +3,9 @@ pub mod trie;
 
 use std::collections::BTreeMap;
 
-use anyhow::Result;
 use bincode::{Decode, Encode};
 
+use crate::errors::Result;
 use crate::utils::FromU32;
 use posting::{Postings, PostingsBuilder};
 use trie::Trie;
@@ -68,7 +68,7 @@ impl WordMapBuilder {
             entries.push((word, offset as u32));
         }
         Ok(WordMap {
-            trie: Trie::from_records(&entries),
+            trie: Trie::from_records(&entries)?,
             postings: builder.build(),
         })
     }

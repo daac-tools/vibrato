@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 use std::io::{prelude::*, BufReader, Read};
 
-use anyhow::{anyhow, Result};
+use crate::errors::{Result, VibratoError};
 
 use super::{CategorySet, CharInfo, CharProperty};
 
@@ -79,7 +79,11 @@ impl CharProperty {
 
         let cols: Vec<_> = line.split_whitespace().collect();
         if cols.len() < 4 {
-            return Err(anyhow!("Invalid format: {}", line));
+            let msg = format!(
+                "A character category must consists of four items separated by spaces, {}",
+                line
+            );
+            return Err(VibratoError::invalid_argument("line", msg));
         }
 
         // TODO: Handle errors
@@ -97,7 +101,8 @@ impl CharProperty {
 
         let cols: Vec<_> = line.split_whitespace().collect();
         if cols.len() < 2 {
-            return Err(anyhow!("InvalidFormat: {}", line));
+            let msg = format!("A character range must have two items at least, {}", line);
+            return Err(VibratoError::invalid_argument("line", msg));
         }
 
         let r: Vec<_> = cols[0].split("..").collect();
@@ -108,11 +113,15 @@ impl CharProperty {
             start + 1
         };
         if start >= end {
-            return Err(anyhow!("InvalidFormat: {}", line));
+            let msg = format!(
+                "The start of a character range must be no more than the end, {}",
+                line
+            );
+            return Err(VibratoError::invalid_argument("line", msg));
         }
-        // out of range
         if start > 0xFFFF || end >= 0xFFFF {
-            return Err(anyhow!("InvalidFormat: {}", line));
+            let msg = format!("A character range must be no more 0xFFFF, {}", line);
+            return Err(VibratoError::invalid_argument("line", msg));
         }
 
         let mut cate_ids = vec![];

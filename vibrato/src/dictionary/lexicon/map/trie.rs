@@ -5,6 +5,8 @@ use bincode::{
     Decode, Encode,
 };
 
+use crate::errors::{Result, VibratoError};
+
 pub struct Trie {
     da: crawdad::Trie,
 }
@@ -25,13 +27,14 @@ impl Decode for Trie {
 }
 
 impl Trie {
-    pub fn from_records<K>(records: &[(K, u32)]) -> Self
+    pub fn from_records<K>(records: &[(K, u32)]) -> Result<Self>
     where
         K: AsRef<str>,
     {
-        Self {
-            da: crawdad::Trie::from_records(records.iter().map(|(k, v)| (k, *v))).unwrap(),
-        }
+        Ok(Self {
+            da: crawdad::Trie::from_records(records.iter().map(|(k, v)| (k, *v)))
+                .map_err(|e| VibratoError::invalid_argument("records", e.to_string()))?,
+        })
     }
 
     #[inline(always)]

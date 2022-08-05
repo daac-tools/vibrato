@@ -1,6 +1,6 @@
 use std::io::{prelude::*, BufReader, Read};
 
-use anyhow::{anyhow, Result};
+use crate::errors::{Result, VibratoError};
 
 use super::ConnIdMapper;
 
@@ -28,7 +28,10 @@ impl ConnIdMapper {
         let mut old_ids = vec![0];
         for old_id in ranks {
             if old_id == 0 {
-                return Err(anyhow!("Id zero is reserved"));
+                return Err(VibratoError::invalid_argument(
+                    "ranks",
+                    "Id zero is reserved",
+                ));
             }
             old_ids.push(old_id);
         }
@@ -69,11 +72,15 @@ impl ConnIdMapper {
             let line = line?;
             let cols: Vec<_> = line.split('\t').collect();
             if cols.is_empty() {
-                return Err(anyhow!("Invalid format: {}", line));
+                return Err(VibratoError::invalid_argument(
+                    "rdr",
+                    "A line must not be empty.",
+                ));
             }
             let old_id = cols[0].parse()?;
             if old_id == 0 {
-                return Err(anyhow!("Id zero is reserved: {}", line));
+                let msg = format!("Id zero is reserved, {}", line);
+                return Err(VibratoError::invalid_argument("rdr", msg));
             }
             old_ids.push(old_id);
         }

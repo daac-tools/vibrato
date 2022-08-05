@@ -1,7 +1,8 @@
 use std::ptr::NonNull;
 
-use anyhow::{anyhow, Result};
 use bincode::{Decode, Encode};
+
+use crate::errors::{Result, VibratoError};
 
 #[derive(Decode, Encode)]
 pub struct Postings {
@@ -59,8 +60,9 @@ impl PostingsBuilder {
     #[inline(always)]
     pub fn push(&mut self, ids: &[u32]) -> Result<usize> {
         if !(1..=256).contains(&ids.len()) {
-            return Err(anyhow!(
-                "Number of ids associated with a word mustb be in [1,256]"
+            return Err(VibratoError::invalid_argument(
+                "ids",
+                "Number of ids associated with a word mustb be in [1,256]",
             ));
         }
         let offset = self.data.len();

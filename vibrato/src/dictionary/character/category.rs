@@ -1,7 +1,7 @@
 use bitflags::bitflags;
 use std::str::FromStr;
 
-use anyhow::{anyhow, Error, Result};
+use crate::errors::{Result, VibratoError};
 
 bitflags! {
     /// A set of categories for a character
@@ -24,7 +24,7 @@ bitflags! {
 }
 
 impl FromStr for CategorySet {
-    type Err = Error;
+    type Err = VibratoError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_uppercase().as_str() {
@@ -39,7 +39,10 @@ impl FromStr for CategorySet {
             "KANJINUMERIC" => Ok(Self::KANJINUMERIC),
             "GREEK" => Ok(Self::GREEK),
             "CYRILLIC" => Ok(Self::CYRILLIC),
-            _ => Err(anyhow!("Undefined category: {}", s)),
+            _ => Err(VibratoError::invalid_argument(
+                "s",
+                format!("Undefined category name, {}", s),
+            )),
         }
     }
 }

@@ -1,6 +1,6 @@
 use std::io::{prelude::*, BufReader, Read};
 
-use anyhow::{anyhow, Result};
+use crate::errors::{Result, VibratoError};
 
 use crate::dictionary::character::CategorySet;
 
@@ -42,7 +42,11 @@ impl UnkHandler {
     fn parse_unk_entry(line: &str) -> Result<UnkEntry> {
         let cols: Vec<_> = line.split(',').collect();
         if cols.len() < 4 {
-            return Err(anyhow!("Invalid format: {}", line));
+            let msg = format!(
+                "A csv row of lexicon must have four items at least, {:?}",
+                line
+            );
+            return Err(VibratoError::invalid_argument("line", msg));
         }
 
         let category: CategorySet = cols[0].parse()?;
