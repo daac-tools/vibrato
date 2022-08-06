@@ -31,14 +31,10 @@ impl Connector {
     }
 
     /// Gets the value of the connection matrix
-    ///
-    /// # Safety
-    ///
-    /// `right_id < self.num_right() && left_id < self.num_left()`.
     #[inline(always)]
-    pub unsafe fn cost(&self, right_id: u16, left_id: u16) -> i16 {
+    pub fn cost(&self, right_id: u16, left_id: u16) -> i16 {
         let index = self.index(right_id, left_id);
-        *self.data.get_unchecked(index)
+        *unsafe { self.data.get_unchecked(index) }
     }
 
     /// Returns maximum number of left connection ID

@@ -69,12 +69,10 @@ mod tests {
 1 0 -2
 1 1 -3";
         let conn = Connector::from_reader(data.as_bytes()).unwrap();
-        unsafe {
-            assert_eq!(conn.cost(0, 0), 0);
-            assert_eq!(conn.cost(0, 1), 1);
-            assert_eq!(conn.cost(1, 0), -2);
-            assert_eq!(conn.cost(1, 1), -3);
-        }
+        assert_eq!(conn.cost(0, 0), 0);
+        assert_eq!(conn.cost(0, 1), 1);
+        assert_eq!(conn.cost(1, 0), -2);
+        assert_eq!(conn.cost(1, 1), -3);
     }
 
     #[test]
@@ -87,13 +85,11 @@ mod tests {
 1 1 -4
 1 2 -5";
         let conn = Connector::from_reader(data.as_bytes()).unwrap();
-        unsafe {
-            assert_eq!(conn.cost(0, 0), 0);
-            assert_eq!(conn.cost(0, 1), 1);
-            assert_eq!(conn.cost(0, 2), 2);
-            assert_eq!(conn.cost(1, 0), -3);
-            assert_eq!(conn.cost(1, 1), -4);
-            assert_eq!(conn.cost(1, 2), -5);
-        }
+        assert_eq!(conn.cost(0, 0), 0);
+        assert_eq!(conn.cost(0, 1), 1);
+        assert_eq!(conn.cost(0, 2), 2);
+        assert_eq!(conn.cost(1, 0), -3);
+        assert_eq!(conn.cost(1, 1), -4);
+        assert_eq!(conn.cost(1, 2), -5);
     }
 }
