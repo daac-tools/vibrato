@@ -1,3 +1,4 @@
+use crate::common::BOS_EOS_CONNECTION_ID;
 use crate::dictionary::{lexicon::WordParam, LexType};
 use crate::dictionary::{ConnIdCounter, Connector, WordIdx};
 
@@ -100,7 +101,7 @@ impl Lattice {
             start_node: u16::MAX,
             start_word: u16::MAX,
             left_id: u16::MAX,
-            right_id: 0,
+            right_id: BOS_EOS_CONNECTION_ID,
             min_idx: INVALID_IDX,
             min_cost: 0,
         });
@@ -113,7 +114,7 @@ impl Lattice {
             lex_type: LexType::default(),
             start_node: start_node as u16,
             start_word: self.len_char() as u16,
-            left_id: 0,
+            left_id: BOS_EOS_CONNECTION_ID,
             right_id: u16::MAX,
             min_idx,
             min_cost,
@@ -145,7 +146,7 @@ impl Lattice {
             left_id: word_param.left_id,
             right_id: word_param.right_id,
             min_idx,
-            min_cost: min_cost + word_param.word_cost as i32,
+            min_cost: min_cost + i32::from(word_param.word_cost),
         });
     }
 

@@ -11,3 +11,6 @@ pub const fn bincode_config() -> config::Configuration<LittleEndian, Fixint> {
 
 /// The maximam length of an input sentence.
 pub const MAX_SENTENCE_LENGTH: usize = 1 << 16;
+
+/// The fixed connection id of BOS/EOS.
+pub const BOS_EOS_CONNECTION_ID: u16 = 0;

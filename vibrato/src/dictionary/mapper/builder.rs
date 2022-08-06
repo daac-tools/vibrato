@@ -1,8 +1,9 @@
 use std::io::{prelude::*, BufReader, Read};
 
+use super::ConnIdMapper;
 use crate::errors::{Result, VibratoError};
 
-use super::ConnIdMapper;
+use crate::common::BOS_EOS_CONNECTION_ID;
 
 impl ConnIdMapper {
     /// Creates a new instance from mappings.
@@ -25,20 +26,20 @@ impl ConnIdMapper {
     where
         I: IntoIterator<Item = u16>,
     {
-        let mut old_ids = vec![0];
+        let mut old_ids = vec![BOS_EOS_CONNECTION_ID];
         for old_id in ranks {
-            if old_id == 0 {
+            if old_id == BOS_EOS_CONNECTION_ID {
                 return Err(VibratoError::invalid_argument(
                     "ranks",
-                    "Id zero is reserved",
+                    format!("Id {} is reserved", BOS_EOS_CONNECTION_ID),
                 ));
             }
             old_ids.push(old_id);
         }
         let mut new_ids = vec![0; old_ids.len()];
         for (new_id, &old_id) in old_ids.iter().enumerate().skip(1) {
-            assert_ne!(old_id, 0);
-            new_ids[old_id as usize] = new_id as u16;
+            debug_assert_ne!(old_id, BOS_EOS_CONNECTION_ID);
+            new_ids[usize::from(old_id)] = u16::try_from(new_id)?;
         }
         Ok(new_ids)
     }
@@ -67,7 +68,7 @@ impl ConnIdMapper {
         let reader = BufReader::new(rdr);
         let lines = reader.lines();
 
-        let mut old_ids = vec![0u16];
+        let mut old_ids = vec![BOS_EOS_CONNECTION_ID];
         for line in lines {
             let line = line?;
             let cols: Vec<_> = line.split('\t').collect();
@@ -78,16 +79,16 @@ impl ConnIdMapper {
                 ));
             }
             let old_id = cols[0].parse()?;
-            if old_id == 0 {
-                let msg = format!("Id zero is reserved, {}", line);
+            if old_id == BOS_EOS_CONNECTION_ID {
+                let msg = format!("Id {} is reserved, {}", BOS_EOS_CONNECTION_ID, line);
                 return Err(VibratoError::invalid_argument("rdr", msg));
             }
             old_ids.push(old_id);
         }
         let mut new_ids = vec![0; old_ids.len()];
         for (new_id, &old_id) in old_ids.iter().enumerate().skip(1) {
-            assert_ne!(old_id, 0);
-            new_ids[usize::from(old_id)] = new_id as u16;
+            debug_assert_ne!(old_id, BOS_EOS_CONNECTION_ID);
+            new_ids[usize::from(old_id)] = u16::try_from(new_id)?;
         }
         Ok(new_ids)
     }

@@ -24,7 +24,7 @@ impl WordMap {
     {
         let mut b = WordMapBuilder::new();
         for (i, w) in words.into_iter().enumerate() {
-            b.add_record(w.as_ref().to_owned(), u32::try_from(i).unwrap());
+            b.add_record(w.as_ref().to_owned(), u32::try_from(i)?);
         }
         b.build()
     }
@@ -65,7 +65,7 @@ impl WordMapBuilder {
         let mut builder = PostingsBuilder::new();
         for (word, ids) in self.map {
             let offset = builder.push(&ids)?;
-            entries.push((word, u32::try_from(offset).unwrap()));
+            entries.push((word, u32::try_from(offset)?));
         }
         Ok(WordMap {
             trie: Trie::from_records(&entries)?,
