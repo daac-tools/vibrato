@@ -49,41 +49,26 @@ impl Lexicon {
 
     #[inline(always)]
     pub(crate) fn word_feature(&self, word_idx: WordIdx) -> &str {
-        debug_assert_eq!(word_idx.lex_type(), self.lex_type);
-        self.features.feature(usize::from_u32(word_idx.word_id()))
+        debug_assert_eq!(word_idx.lex_type, self.lex_type);
+        self.features.feature(usize::from_u32(word_idx.word_id))
     }
 }
 
 #[derive(Eq, PartialEq, Debug)]
 pub struct LexMatch {
-    word_idx: WordIdx,
-    word_param: WordParam,
-    end_char: u32,
+    pub(crate) word_idx: WordIdx,
+    pub(crate) word_param: WordParam,
+    pub(crate) end_char: u16,
 }
 
 impl LexMatch {
     #[inline(always)]
-    pub const fn new(word_idx: WordIdx, word_param: WordParam, end_char: u32) -> Self {
+    pub const fn new(word_idx: WordIdx, word_param: WordParam, end_char: u16) -> Self {
         Self {
             word_idx,
             word_param,
             end_char,
         }
-    }
-
-    #[inline(always)]
-    pub const fn end_char(&self) -> usize {
-        self.end_char as usize
-    }
-
-    #[inline(always)]
-    pub const fn word_idx(&self) -> WordIdx {
-        self.word_idx
-    }
-
-    #[inline(always)]
-    pub const fn word_param(&self) -> WordParam {
-        self.word_param
     }
 }
 

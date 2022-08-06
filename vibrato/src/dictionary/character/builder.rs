@@ -73,7 +73,7 @@ impl CharProperty {
         base
     }
 
-    fn parse_char_category(line: &str) -> Result<(CategorySet, bool, bool, usize)> {
+    fn parse_char_category(line: &str) -> Result<(CategorySet, bool, bool, u16)> {
         assert!(!line.is_empty());
         assert!(!line.starts_with("0x"));
 

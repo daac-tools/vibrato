@@ -22,17 +22,17 @@ impl Connector {
     }
 
     #[inline(always)]
-    fn index(&self, right_id: usize, left_id: usize) -> usize {
-        debug_assert!(right_id < self.num_right);
-        debug_assert!(left_id < self.num_left);
-        let index = left_id * self.num_right + right_id;
+    fn index(&self, right_id: u16, left_id: u16) -> usize {
+        debug_assert!(usize::from(right_id) < self.num_right);
+        debug_assert!(usize::from(left_id) < self.num_left);
+        let index = usize::from(left_id) * self.num_right + usize::from(right_id);
         debug_assert!(index < self.data.len());
         index
     }
 
     /// Gets the value of the connection matrix
     #[inline(always)]
-    pub fn cost(&self, right_id: usize, left_id: usize) -> i16 {
+    pub fn cost(&self, right_id: u16, left_id: u16) -> i16 {
         let index = self.index(right_id, left_id);
         *unsafe { self.data.get_unchecked(index) }
     }
@@ -58,9 +58,11 @@ impl Connector {
 
         let mut mapped = vec![0; self.data.len()];
         for right_id in 0..self.num_right {
-            let new_right_id = usize::from(mapper.right(right_id as u16));
+            let right_id = right_id as u16;
+            let new_right_id = mapper.right(right_id);
             for left_id in 0..self.num_left {
-                let new_left_id = usize::from(mapper.left(left_id as u16));
+                let left_id = left_id as u16;
+                let new_left_id = mapper.left(left_id);
                 let index = self.index(right_id, left_id);
                 let new_index = self.index(new_right_id, new_left_id);
                 mapped[new_index] = self.data[index];

@@ -44,7 +44,7 @@ impl CharInfo {
         base_id: u32,
         invoke: bool,
         group: bool,
-        length: usize,
+        length: u16,
     ) -> Option<Self> {
         if cate_ids.raw() >> CATE_IDS_BITS != 0 {
             return None;
@@ -60,7 +60,7 @@ impl CharInfo {
                 | (base_id << CATE_IDS_BITS)
                 | (u32::from(invoke) << (CATE_IDS_BITS + BASE_ID_BITS))
                 | (u32::from(group) << (CATE_IDS_BITS + BASE_ID_BITS + 1))
-                | ((length as u32) << (CATE_IDS_BITS + BASE_ID_BITS + 2)),
+                | ((u32::from(length)) << (CATE_IDS_BITS + BASE_ID_BITS + 2)),
         ))
     }
 
@@ -92,8 +92,8 @@ impl CharInfo {
     }
 
     #[inline(always)]
-    pub fn length(&self) -> usize {
-        usize::from_u32(self.0 >> (CATE_IDS_BITS + BASE_ID_BITS + 2))
+    pub const fn length(&self) -> u16 {
+        (self.0 >> (CATE_IDS_BITS + BASE_ID_BITS + 2)) as u16
     }
 }
 

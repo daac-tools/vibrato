@@ -9,6 +9,8 @@ use crate::dictionary::lexicon::WordParam;
 use crate::sentence::Sentence;
 use crate::utils::FromU32;
 
+use crate::common::MAX_SENTENCE_LENGTH;
+
 #[derive(Default, Debug, Clone, Decode, Encode)]
 pub struct UnkEntry {
     pub cate_id: u16,
@@ -30,13 +32,13 @@ pub struct UnkWord {
 
 impl UnkWord {
     #[inline(always)]
-    pub const fn start_char(&self) -> usize {
-        self.start_char as usize
+    pub const fn start_char(&self) -> u16 {
+        self.start_char
     }
 
     #[inline(always)]
-    pub const fn end_char(&self) -> usize {
-        self.end_char as usize
+    pub const fn end_char(&self) -> u16 {
+        self.end_char
     }
 
     #[inline(always)]
@@ -61,9 +63,9 @@ impl UnkHandler {
     pub(crate) fn gen_unk_words<F>(
         &self,
         sent: &Sentence,
-        start_char: usize,
+        start_char: u16,
         mut has_matched: bool,
-        max_grouping_len: Option<usize>,
+        max_grouping_len: Option<u16>,
         mut f: F,
     ) where
         F: FnMut(UnkWord),
@@ -80,7 +82,7 @@ impl UnkHandler {
             grouped = true;
             // Checks the number of grouped characters other than the first one
             // following the original MeCab implementation.
-            let max_grouping_len = max_grouping_len.map_or(usize::MAX, |l| l + 1);
+            let max_grouping_len = max_grouping_len.map_or(MAX_SENTENCE_LENGTH, |l| l + 1);
             if groupable <= max_grouping_len {
                 f = self.scan_entries(start_char, start_char + groupable, cinfo, f);
                 has_matched = true;
@@ -92,7 +94,7 @@ impl UnkHandler {
                 continue;
             }
             let end_char = start_char + i;
-            if sent.chars().len() < end_char {
+            if sent.len_char() < end_char {
                 break;
             }
             f = self.scan_entries(start_char, end_char, cinfo, f);
@@ -106,7 +108,7 @@ impl UnkHandler {
     }
 
     #[inline(always)]
-    fn scan_entries<F>(&self, start_char: usize, end_char: usize, cinfo: CharInfo, mut f: F) -> F
+    fn scan_entries<F>(&self, start_char: u16, end_char: u16, cinfo: CharInfo, mut f: F) -> F
     where
         F: FnMut(UnkWord),
     {
@@ -115,8 +117,8 @@ impl UnkHandler {
         for word_id in start..end {
             let e = &self.entries[word_id];
             f(UnkWord {
-                start_char: start_char as u16,
-                end_char: end_char as u16,
+                start_char,
+                end_char,
                 left_id: e.left_id,
                 right_id: e.right_id,
                 word_cost: e.word_cost,
@@ -127,8 +129,8 @@ impl UnkHandler {
     }
 
     pub(crate) fn word_feature(&self, word_idx: WordIdx) -> &str {
-        debug_assert_eq!(word_idx.lex_type(), LexType::Unknown);
-        &self.entries[usize::from_u32(word_idx.word_id())].feature
+        debug_assert_eq!(word_idx.lex_type, LexType::Unknown);
+        &self.entries[usize::from_u32(word_idx.word_id)].feature
     }
 
     /// Do NOT make this function public to maintain consistency in

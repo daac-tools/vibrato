@@ -13,6 +13,8 @@ use lattice::Lattice;
 
 pub(crate) use lattice::Node;
 
+use crate::common::MAX_SENTENCE_LENGTH;
+
 /// Tokenizer.
 pub struct Tokenizer<'a> {
     dict: &'a Dictionary,
@@ -21,7 +23,7 @@ pub struct Tokenizer<'a> {
     tokens: TokenList<'a>,
     // For MeCab compatible
     space_cate: Option<CategorySet>,
-    max_grouping_len: Option<usize>,
+    max_grouping_len: Option<u16>,
 }
 
 impl<'a> Tokenizer<'a> {
@@ -64,9 +66,9 @@ impl<'a> Tokenizer<'a> {
     ///
     ///  - `max_grouping_len`: The maximum grouping length for unknown words.
     ///                        The default value is 0, indicating the infinity length.
-    pub const fn max_grouping_len(mut self, max_grouping_len: usize) -> Self {
-        if max_grouping_len != 0 {
-            self.max_grouping_len = Some(max_grouping_len);
+    pub fn max_grouping_len(mut self, max_grouping_len: usize) -> Self {
+        if max_grouping_len != 0 && max_grouping_len <= usize::from(MAX_SENTENCE_LENGTH) {
+            self.max_grouping_len = Some(max_grouping_len as u16);
         } else {
             self.max_grouping_len = None;
         }
@@ -99,13 +101,14 @@ impl<'a> Tokenizer<'a> {
     fn build_lattice(&mut self) {
         let sent = self.sent.borrow();
         let input_chars = sent.chars();
+        let input_len = sent.len_char();
 
-        self.lattice.reset(input_chars.len());
+        self.lattice.reset(input_len);
 
         let mut start_node = 0;
         let mut start_word = 0;
 
-        while start_word < input_chars.len() {
+        while start_word < input_len {
             if !self.lattice.has_previous_node(start_node) {
                 start_word += 1;
                 start_node = start_word;
@@ -123,21 +126,23 @@ impl<'a> Tokenizer<'a> {
             }
 
             // Does the input end with spaces?
-            if start_word == input_chars.len() {
+            if start_word == input_len {
                 break;
             }
 
             let mut has_matched = false;
 
             if let Some(user_lexicon) = self.dict.user_lexicon() {
-                for m in user_lexicon.common_prefix_iterator(&input_chars[start_word..]) {
-                    debug_assert!(start_word + m.end_char() <= input_chars.len());
+                for m in
+                    user_lexicon.common_prefix_iterator(&input_chars[usize::from(start_word)..])
+                {
+                    debug_assert!(start_word + m.end_char <= input_len);
                     self.lattice.insert_node(
                         start_node,
                         start_word,
-                        start_word + m.end_char(),
-                        m.word_idx(),
-                        m.word_param(),
+                        start_word + m.end_char,
+                        m.word_idx,
+                        m.word_param,
                         self.dict.connector(),
                     );
                     has_matched = true;
@@ -147,15 +152,15 @@ impl<'a> Tokenizer<'a> {
             for m in self
                 .dict
                 .system_lexicon()
-                .common_prefix_iterator(&input_chars[start_word..])
+                .common_prefix_iterator(&input_chars[usize::from(start_word)..])
             {
-                debug_assert!(start_word + m.end_char() <= input_chars.len());
+                debug_assert!(start_word + m.end_char <= input_len);
                 self.lattice.insert_node(
                     start_node,
                     start_word,
-                    start_word + m.end_char(),
-                    m.word_idx(),
-                    m.word_param(),
+                    start_word + m.end_char,
+                    m.word_idx,
+                    m.word_param,
                     self.dict.connector(),
                 );
                 has_matched = true;

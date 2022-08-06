@@ -11,7 +11,7 @@ use crate::tokenizer::Node;
 pub struct TokenList<'a> {
     pub(crate) dict: &'a Dictionary,
     pub(crate) sent: Rc<RefCell<Sentence>>,
-    pub(crate) nodes: Vec<(usize, Node)>,
+    pub(crate) nodes: Vec<(u16, Node)>,
 }
 
 impl<'a> TokenList<'a> {
@@ -65,15 +65,15 @@ impl<'a> Token<'a> {
     #[inline(always)]
     pub fn range_char(&self) -> Range<usize> {
         let (end_word, node) = &self.list.nodes[self.index];
-        node.start_word()..*end_word
+        usize::from(node.start_word)..usize::from(*end_word)
     }
 
     /// Gets the position range of the token in bytes.
     #[inline(always)]
     pub fn range_byte(&self) -> Range<usize> {
         let sent = self.list.sent.borrow();
-        let range_char = self.range_char();
-        sent.byte_position(range_char.start)..sent.byte_position(range_char.end)
+        let (end_word, node) = &self.list.nodes[self.index];
+        sent.byte_position(node.start_word)..sent.byte_position(*end_word)
     }
 
     /// Gets the surface string of the token.
@@ -94,14 +94,14 @@ impl<'a> Token<'a> {
     #[inline(always)]
     pub fn lex_type(&self) -> LexType {
         let (_, node) = &self.list.nodes[self.index];
-        node.word_idx().lex_type()
+        node.word_idx().lex_type
     }
 
     /// Gets the total cost of the token's node.
     #[inline(always)]
     pub fn total_cost(&self) -> i32 {
         let (_, node) = &self.list.nodes[self.index];
-        node.min_cost()
+        node.min_cost
     }
 }
 

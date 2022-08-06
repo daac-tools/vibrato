@@ -34,8 +34,8 @@ impl Default for LexType {
 /// Identifier of a word.
 #[derive(Clone, Copy, Eq, PartialEq, Debug)]
 pub struct WordIdx {
-    lex_type: LexType,
-    word_id: u32,
+    pub(crate) lex_type: LexType,
+    pub(crate) word_id: u32,
 }
 
 impl Default for WordIdx {
@@ -49,18 +49,6 @@ impl WordIdx {
     #[inline(always)]
     pub const fn new(lex_type: LexType, word_id: u32) -> Self {
         Self { lex_type, word_id }
-    }
-
-    /// The lexicon type.
-    #[inline(always)]
-    pub const fn lex_type(&self) -> LexType {
-        self.lex_type
-    }
-
-    /// The word id.
-    #[inline(always)]
-    pub const fn word_id(&self) -> u32 {
-        self.word_id
     }
 }
 
@@ -154,7 +142,7 @@ impl Dictionary {
 
     #[inline(always)]
     pub(crate) fn word_feature(&self, word_idx: WordIdx) -> &str {
-        match word_idx.lex_type() {
+        match word_idx.lex_type {
             LexType::System => self.system_lexicon().word_feature(word_idx),
             LexType::User => self.user_lexicon().unwrap().word_feature(word_idx),
             LexType::Unknown => self.unk_handler().word_feature(word_idx),

@@ -33,7 +33,7 @@ impl WordMap {
     pub fn common_prefix_iterator<'a>(
         &'a self,
         input: &'a [char],
-    ) -> impl Iterator<Item = (u32, u32)> + 'a {
+    ) -> impl Iterator<Item = (u32, u16)> + 'a {
         unsafe {
             self.trie.common_prefix_iterator(input).flat_map(move |e| {
                 self.postings

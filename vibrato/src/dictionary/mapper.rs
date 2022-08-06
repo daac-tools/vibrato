@@ -48,8 +48,8 @@ impl ConnIdCounter {
     }
 
     #[inline(always)]
-    pub(crate) fn add(&mut self, left_id: usize, right_id: usize, num: usize) {
-        self.lid_to_rid_count[left_id][right_id] += num;
+    pub(crate) fn add(&mut self, left_id: u16, right_id: u16, num: usize) {
+        self.lid_to_rid_count[usize::from(left_id)][usize::from(right_id)] += num;
     }
 
     /// Computes the trained probabilities of connection ids.
