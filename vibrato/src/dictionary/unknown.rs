@@ -128,7 +128,7 @@ impl UnkHandler {
 
     pub(crate) fn word_feature(&self, word_idx: WordIdx) -> &str {
         debug_assert_eq!(word_idx.lex_type(), LexType::Unknown);
-        &self.entries[word_idx.word_id() as usize].feature
+        &self.entries[usize::from_u32(word_idx.word_id())].feature
     }
 
     /// Do NOT make this function public to maintain consistency in

@@ -87,7 +87,7 @@ impl ConnIdMapper {
         let mut new_ids = vec![0; old_ids.len()];
         for (new_id, &old_id) in old_ids.iter().enumerate().skip(1) {
             assert_ne!(old_id, 0);
-            new_ids[old_id as usize] = new_id as u16;
+            new_ids[usize::from(old_id)] = new_id as u16;
         }
         Ok(new_ids)
     }

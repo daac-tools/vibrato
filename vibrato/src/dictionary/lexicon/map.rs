@@ -65,7 +65,7 @@ impl WordMapBuilder {
         let mut builder = PostingsBuilder::new();
         for (word, ids) in self.map {
             let offset = builder.push(&ids)?;
-            entries.push((word, offset as u32));
+            entries.push((word, u32::try_from(offset).unwrap()));
         }
         Ok(WordMap {
             trie: Trie::from_records(&entries)?,

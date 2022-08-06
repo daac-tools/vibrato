@@ -107,7 +107,7 @@ impl CharProperty {
     #[inline(always)]
     pub(crate) fn char_info(&self, c: char) -> CharInfo {
         self.chr2inf
-            .get(c as usize)
+            .get(usize::from_u32(u32::from(c)))
             .map_or_else(|| self.chr2inf[0], |cinfo| *cinfo)
     }
 }

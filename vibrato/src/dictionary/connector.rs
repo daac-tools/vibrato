@@ -58,9 +58,9 @@ impl Connector {
 
         let mut mapped = vec![0; self.data.len()];
         for right_id in 0..self.num_right {
-            let new_right_id = mapper.right(right_id as u16) as usize;
+            let new_right_id = usize::from(mapper.right(right_id as u16));
             for left_id in 0..self.num_left {
-                let new_left_id = mapper.left(left_id as u16) as usize;
+                let new_left_id = usize::from(mapper.left(left_id as u16));
                 let index = self.index(right_id, left_id);
                 let new_index = self.index(new_right_id, new_left_id);
                 mapped[new_index] = self.data[index];

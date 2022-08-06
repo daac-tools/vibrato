@@ -7,6 +7,7 @@ use bincode::{Decode, Encode};
 
 use super::mapper::ConnIdMapper;
 use super::{LexType, WordIdx};
+use crate::utils::FromU32;
 use feature::WordFeatures;
 use map::WordMap;
 use param::WordParams;
@@ -33,7 +34,7 @@ impl Lexicon {
             .map(move |(word_id, end_char)| {
                 LexMatch::new(
                     WordIdx::new(self.lex_type, word_id),
-                    self.params.param(word_id as usize),
+                    self.params.param(usize::from_u32(word_id)),
                     end_char,
                 )
             })
@@ -49,7 +50,7 @@ impl Lexicon {
     #[inline(always)]
     pub(crate) fn word_feature(&self, word_idx: WordIdx) -> &str {
         debug_assert_eq!(word_idx.lex_type(), self.lex_type);
-        self.features.feature(word_idx.word_id() as usize)
+        self.features.feature(usize::from_u32(word_idx.word_id()))
     }
 }
 
