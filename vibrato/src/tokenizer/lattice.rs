@@ -1,6 +1,7 @@
-use crate::common::BOS_EOS_CONNECTION_ID;
 use crate::dictionary::{lexicon::WordParam, LexType};
 use crate::dictionary::{ConnIdCounter, Connector, WordIdx};
+
+use crate::common::{BOS_EOS_CONNECTION_ID, MAX_SENTENCE_LENGTH};
 
 const MAX_COST: i32 = i32::MAX;
 const INVALID_IDX: u16 = u16::MAX;
@@ -69,6 +70,7 @@ pub struct Lattice {
 
 impl Lattice {
     pub fn reset(&mut self, new_len_char: usize) {
+        debug_assert!(new_len_char <= usize::from(MAX_SENTENCE_LENGTH));
         Self::reset_vec(&mut self.ends, new_len_char + 1);
         self.len_char = new_len_char;
         self.eos = None;
@@ -98,8 +100,8 @@ impl Lattice {
         self.ends[0].push(Node {
             word_id: u32::MAX,
             lex_type: LexType::default(),
-            start_node: u16::MAX,
-            start_word: u16::MAX,
+            start_node: MAX_SENTENCE_LENGTH,
+            start_word: MAX_SENTENCE_LENGTH,
             left_id: u16::MAX,
             right_id: BOS_EOS_CONNECTION_ID,
             min_idx: INVALID_IDX,
@@ -139,8 +141,6 @@ impl Lattice {
         self.ends[end_word].push(Node {
             word_id: word_idx.word_id(),
             lex_type: word_idx.lex_type(),
-            // start_node: u16::try_from(start_node).unwrap(),
-            // start_word: u16::try_from(start_word).unwrap(),
             start_node: start_node as u16,
             start_word: start_word as u16,
             left_id: word_param.left_id,
@@ -160,15 +160,12 @@ impl Lattice {
 
         let mut min_idx = INVALID_IDX;
         let mut min_cost = MAX_COST;
-
         for (i, left_node) in self.ends[start_node].iter().enumerate() {
             debug_assert!(left_node.is_connected_to_bos());
             let conn_cost = i32::from(connector.cost(left_node.right_id(), left_id));
             let new_cost = left_node.min_cost() + conn_cost;
-
             // Use <= to produce the same tokenization as MeCab
             if new_cost <= min_cost {
-                // min_idx = u16::try_from(i).unwrap();
                 min_idx = i as u16;
                 min_cost = new_cost;
             }

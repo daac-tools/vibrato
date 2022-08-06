@@ -35,7 +35,7 @@ impl Sentence {
 
     pub fn compile(&mut self, char_prop: &CharProperty) -> Result<()> {
         self.compute_basic();
-        if MAX_SENTENCE_LENGTH < self.chars().len() {
+        if usize::from(MAX_SENTENCE_LENGTH) < self.chars().len() {
             self.clear();
             return Err(VibratoError::invalid_argument(
                 "input",
