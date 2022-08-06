@@ -107,7 +107,7 @@ impl Lattice {
     }
 
     pub fn insert_eos(&mut self, start_node: usize, connector: &Connector) {
-        let (min_idx, min_cost) = self.search_min_node(start_node, 0, connector).unwrap();
+        let (min_idx, min_cost) = self.search_min_node(start_node, 0, connector);
         self.eos = Some(Node {
             word_id: u32::MAX,
             lex_type: LexType::default(),
@@ -132,9 +132,8 @@ impl Lattice {
         debug_assert!(start_node <= start_word);
         debug_assert!(start_word < end_word);
 
-        let (min_idx, min_cost) = self
-            .search_min_node(start_node, usize::from(word_param.left_id), connector)
-            .unwrap();
+        let (min_idx, min_cost) =
+            self.search_min_node(start_node, usize::from(word_param.left_id), connector);
 
         self.ends[end_word].push(Node {
             word_id: word_idx.word_id(),
@@ -155,10 +154,8 @@ impl Lattice {
         start_node: usize,
         left_id: usize,
         connector: &Connector,
-    ) -> Option<(u16, i32)> {
-        if self.ends[start_node].is_empty() {
-            return None;
-        }
+    ) -> (u16, i32) {
+        debug_assert!(!self.ends[start_node].is_empty());
 
         let mut min_idx = INVALID_IDX;
         let mut min_cost = MAX_COST;
@@ -177,7 +174,7 @@ impl Lattice {
         }
 
         debug_assert_ne!(min_idx, INVALID_IDX);
-        Some((min_idx, min_cost))
+        (min_idx, min_cost)
     }
 
     /// Checks if there exist at least one at the word end boundary
