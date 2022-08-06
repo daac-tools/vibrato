@@ -42,9 +42,9 @@ impl Trie {
         &'a self,
         input: &'a [char],
     ) -> impl Iterator<Item = TrieMatch> + 'a {
+        // TODO: Handle the downcasting
         self.da
             .common_prefix_search(input.iter().cloned())
-            // .map(move |(value, end_char)| TrieMatch::new(value, u32::try_from(end_char).unwrap()))
             .map(move |(value, end_char)| TrieMatch::new(value, end_char as u16))
     }
 }
