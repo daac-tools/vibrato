@@ -71,7 +71,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     #[allow(clippy::significant_drop_in_scrutinee)]
     for line in std::io::stdin().lock().lines() {
         let line = line?;
-        let tokens = tokenizer.tokenize(line);
+        let tokens = tokenizer.tokenize(line)?;
         match args.output_mode {
             OutputMode::Mecab => {
                 for i in 0..tokens.len() {

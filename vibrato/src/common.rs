@@ -8,3 +8,6 @@ pub const fn bincode_config() -> config::Configuration<LittleEndian, Fixint> {
         .with_fixed_int_encoding()
         .write_fixed_array_length()
 }
+
+/// The maximam length of an input sentence.
+pub const MAX_SENTENCE_LENGTH: usize = 1 << 16;

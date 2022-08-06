@@ -153,7 +153,7 @@ mod tests {
         );
 
         let mut tokenizer = Tokenizer::new(&dict);
-        let tokens = tokenizer.tokenize("自然言語処理");
+        let tokens = tokenizer.tokenize("自然言語処理").unwrap();
         assert_eq!(tokens.len(), 2);
 
         let mut it = tokens.iter();

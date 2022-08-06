@@ -6,6 +6,7 @@ use std::rc::Rc;
 
 use crate::dictionary::character::CategorySet;
 use crate::dictionary::{ConnIdCounter, Dictionary};
+use crate::errors::Result;
 use crate::sentence::Sentence;
 use crate::token::TokenList;
 use lattice::Lattice;
@@ -73,7 +74,7 @@ impl<'a> Tokenizer<'a> {
     }
 
     /// Tokenizes an input text.
-    pub fn tokenize<S>(&mut self, input: S) -> &TokenList
+    pub fn tokenize<S>(&mut self, input: S) -> Result<&TokenList>
     where
         S: AsRef<str>,
     {
@@ -82,17 +83,17 @@ impl<'a> Tokenizer<'a> {
 
         let input = input.as_ref();
         if input.is_empty() {
-            return &self.tokens;
+            return Ok(&self.tokens);
         }
 
         self.sent.borrow_mut().set_sentence(input);
-        self.sent.borrow_mut().compile(self.dict.char_prop());
+        self.sent.borrow_mut().compile(self.dict.char_prop())?;
         self.build_lattice();
 
         self.tokens.sent = self.sent.clone();
         self.lattice.append_top_nodes(&mut self.tokens.nodes);
 
-        &self.tokens
+        Ok(&self.tokens)
     }
 
     fn build_lattice(&mut self) {
@@ -217,7 +218,7 @@ mod tests {
         );
 
         let mut tokenizer = Tokenizer::new(&dict);
-        let tokens = tokenizer.tokenize("自然言語処理");
+        let tokens = tokenizer.tokenize("自然言語処理").unwrap();
 
         assert_eq!(tokens.len(), 2);
         {
@@ -258,7 +259,7 @@ mod tests {
         );
 
         let mut tokenizer = Tokenizer::new(&dict);
-        let tokens = tokenizer.tokenize("自然日本語処理");
+        let tokens = tokenizer.tokenize("自然日本語処理").unwrap();
 
         assert_eq!(tokens.len(), 2);
         {
@@ -299,7 +300,7 @@ mod tests {
         );
 
         let mut tokenizer = Tokenizer::new(&dict);
-        let tokens = tokenizer.tokenize("不自然言語処理");
+        let tokens = tokenizer.tokenize("不自然言語処理").unwrap();
 
         assert_eq!(tokens.len(), 2);
         {
@@ -340,7 +341,7 @@ mod tests {
         );
 
         let mut tokenizer = Tokenizer::new(&dict);
-        let tokens = tokenizer.tokenize("");
+        let tokens = tokenizer.tokenize("").unwrap();
 
         assert_eq!(tokens.len(), 0);
     }

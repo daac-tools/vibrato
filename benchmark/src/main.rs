@@ -51,7 +51,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         for _ in 0..RUNS {
             t.start();
             for line in &lines {
-                let tokens = tokenizer.tokenize(line);
+                let tokens = tokenizer.tokenize(line).unwrap();
                 n_words += tokens.len();
             }
             t.stop();

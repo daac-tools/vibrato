@@ -33,7 +33,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     #[allow(clippy::significant_drop_in_scrutinee)]
     for line in std::io::stdin().lock().lines() {
         let line = line?;
-        tokenizer.tokenize(line);
+        tokenizer.tokenize(line)?;
         tokenizer.add_connid_counts(&mut counter);
     }
     let (lid_probs, rid_probs) = counter.compute_probs();

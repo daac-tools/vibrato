@@ -1,4 +1,6 @@
+use crate::common::MAX_SENTENCE_LENGTH;
 use crate::dictionary::character::{CharInfo, CharProperty};
+use crate::errors::{Result, VibratoError};
 
 #[derive(Default, Clone, Debug)]
 pub struct Sentence {
@@ -31,10 +33,21 @@ impl Sentence {
         self.input.push_str(input.as_ref());
     }
 
-    pub fn compile(&mut self, char_prop: &CharProperty) {
+    pub fn compile(&mut self, char_prop: &CharProperty) -> Result<()> {
         self.compute_basic();
+        if MAX_SENTENCE_LENGTH < self.chars().len() {
+            self.clear();
+            return Err(VibratoError::invalid_argument(
+                "input",
+                format!(
+                    "An input sentence must not have a length no more than {}",
+                    MAX_SENTENCE_LENGTH
+                ),
+            ));
+        }
         self.compute_categories(char_prop);
         self.compute_groupable();
+        Ok(())
     }
 
     fn compute_basic(&mut self) {
