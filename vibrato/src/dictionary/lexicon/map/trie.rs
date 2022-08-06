@@ -42,10 +42,13 @@ impl Trie {
         &'a self,
         input: &'a [char],
     ) -> impl Iterator<Item = TrieMatch> + 'a {
-        // TODO: Handle the downcasting
+        debug_assert!(input.len() <= 0xFFFF);
         self.da
             .common_prefix_search(input.iter().cloned())
-            .map(move |(value, end_char)| TrieMatch::new(value, end_char as u16))
+            .map(move |(value, end_char)| {
+                // Safety: input.len() is no more than 0xFFFF.
+                TrieMatch::new(value, unsafe { u16::try_from(end_char).unwrap_unchecked() })
+            })
     }
 }
 

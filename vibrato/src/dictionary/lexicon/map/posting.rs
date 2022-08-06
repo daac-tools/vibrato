@@ -11,12 +11,13 @@ pub struct Postings {
 
 impl Postings {
     /// # Safety
-    /// hogehoge
+    ///
+    /// `i` is a value associated with a key stored in `Trie`, assigned by `WordMapBuilder`.
     #[inline(always)]
     pub unsafe fn ids(&self, i: usize) -> PostingsIter {
         debug_assert!(i < self.data.len());
         let ptr = self.data.as_ptr().add(i);
-        let cnt = ptr.read() as usize + 1;
+        let cnt = usize::from(ptr.read()) + 1;
         let data_ptr = ptr.offset(1) as *const u32;
         debug_assert!(i + cnt * std::mem::size_of::<u32>() < self.data.len());
         PostingsIter {
