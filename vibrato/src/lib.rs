@@ -16,12 +16,17 @@
 //! let dict = Dictionary::read(BufReader::new(file)).unwrap();
 //!
 //! let mut tokenizer = vibrato::Tokenizer::new(&dict);
-//! let tokens = tokenizer.tokenize("京都東京都京都").unwrap();
+//! let tokens = tokenizer.tokenize("京都東京都").unwrap();
 //!
-//! assert_eq!(tokens.len(), 3);
+//! assert_eq!(tokens.len(), 2);
+//!
 //! assert_eq!(tokens.get(0).surface().deref(), "京都");
+//! assert_eq!(tokens.get(0).range_char(), 0..2);
+//! assert_eq!(tokens.get(0).range_byte(), 0..6);
+//!
 //! assert_eq!(tokens.get(1).surface().deref(), "東京都");
-//! assert_eq!(tokens.get(2).surface().deref(), "京都");
+//! assert_eq!(tokens.get(1).range_char(), 2..5);
+//! assert_eq!(tokens.get(1).range_byte(), 6..15);
 //! ```
 #![deny(missing_docs)]
 

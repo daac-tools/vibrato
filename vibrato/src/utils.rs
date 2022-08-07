@@ -6,8 +6,8 @@ pub trait FromU32 {
 impl FromU32 for usize {
     #[inline(always)]
     fn from_u32(src: u32) -> Self {
-        // Since the pointer width is guaranteed to be 32 or 64, the following process always
-        // succeeds.
+        // Since the pointer width is guaranteed to be 32 or 64,
+        // the following process always succeeds.
         unsafe { Self::try_from(src).unwrap_unchecked() }
     }
 }
