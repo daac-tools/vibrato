@@ -77,13 +77,15 @@ impl UnkHandler {
 
         let mut grouped = false;
         let groupable = sent.groupable(start_char);
+        debug_assert_ne!(groupable, 0);
 
         if cinfo.group() {
             grouped = true;
             // Checks the number of grouped characters other than the first one
             // following the original MeCab implementation.
-            let max_grouping_len = max_grouping_len.map_or(MAX_SENTENCE_LENGTH, |l| l + 1);
-            if groupable <= max_grouping_len {
+            let max_grouping_len = max_grouping_len.map_or(MAX_SENTENCE_LENGTH, |l| l);
+            // Note: Do NOT write `max_grouping_len+1` to avoid overflow.
+            if groupable - 1 <= max_grouping_len {
                 f = self.scan_entries(start_char, start_char + groupable, cinfo, f);
                 has_matched = true;
             }

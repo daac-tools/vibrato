@@ -21,7 +21,7 @@ pub struct Tokenizer<'a> {
     sent: Rc<RefCell<Sentence>>,
     lattice: Lattice,
     tokens: TokenList<'a>,
-    // For MeCab compatible
+    // For the MeCab compatibility
     space_cate: Option<CategorySet>,
     max_grouping_len: Option<u16>,
 }
