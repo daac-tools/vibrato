@@ -8,21 +8,26 @@
 //! ```
 //! use std::fs::File;
 //! use std::io::{BufRead, BufReader};
+//! use std::ops::Deref;
 //!
-//! let mut reader = BufReader::new(File::open("src/tests/resources/system.dic").unwrap());
-//! let dict = bincode::decode_from_std_read(&mut reader, vibrato::common::bincode_config()).unwrap();
+//! use vibrato::{Dictionary, Tokenizer};
 //!
+//! let dict = Dictionary::read(BufReader::new(File::open("src/tests/resources/system.dic").unwrap())).unwrap();
 //! let mut tokenizer = vibrato::Tokenizer::new(&dict);
-//! let tokens = tokenizer.tokenize("京都東京都").unwrap();
 //!
-//! assert_eq!(tokens.len(), 2);
+//! let tokens = tokenizer.tokenize("京都東京都京都").unwrap();
+//!
+//! assert_eq!(tokens.len(), 3);
+//! assert_eq!(tokens.get(0).surface().deref(), "京都");
+//! assert_eq!(tokens.get(1).surface().deref(), "東京都");
+//! assert_eq!(tokens.get(2).surface().deref(), "京都");
 //! ```
 #![deny(missing_docs)]
 
 #[cfg(target_pointer_width = "16")]
 compile_error!("`target_pointer_width` must be larger than or equal to 32");
 
-pub mod common;
+mod common;
 pub mod dictionary;
 pub mod errors;
 mod sentence;

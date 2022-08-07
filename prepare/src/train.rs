@@ -21,9 +21,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     eprintln!("Loading the dictionary...");
-    let mut reader = BufReader::new(File::open(args.sysdic_filename)?);
-    let dict: Dictionary =
-        bincode::decode_from_std_read(&mut reader, vibrato::common::bincode_config())?;
+    let dict = Dictionary::read(BufReader::new(File::open(args.sysdic_filename)?))?;
 
     eprintln!("Training connection id mappings...");
     let connector = dict.connector();

@@ -5,7 +5,12 @@ pub(crate) mod lexicon;
 pub(crate) mod mapper;
 pub(crate) mod unknown;
 
+use std::io::{Read, Write};
+
 use bincode::{Decode, Encode};
+
+use crate::common;
+use crate::errors::Result;
 
 pub use character::CharProperty;
 pub use connector::Connector;
@@ -52,9 +57,9 @@ impl WordIdx {
     }
 }
 
-/// Dictionary for tokenization.
+/// Inner data of [`Dictionary`].
 #[derive(Decode, Encode)]
-pub struct Dictionary {
+struct DictionaryInner {
     system_lexicon: Lexicon,
     user_lexicon: Option<Lexicon>,
     connector: Connector,
@@ -62,6 +67,9 @@ pub struct Dictionary {
     char_prop: CharProperty,
     unk_handler: UnkHandler,
 }
+
+/// Dictionary for tokenization.
+pub struct Dictionary(DictionaryInner);
 
 impl Dictionary {
     /// Creates a new instance.
@@ -72,34 +80,34 @@ impl Dictionary {
         char_prop: CharProperty,
         unk_handler: UnkHandler,
     ) -> Self {
-        Self {
+        Self(DictionaryInner {
             system_lexicon,
             user_lexicon,
             connector,
             mapper: None,
             char_prop,
             unk_handler,
-        }
+        })
     }
 
     /// Gets the reference to the system lexicon.
     #[inline(always)]
     pub const fn system_lexicon(&self) -> &Lexicon {
-        &self.system_lexicon
+        &self.0.system_lexicon
     }
 
     /// Gets the reference to the user lexicon.
     #[inline(always)]
     pub const fn user_lexicon(&self) -> Option<&Lexicon> {
-        self.user_lexicon.as_ref()
+        self.0.user_lexicon.as_ref()
     }
 
     /// Resets the user lexicon.
     #[inline(always)]
     pub fn reset_user_lexicon(&mut self, user_lexicon: Option<Lexicon>) {
-        self.user_lexicon = user_lexicon;
-        if let Some(user_lexicon) = self.user_lexicon.as_mut() {
-            if let Some(mapper) = self.mapper.as_ref() {
+        self.0.user_lexicon = user_lexicon;
+        if let Some(user_lexicon) = self.0.user_lexicon.as_mut() {
+            if let Some(mapper) = self.0.mapper.as_ref() {
                 user_lexicon.do_mapping(mapper);
             }
         }
@@ -108,36 +116,36 @@ impl Dictionary {
     /// Gets the reference to the connection matrix.
     #[inline(always)]
     pub const fn connector(&self) -> &Connector {
-        &self.connector
+        &self.0.connector
     }
 
     /// Gets the reference to the mapper for connection ids.
     #[inline(always)]
     pub const fn mapper(&self) -> Option<&ConnIdMapper> {
-        self.mapper.as_ref()
+        self.0.mapper.as_ref()
     }
 
     /// Gets the reference to the character property.
     #[inline(always)]
     pub const fn char_prop(&self) -> &CharProperty {
-        &self.char_prop
+        &self.0.char_prop
     }
 
     /// Gets the reference to the handler of unknown words.
     #[inline(always)]
     pub const fn unk_handler(&self) -> &UnkHandler {
-        &self.unk_handler
+        &self.0.unk_handler
     }
 
     /// Edits connection ids with the given mapping.
     pub fn do_mapping(&mut self, mapper: ConnIdMapper) {
-        self.system_lexicon.do_mapping(&mapper);
-        if let Some(user_lexicon) = self.user_lexicon.as_mut() {
+        self.0.system_lexicon.do_mapping(&mapper);
+        if let Some(user_lexicon) = self.0.user_lexicon.as_mut() {
             user_lexicon.do_mapping(&mapper);
         }
-        self.connector.do_mapping(&mapper);
-        self.unk_handler.do_mapping(&mapper);
-        self.mapper = Some(mapper);
+        self.0.connector.do_mapping(&mapper);
+        self.0.unk_handler.do_mapping(&mapper);
+        self.0.mapper = Some(mapper);
     }
 
     #[inline(always)]
@@ -147,5 +155,24 @@ impl Dictionary {
             LexType::User => self.user_lexicon().unwrap().word_feature(word_idx),
             LexType::Unknown => self.unk_handler().word_feature(word_idx),
         }
+    }
+
+    ///
+    pub fn write<W>(&self, mut wtr: W) -> Result<usize>
+    where
+        W: Write,
+    {
+        let num_bytes =
+            bincode::encode_into_std_write(&self.0, &mut wtr, common::bincode_config())?;
+        Ok(num_bytes)
+    }
+
+    ///
+    pub fn read<R>(mut rdr: R) -> Result<Self>
+    where
+        R: Read,
+    {
+        let data = bincode::decode_from_std_read(&mut rdr, common::bincode_config())?;
+        Ok(Self(data))
     }
 }

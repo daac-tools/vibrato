@@ -4,7 +4,7 @@ use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
-use vibrato::Tokenizer;
+use vibrato::{Dictionary, Tokenizer};
 
 use timer::Timer;
 
@@ -29,10 +29,9 @@ struct Args {
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
-    let mut reader = BufReader::new(File::open(args.sysdic_filename)?);
-    let dict = bincode::decode_from_std_read(&mut reader, vibrato::common::bincode_config())?;
-
+    let dict = Dictionary::read(BufReader::new(File::open(args.sysdic_filename)?))?;
     let mut tokenizer = Tokenizer::new(&dict);
+
     if args.ignore_space {
         tokenizer = tokenizer.ignore_space(true);
     }

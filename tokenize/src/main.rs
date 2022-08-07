@@ -48,10 +48,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     eprintln!("Loading the dictionary...");
-    let mut dict: Dictionary = {
-        let mut reader = BufReader::new(File::open(args.sysdic_filename)?);
-        bincode::decode_from_std_read(&mut reader, vibrato::common::bincode_config())?
-    };
+    let mut dict = Dictionary::read(BufReader::new(File::open(args.sysdic_filename)?))?;
 
     if let Some(userlex_csv_filename) = args.userlex_csv_filename {
         let user_lexicon = Lexicon::from_reader(File::open(userlex_csv_filename)?, LexType::User)?;

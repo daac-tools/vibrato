@@ -23,9 +23,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     eprintln!("Loading the dictionary...");
-    let mut reader = BufReader::new(File::open(args.sysdic_filename)?);
-    let mut dict: Dictionary =
-        bincode::decode_from_std_read(&mut reader, vibrato::common::bincode_config())?;
+    let mut dict = Dictionary::read(BufReader::new(File::open(args.sysdic_filename)?))?;
 
     eprintln!("Loading the mapping...");
     let mapper = ConnIdMapper::from_reader(
@@ -40,9 +38,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         "Writting the mapped system dictionary...: {}",
         &args.output_filename
     );
-    let mut writer = BufWriter::new(File::create(args.output_filename)?);
-    let num_bytes =
-        bincode::encode_into_std_write(dict, &mut writer, vibrato::common::bincode_config())?;
+    let num_bytes = dict.write(BufWriter::new(File::create(args.output_filename)?))?;
     eprintln!("{} MiB", num_bytes as f64 / (1024. * 1024.));
 
     Ok(())
