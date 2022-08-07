@@ -12,7 +12,9 @@ pub struct Postings {
 impl Postings {
     /// # Safety
     ///
-    /// `i` is a value associated with a key stored in `Trie`, assigned by `WordMapBuilder`.
+    /// `i` must be a value produced by `PostingsBuilder::push`.
+    ///
+    /// TODO: Test the time performance for checked version.
     #[inline(always)]
     pub unsafe fn ids(&self, i: usize) -> PostingsIter {
         debug_assert!(i < self.data.len());
