@@ -11,7 +11,7 @@ pub const fn bincode_config() -> config::Configuration<LittleEndian, Fixint> {
 
 /// The maximam length of an input sentence.
 ///
-/// Note that the value must be within u16::MAX so that
+/// Note that the value must be represented with u16 so that
 /// an (exclusive) end position can be represented in 16 bits.
 pub const MAX_SENTENCE_LENGTH: u16 = 0xFFFF;
 
