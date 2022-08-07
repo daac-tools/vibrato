@@ -157,7 +157,11 @@ impl Dictionary {
         }
     }
 
+    /// Exports the dictionary data.
     ///
+    /// # Errors
+    ///
+    /// When bincode generates an error, it will be returned as is.
     pub fn write<W>(&self, mut wtr: W) -> Result<usize>
     where
         W: Write,
@@ -167,7 +171,11 @@ impl Dictionary {
         Ok(num_bytes)
     }
 
+    /// Creates a dictionary from a reader.
     ///
+    /// # Errors
+    ///
+    /// When bincode generates an error, it will be returned as is.
     pub fn read<R>(mut rdr: R) -> Result<Self>
     where
         R: Read,

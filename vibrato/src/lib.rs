@@ -12,9 +12,10 @@
 //!
 //! use vibrato::{Dictionary, Tokenizer};
 //!
-//! let dict = Dictionary::read(BufReader::new(File::open("src/tests/resources/system.dic").unwrap())).unwrap();
-//! let mut tokenizer = vibrato::Tokenizer::new(&dict);
+//! let file = File::open("src/tests/resources/system.dic").unwrap();
+//! let dict = Dictionary::read(BufReader::new(file)).unwrap();
 //!
+//! let mut tokenizer = vibrato::Tokenizer::new(&dict);
 //! let tokens = tokenizer.tokenize("京都東京都京都").unwrap();
 //!
 //! assert_eq!(tokens.len(), 3);
