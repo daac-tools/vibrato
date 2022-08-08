@@ -109,17 +109,6 @@ impl Dictionary {
         &self.0.unk_handler
     }
 
-    /// Edits connection ids with the given mapping.
-    pub fn do_mapping(&mut self, mapper: ConnIdMapper) {
-        self.0.system_lexicon.do_mapping(&mapper);
-        if let Some(user_lexicon) = self.0.user_lexicon.as_mut() {
-            user_lexicon.do_mapping(&mapper);
-        }
-        self.0.connector.do_mapping(&mapper);
-        self.0.unk_handler.do_mapping(&mapper);
-        self.0.mapper = Some(mapper);
-    }
-
     #[inline(always)]
     pub(crate) fn word_feature(&self, word_idx: WordIdx) -> &str {
         match word_idx.lex_type {

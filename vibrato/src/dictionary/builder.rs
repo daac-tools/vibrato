@@ -1,6 +1,9 @@
 use std::io::Read;
 
-use super::{CharProperty, Connector, Dictionary, DictionaryInner, LexType, Lexicon, UnkHandler};
+use super::{
+    CharProperty, ConnIdMapper, Connector, Dictionary, DictionaryInner, LexType, Lexicon,
+    UnkHandler,
+};
 use crate::errors::Result;
 
 impl Dictionary {
@@ -52,6 +55,23 @@ impl Dictionary {
         } else {
             self.0.user_lexicon = None;
         }
+        Ok(self)
+    }
+
+    /// Edits connection ids with the given mappings.
+    pub fn mapping_from_reader<L, R>(mut self, l_rdr: L, r_rdr: R) -> Result<Self>
+    where
+        L: Read,
+        R: Read,
+    {
+        let mapper = ConnIdMapper::from_reader(l_rdr, r_rdr)?;
+        self.0.system_lexicon.do_mapping(&mapper);
+        if let Some(user_lexicon) = self.0.user_lexicon.as_mut() {
+            user_lexicon.do_mapping(&mapper);
+        }
+        self.0.connector.do_mapping(&mapper);
+        self.0.unk_handler.do_mapping(&mapper);
+        self.0.mapper = Some(mapper);
         Ok(self)
     }
 }

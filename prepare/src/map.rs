@@ -2,7 +2,7 @@ use std::error::Error;
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
 
-use vibrato::dictionary::{ConnIdMapper, Dictionary};
+use vibrato::dictionary::Dictionary;
 
 use clap::Parser;
 
@@ -23,16 +23,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     eprintln!("Loading the dictionary...");
-    let mut dict = Dictionary::read(BufReader::new(File::open(args.sysdic_filename)?))?;
+    let dict = Dictionary::read(BufReader::new(File::open(args.sysdic_filename)?))?;
 
-    eprintln!("Loading the mapping...");
-    let mapper = ConnIdMapper::from_reader(
+    eprintln!("Loading and doing the mapping...");
+    let dict = dict.mapping_from_reader(
         File::open(format!("{}.lmap", &args.mapping_basename))?,
         File::open(format!("{}.rmap", &args.mapping_basename))?,
     )?;
-
-    eprintln!("Do mapping...");
-    dict.do_mapping(mapper);
 
     eprintln!(
         "Writting the mapped system dictionary...: {}",
