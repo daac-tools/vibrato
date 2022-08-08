@@ -35,7 +35,8 @@ impl Connector {
     pub fn cost(&self, right_id: u16, left_id: u16) -> i16 {
         // NOTE: Since this function will be called most frequently, it should be implemented
         // using `unchecked` for time performance. Experiments showed that using `unchecked`
-        // improved the tokenization time by 5%.
+        // improved the tokenization time by 5%. However, adding pre-verification of left/right
+        // ids would complicate the code.
         let index = self.index(right_id, left_id);
         self.data[index]
     }
