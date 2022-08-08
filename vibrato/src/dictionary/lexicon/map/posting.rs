@@ -10,20 +10,18 @@ pub struct Postings {
 }
 
 impl Postings {
-    /// # Safety
-    ///
-    /// `i` must be a value produced by `PostingsBuilder::push`.
-    ///
-    /// TODO: Test the time performance for checked version.
     #[inline(always)]
-    pub unsafe fn ids(&self, i: usize) -> PostingsIter {
-        debug_assert!(i < self.data.len());
-        let ptr = self.data.as_ptr().add(i);
-        let cnt = usize::from(ptr.read()) + 1;
-        let data_ptr = ptr.offset(1) as *const u32;
-        debug_assert!(i + cnt * std::mem::size_of::<u32>() < self.data.len());
+    pub fn ids(&self, i: usize) -> PostingsIter {
+        // Do NOT add debug_ for safety.
+        assert!(i < self.data.len());
+        let ptr = unsafe { self.data.as_ptr().add(i) };
+        let cnt = unsafe { usize::from(ptr.read()) + 1 };
+        // Note: If we skip this assertion, the tokenization time is improved by 5%-10%.
+        // But, this is necessary for safety. What should we do?
+        assert!(i + cnt * std::mem::size_of::<u32>() < self.data.len());
+        let data_ptr = unsafe { ptr.offset(1) as *const u32 };
         PostingsIter {
-            data: NonNull::new_unchecked(data_ptr as _),
+            data: unsafe { NonNull::new_unchecked(data_ptr as _) },
             remaining: cnt,
         }
     }
