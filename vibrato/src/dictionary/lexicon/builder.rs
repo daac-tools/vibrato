@@ -6,7 +6,7 @@ use super::{LexType, Lexicon, RawWordEntry, WordFeatures, WordMap, WordParam, Wo
 
 impl Lexicon {
     /// Builds a new [`Lexicon`] from a lexicon file in the CSV format.
-    pub fn from_reader<R>(rdr: R, lex_type: LexType) -> Result<Self>
+    pub(crate) fn from_reader<R>(rdr: R, lex_type: LexType) -> Result<Self>
     where
         R: Read,
     {

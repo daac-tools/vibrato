@@ -198,7 +198,6 @@ mod tests {
     use std::ops::Deref;
 
     use super::*;
-    use crate::dictionary::*;
 
     #[test]
     fn test_tokenize_1() {
@@ -211,13 +210,13 @@ mod tests {
         let char_def = "DEFAULT 0 1 0";
         let unk_def = "DEFAULT,0,0,100,*";
 
-        let dict = Dictionary::new(
-            Lexicon::from_reader(lexicon_csv.as_bytes(), LexType::System).unwrap(),
-            None,
-            Connector::from_reader(matrix_def.as_bytes()).unwrap(),
-            CharProperty::from_reader(char_def.as_bytes()).unwrap(),
-            UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
-        );
+        let dict = Dictionary::from_reader(
+            lexicon_csv.as_bytes(),
+            matrix_def.as_bytes(),
+            char_def.as_bytes(),
+            unk_def.as_bytes(),
+        )
+        .unwrap();
 
         let mut tokenizer = Tokenizer::new(&dict);
         let tokens = tokenizer.tokenize("自然言語処理").unwrap();
@@ -252,13 +251,13 @@ mod tests {
         let char_def = "DEFAULT 0 1 0";
         let unk_def = "DEFAULT,0,0,100,*";
 
-        let dict = Dictionary::new(
-            Lexicon::from_reader(lexicon_csv.as_bytes(), LexType::System).unwrap(),
-            None,
-            Connector::from_reader(matrix_def.as_bytes()).unwrap(),
-            CharProperty::from_reader(char_def.as_bytes()).unwrap(),
-            UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
-        );
+        let dict = Dictionary::from_reader(
+            lexicon_csv.as_bytes(),
+            matrix_def.as_bytes(),
+            char_def.as_bytes(),
+            unk_def.as_bytes(),
+        )
+        .unwrap();
 
         let mut tokenizer = Tokenizer::new(&dict);
         let tokens = tokenizer.tokenize("自然日本語処理").unwrap();
@@ -293,13 +292,13 @@ mod tests {
         let char_def = "DEFAULT 0 0 3";
         let unk_def = "DEFAULT,0,0,100,*";
 
-        let dict = Dictionary::new(
-            Lexicon::from_reader(lexicon_csv.as_bytes(), LexType::System).unwrap(),
-            None,
-            Connector::from_reader(matrix_def.as_bytes()).unwrap(),
-            CharProperty::from_reader(char_def.as_bytes()).unwrap(),
-            UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
-        );
+        let dict = Dictionary::from_reader(
+            lexicon_csv.as_bytes(),
+            matrix_def.as_bytes(),
+            char_def.as_bytes(),
+            unk_def.as_bytes(),
+        )
+        .unwrap();
 
         let mut tokenizer = Tokenizer::new(&dict);
         let tokens = tokenizer.tokenize("不自然言語処理").unwrap();
@@ -334,13 +333,13 @@ mod tests {
         let char_def = "DEFAULT 0 0 3";
         let unk_def = "DEFAULT,0,0,100,*";
 
-        let dict = Dictionary::new(
-            Lexicon::from_reader(lexicon_csv.as_bytes(), LexType::System).unwrap(),
-            None,
-            Connector::from_reader(matrix_def.as_bytes()).unwrap(),
-            CharProperty::from_reader(char_def.as_bytes()).unwrap(),
-            UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
-        );
+        let dict = Dictionary::from_reader(
+            lexicon_csv.as_bytes(),
+            matrix_def.as_bytes(),
+            char_def.as_bytes(),
+            unk_def.as_bytes(),
+        )
+        .unwrap();
 
         let mut tokenizer = Tokenizer::new(&dict);
         let tokens = tokenizer.tokenize("").unwrap();

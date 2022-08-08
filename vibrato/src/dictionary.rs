@@ -1,4 +1,5 @@
 //! Dictionary for tokenization.
+pub(crate) mod builder;
 pub(crate) mod character;
 pub(crate) mod connector;
 pub(crate) mod lexicon;
@@ -72,24 +73,6 @@ struct DictionaryInner {
 pub struct Dictionary(DictionaryInner);
 
 impl Dictionary {
-    /// Creates a new instance.
-    pub const fn new(
-        system_lexicon: Lexicon,
-        user_lexicon: Option<Lexicon>,
-        connector: Connector,
-        char_prop: CharProperty,
-        unk_handler: UnkHandler,
-    ) -> Self {
-        Self(DictionaryInner {
-            system_lexicon,
-            user_lexicon,
-            connector,
-            mapper: None,
-            char_prop,
-            unk_handler,
-        })
-    }
-
     /// Gets the reference to the system lexicon.
     #[inline(always)]
     pub const fn system_lexicon(&self) -> &Lexicon {
@@ -100,17 +83,6 @@ impl Dictionary {
     #[inline(always)]
     pub const fn user_lexicon(&self) -> Option<&Lexicon> {
         self.0.user_lexicon.as_ref()
-    }
-
-    /// Resets the user lexicon.
-    #[inline(always)]
-    pub fn reset_user_lexicon(&mut self, user_lexicon: Option<Lexicon>) {
-        self.0.user_lexicon = user_lexicon;
-        if let Some(user_lexicon) = self.0.user_lexicon.as_mut() {
-            if let Some(mapper) = self.0.mapper.as_ref() {
-                user_lexicon.do_mapping(mapper);
-            }
-        }
     }
 
     /// Gets the reference to the connection matrix.

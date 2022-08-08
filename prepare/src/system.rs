@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::BufWriter;
 use std::time::Instant;
 
-use vibrato::dictionary::{CharProperty, Connector, Dictionary, LexType, Lexicon, UnkHandler};
+use vibrato::dictionary::Dictionary;
 
 use clap::Parser;
 
@@ -27,13 +27,12 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     eprintln!("Compiling the system dictionary...");
     let start = Instant::now();
-    let dict = Dictionary::new(
-        Lexicon::from_reader(File::open(sysdic_filename)?, LexType::System)?,
-        None,
-        Connector::from_reader(File::open(matrix_filename)?)?,
-        CharProperty::from_reader(File::open(chardef_filename)?)?,
-        UnkHandler::from_reader(File::open(unkdef_filename)?)?,
-    );
+    let dict = Dictionary::from_reader(
+        File::open(sysdic_filename)?,
+        File::open(matrix_filename)?,
+        File::open(chardef_filename)?,
+        File::open(unkdef_filename)?,
+    )?;
     eprintln!("{} seconds", start.elapsed().as_secs_f64());
 
     eprintln!(

@@ -19,7 +19,7 @@ impl CharProperty {
     /// # Arguments
     ///
     ///  - `rdr`: A reader of the file.
-    pub fn from_reader<R>(rdr: R) -> Result<Self>
+    pub(crate) fn from_reader<R>(rdr: R) -> Result<Self>
     where
         R: Read,
     {
