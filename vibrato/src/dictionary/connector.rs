@@ -33,20 +33,18 @@ impl Connector {
     /// Gets the value of the connection matrix
     #[inline(always)]
     pub fn cost(&self, right_id: u16, left_id: u16) -> i16 {
+        // NOTE: Since this function will be called most frequently, it should be implemented
+        // using `unchecked` for time performance. Experiments showed that using `unchecked`
+        // improved the tokenization time by 5%.
         let index = self.index(right_id, left_id);
         self.data[index]
     }
 
-    /// Gets the value of the connection matrix
-    ///
-    /// # Safety
-    ///
-    /// hoge
-    #[inline(always)]
-    pub unsafe fn cost_unchecked(&self, right_id: u16, left_id: u16) -> i16 {
-        let index = self.index(right_id, left_id);
-        *self.data.get_unchecked(index)
-    }
+    // #[inline(always)]
+    // pub unsafe fn cost_unchecked(&self, right_id: u16, left_id: u16) -> i16 {
+    //     let index = self.index(right_id, left_id);
+    //     *self.data.get_unchecked(index)
+    // }
 
     /// Returns maximum number of left connection ID
     #[inline(always)]
