@@ -1,10 +1,17 @@
 use std::io::{prelude::*, BufReader, Read};
 
-use anyhow::{anyhow, Result};
-
 use super::ConnIdMapper;
+use crate::errors::{Result, VibratoError};
+
+use crate::common::BOS_EOS_CONNECTION_ID;
 
 impl ConnIdMapper {
+    /// Creates a new instance from mappings.
+    ///
+    /// # Arguments
+    ///
+    ///  - `l_ranks`: A list of connection left-ids sorted by rank.
+    ///  - `r_ranks`: A list of connection right-ids sorted by rank.
     pub fn from_ranks<L, R>(l_ranks: L, r_ranks: R) -> Result<Self>
     where
         L: IntoIterator<Item = u16>,
@@ -19,24 +26,34 @@ impl ConnIdMapper {
     where
         I: IntoIterator<Item = u16>,
     {
-        let mut old_ids = vec![0];
+        let mut old_ids = vec![BOS_EOS_CONNECTION_ID];
         for old_id in ranks {
-            if old_id == 0 {
-                return Err(anyhow!("Id zero is reserved"));
+            if old_id == BOS_EOS_CONNECTION_ID {
+                return Err(VibratoError::invalid_argument(
+                    "ranks",
+                    format!("Id {} is reserved", BOS_EOS_CONNECTION_ID),
+                ));
             }
             old_ids.push(old_id);
         }
         let mut new_ids = vec![0; old_ids.len()];
-        for new_id in 1..old_ids.len() {
-            let old_id = old_ids[new_id] as usize;
-            assert_ne!(old_id, 0);
-            new_ids[old_id] = new_id as u16;
+        for (new_id, &old_id) in old_ids.iter().enumerate().skip(1) {
+            debug_assert_ne!(old_id, BOS_EOS_CONNECTION_ID);
+            new_ids[usize::from(old_id)] = u16::try_from(new_id)?;
         }
         Ok(new_ids)
     }
 
-    pub fn from_reader<R>(l_rdr: R, r_rdr: R) -> Result<Self>
+    /// Creates a new instance from tsv files in which the first column indicates
+    /// connection ids sorted by rank.
+    ///
+    /// # Arguments
+    ///
+    ///  - `l_rdr`: A reader of the file for left-ids.
+    ///  - `r_rdr`: A reader of the file for right-ids.
+    pub fn from_reader<L, R>(l_rdr: L, r_rdr: R) -> Result<Self>
     where
+        L: Read,
         R: Read,
     {
         let left = Self::read(l_rdr)?;
@@ -51,24 +68,27 @@ impl ConnIdMapper {
         let reader = BufReader::new(rdr);
         let lines = reader.lines();
 
-        let mut old_ids = vec![0];
+        let mut old_ids = vec![BOS_EOS_CONNECTION_ID];
         for line in lines {
             let line = line?;
             let cols: Vec<_> = line.split('\t').collect();
             if cols.is_empty() {
-                return Err(anyhow!("Invalid format: {}", line));
+                return Err(VibratoError::invalid_argument(
+                    "rdr",
+                    "A line must not be empty.",
+                ));
             }
             let old_id = cols[0].parse()?;
-            if old_id == 0 {
-                return Err(anyhow!("Id zero is reserved: {}", line));
+            if old_id == BOS_EOS_CONNECTION_ID {
+                let msg = format!("Id {} is reserved, {}", BOS_EOS_CONNECTION_ID, line);
+                return Err(VibratoError::invalid_argument("rdr", msg));
             }
             old_ids.push(old_id);
         }
         let mut new_ids = vec![0; old_ids.len()];
-        for new_id in 1..old_ids.len() {
-            let old_id = old_ids[new_id] as usize;
-            assert_ne!(old_id, 0);
-            new_ids[old_id] = new_id as u16;
+        for (new_id, &old_id) in old_ids.iter().enumerate().skip(1) {
+            debug_assert_ne!(old_id, BOS_EOS_CONNECTION_ID);
+            new_ids[usize::from(old_id)] = u16::try_from(new_id)?;
         }
         Ok(new_ids)
     }

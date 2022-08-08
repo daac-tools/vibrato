@@ -1,7 +1,7 @@
 [workspace]
 members = [
     "vibrato",
-    "compile",
+    "prepare",
     "tokenize",
     "benchmark",
 ]

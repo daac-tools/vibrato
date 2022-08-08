@@ -5,6 +5,8 @@ use std::fmt;
 
 use bincode::{Decode, Encode};
 
+use crate::utils::FromU32;
+
 pub use category::CategorySet;
 
 const CATE_IDS_BITS: usize = 18;
@@ -13,11 +15,14 @@ const BASE_ID_BITS: usize = 8;
 const BASE_ID_MASK: u32 = (1 << BASE_ID_BITS) - 1;
 const LENGTH_BITS: usize = 4;
 
-// cate_ids: 18
-// base_id: 8
-// invoke: 1
-// group: 1
-// length: 4
+/// Information of a character defined in `char.def`.
+///
+/// The memory layout is
+///  - cate_ids: 18 bits
+///  -  base_id:  8 bits
+///  -   invoke:  1 bit
+///  -    group:  1 bit
+///  -   length:  4 bits
 #[derive(Default, Clone, Copy, Decode, Encode)]
 pub struct CharInfo(u32);
 
@@ -39,7 +44,7 @@ impl CharInfo {
         base_id: u32,
         invoke: bool,
         group: bool,
-        length: usize,
+        length: u16,
     ) -> Option<Self> {
         if cate_ids.raw() >> CATE_IDS_BITS != 0 {
             return None;
@@ -55,7 +60,7 @@ impl CharInfo {
                 | (base_id << CATE_IDS_BITS)
                 | (u32::from(invoke) << (CATE_IDS_BITS + BASE_ID_BITS))
                 | (u32::from(group) << (CATE_IDS_BITS + BASE_ID_BITS + 1))
-                | ((length as u32) << (CATE_IDS_BITS + BASE_ID_BITS + 2)),
+                | ((u32::from(length)) << (CATE_IDS_BITS + BASE_ID_BITS + 2)),
         ))
     }
 
@@ -87,11 +92,12 @@ impl CharInfo {
     }
 
     #[inline(always)]
-    pub const fn length(&self) -> usize {
-        (self.0 >> (CATE_IDS_BITS + BASE_ID_BITS + 2)) as usize
+    pub const fn length(&self) -> u16 {
+        (self.0 >> (CATE_IDS_BITS + BASE_ID_BITS + 2)) as u16
     }
 }
 
+/// Mapping from characters to their information.
 #[derive(Decode, Encode)]
 pub struct CharProperty {
     chr2inf: Vec<CharInfo>,
@@ -101,7 +107,7 @@ impl CharProperty {
     #[inline(always)]
     pub(crate) fn char_info(&self, c: char) -> CharInfo {
         self.chr2inf
-            .get(c as usize)
+            .get(usize::from_u32(u32::from(c)))
             .map_or_else(|| self.chr2inf[0], |cinfo| *cinfo)
     }
 }

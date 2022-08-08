@@ -7,12 +7,15 @@ use super::{LexType, WordIdx};
 use crate::dictionary::character::CharInfo;
 use crate::dictionary::lexicon::WordParam;
 use crate::sentence::Sentence;
+use crate::utils::FromU32;
+
+use crate::common::MAX_SENTENCE_LENGTH;
 
 #[derive(Default, Debug, Clone, Decode, Encode)]
 pub struct UnkEntry {
     pub cate_id: u16,
-    pub left_id: i16,
-    pub right_id: i16,
+    pub left_id: u16,
+    pub right_id: u16,
     pub word_cost: i16,
     pub feature: String,
 }
@@ -21,21 +24,21 @@ pub struct UnkEntry {
 pub struct UnkWord {
     start_char: u16,
     end_char: u16,
-    left_id: i16,
-    right_id: i16,
+    left_id: u16,
+    right_id: u16,
     word_cost: i16,
     word_id: u16,
 }
 
 impl UnkWord {
     #[inline(always)]
-    pub const fn start_char(&self) -> usize {
-        self.start_char as usize
+    pub const fn start_char(&self) -> u16 {
+        self.start_char
     }
 
     #[inline(always)]
-    pub const fn end_char(&self) -> usize {
-        self.end_char as usize
+    pub const fn end_char(&self) -> u16 {
+        self.end_char
     }
 
     #[inline(always)]
@@ -44,8 +47,8 @@ impl UnkWord {
     }
 
     #[inline(always)]
-    pub const fn word_idx(&self) -> WordIdx {
-        WordIdx::new(LexType::Unknown, self.word_id as u32)
+    pub fn word_idx(&self) -> WordIdx {
+        WordIdx::new(LexType::Unknown, u32::from(self.word_id))
     }
 }
 
@@ -60,9 +63,9 @@ impl UnkHandler {
     pub(crate) fn gen_unk_words<F>(
         &self,
         sent: &Sentence,
-        start_char: usize,
+        start_char: u16,
         mut has_matched: bool,
-        max_grouping_len: Option<usize>,
+        max_grouping_len: Option<u16>,
         mut f: F,
     ) where
         F: FnMut(UnkWord),
@@ -74,13 +77,15 @@ impl UnkHandler {
 
         let mut grouped = false;
         let groupable = sent.groupable(start_char);
+        debug_assert_ne!(groupable, 0);
 
         if cinfo.group() {
             grouped = true;
             // Checks the number of grouped characters other than the first one
             // following the original MeCab implementation.
-            let max_grouping_len = max_grouping_len.map_or(usize::MAX, |l| l + 1);
-            if groupable <= max_grouping_len {
+            let max_grouping_len = max_grouping_len.map_or(MAX_SENTENCE_LENGTH, |l| l);
+            // Note: Do NOT write `max_grouping_len+1` to avoid overflow.
+            if groupable - 1 <= max_grouping_len {
                 f = self.scan_entries(start_char, start_char + groupable, cinfo, f);
                 has_matched = true;
             }
@@ -91,7 +96,7 @@ impl UnkHandler {
                 continue;
             }
             let end_char = start_char + i;
-            if sent.chars().len() < end_char {
+            if sent.len_char() < end_char {
                 break;
             }
             f = self.scan_entries(start_char, end_char, cinfo, f);
@@ -105,17 +110,17 @@ impl UnkHandler {
     }
 
     #[inline(always)]
-    fn scan_entries<F>(&self, start_char: usize, end_char: usize, cinfo: CharInfo, mut f: F) -> F
+    fn scan_entries<F>(&self, start_char: u16, end_char: u16, cinfo: CharInfo, mut f: F) -> F
     where
         F: FnMut(UnkWord),
     {
-        let start = self.offsets[cinfo.base_id() as usize];
-        let end = self.offsets[cinfo.base_id() as usize + 1];
+        let start = self.offsets[usize::from_u32(cinfo.base_id())];
+        let end = self.offsets[usize::from_u32(cinfo.base_id()) + 1];
         for word_id in start..end {
             let e = &self.entries[word_id];
             f(UnkWord {
-                start_char: start_char as u16,
-                end_char: end_char as u16,
+                start_char,
+                end_char,
                 left_id: e.left_id,
                 right_id: e.right_id,
                 word_cost: e.word_cost,
@@ -126,14 +131,17 @@ impl UnkHandler {
     }
 
     pub(crate) fn word_feature(&self, word_idx: WordIdx) -> &str {
-        debug_assert_eq!(word_idx.lex_type(), LexType::Unknown);
-        &self.entries[word_idx.word_id() as usize].feature
+        debug_assert_eq!(word_idx.lex_type, LexType::Unknown);
+        &self.entries[usize::from_u32(word_idx.word_id)].feature
     }
 
+    /// Do NOT make this function public to maintain consistency in
+    /// the connection-id mapping among members of `Dictionary`.
+    /// The consistency is managed in `Dictionary`.
     pub(crate) fn do_mapping(&mut self, mapper: &ConnIdMapper) {
         for e in &mut self.entries {
-            e.left_id = mapper.left(e.left_id as u16) as i16;
-            e.right_id = mapper.right(e.right_id as u16) as i16;
+            e.left_id = mapper.left(e.left_id);
+            e.right_id = mapper.right(e.right_id);
         }
     }
 }

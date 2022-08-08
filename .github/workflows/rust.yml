@@ -1,0 +1,60 @@
+name: build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Check on ${{ matrix.rust }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust:
+          - stable
+          - beta
+          - nightly
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install latest stable
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          override: true
+          components: rustfmt, clippy
+
+      - name: Run cargo check
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+
+      - name: Run cargo fmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+      - name: Run cargo clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: -- -D warnings -W clippy::nursery
+
+      - name: Run cargo test
+        uses: actions-rs/cargo@v1
+        continue-on-error: ${{ matrix.rust == 'nightly' }}
+        with:
+          command: test
+          args: --release --all-features
+          
+      - name: Run cargo doc
+        uses: actions-rs/cargo@v1
+        continue-on-error: ${{ matrix.rust == 'nightly' }}
+        with:
+          command: doc
+          args: --no-deps

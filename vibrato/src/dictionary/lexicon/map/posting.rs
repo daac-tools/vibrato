@@ -1,7 +1,8 @@
 use std::ptr::NonNull;
 
-use anyhow::{anyhow, Result};
 use bincode::{Decode, Encode};
+
+use crate::errors::{Result, VibratoError};
 
 #[derive(Decode, Encode)]
 pub struct Postings {
@@ -10,12 +11,15 @@ pub struct Postings {
 
 impl Postings {
     /// # Safety
-    /// hogehoge
+    ///
+    /// `i` must be a value produced by `PostingsBuilder::push`.
+    ///
+    /// TODO: Test the time performance for checked version.
     #[inline(always)]
     pub unsafe fn ids(&self, i: usize) -> PostingsIter {
         debug_assert!(i < self.data.len());
         let ptr = self.data.as_ptr().add(i);
-        let cnt = ptr.read() as usize + 1;
+        let cnt = usize::from(ptr.read()) + 1;
         let data_ptr = ptr.offset(1) as *const u32;
         debug_assert!(i + cnt * std::mem::size_of::<u32>() < self.data.len());
         PostingsIter {
@@ -59,8 +63,9 @@ impl PostingsBuilder {
     #[inline(always)]
     pub fn push(&mut self, ids: &[u32]) -> Result<usize> {
         if !(1..=256).contains(&ids.len()) {
-            return Err(anyhow!(
-                "Number of ids associated with a word mustb be in [1,256]"
+            return Err(VibratoError::invalid_argument(
+                "ids",
+                "Number of ids associated with a word mustb be in [1,256]",
             ));
         }
         let offset = self.data.len();

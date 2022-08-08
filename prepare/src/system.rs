@@ -31,7 +31,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         Lexicon::from_reader(File::open(sysdic_filename)?, LexType::System)?,
         None,
         Connector::from_reader(File::open(matrix_filename)?)?,
-        None,
         CharProperty::from_reader(File::open(chardef_filename)?)?,
         UnkHandler::from_reader(File::open(unkdef_filename)?)?,
     );
@@ -41,9 +40,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         "Writting the system dictionary...: {}",
         &args.output_filename
     );
-    let mut writer = BufWriter::new(File::create(args.output_filename)?);
-    let num_bytes =
-        bincode::encode_into_std_write(dict, &mut writer, vibrato::common::bincode_config())?;
+    let num_bytes = dict.write(BufWriter::new(File::create(args.output_filename)?))?;
     eprintln!("{} MiB", num_bytes as f64 / (1024. * 1024.));
 
     Ok(())

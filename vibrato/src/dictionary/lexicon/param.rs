@@ -4,14 +4,14 @@ use super::ConnIdMapper;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Decode, Encode)]
 pub struct WordParam {
-    pub left_id: i16,
-    pub right_id: i16,
-    pub word_cost: i16,
+    pub(crate) left_id: u16,
+    pub(crate) right_id: u16,
+    pub(crate) word_cost: i16,
 }
 
 impl WordParam {
     #[inline(always)]
-    pub const fn new(left_id: i16, right_id: i16, word_cost: i16) -> Self {
+    pub const fn new(left_id: u16, right_id: u16, word_cost: i16) -> Self {
         Self {
             left_id,
             right_id,
@@ -42,8 +42,8 @@ impl WordParams {
 
     pub fn do_mapping(&mut self, mapper: &ConnIdMapper) {
         for p in &mut self.params {
-            p.left_id = mapper.left(p.left_id as u16) as i16;
-            p.right_id = mapper.right(p.right_id as u16) as i16;
+            p.left_id = mapper.left(p.left_id);
+            p.right_id = mapper.right(p.right_id);
         }
     }
 }

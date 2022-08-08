@@ -1,15 +1,15 @@
 use std::io::{prelude::*, BufReader, Read};
 
-use anyhow::{anyhow, Result};
+use crate::errors::{Result, VibratoError};
 
 use super::Connector;
 
 impl Connector {
-    /// num_right, num_left
-    /// r0 l0
-    /// r0 l1
-    /// r0 l2
-    /// ...
+    /// Creates a new instance from `matrix.def`.
+    ///
+    /// # Arguments
+    ///
+    ///  - `rdr`: A reader of the file.
     pub fn from_reader<R>(rdr: R) -> Result<Self>
     where
         R: Read,
@@ -33,7 +33,11 @@ impl Connector {
     fn parse_header(line: &str) -> Result<(usize, usize)> {
         let cols: Vec<_> = line.split(' ').collect();
         if cols.len() != 2 {
-            Err(anyhow!("Invalid format: {}", line))
+            let msg = format!(
+                "The header must consists of two integers separated by spaces, {}",
+                line
+            );
+            Err(VibratoError::invalid_argument("line", msg))
         } else {
             Ok((cols[0].parse()?, cols[1].parse()?))
         }
@@ -42,7 +46,11 @@ impl Connector {
     fn parse_body(line: &str) -> Result<(usize, usize, i16)> {
         let cols: Vec<_> = line.split(' ').collect();
         if cols.len() != 3 {
-            Err(anyhow!("Invalid format: {}", line))
+            let msg = format!(
+                "A row other than the header must consists of three integers separated by spaces, {}",
+                line
+            );
+            Err(VibratoError::invalid_argument("line", msg))
         } else {
             Ok((cols[0].parse()?, cols[1].parse()?, cols[2].parse()?))
         }

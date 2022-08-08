@@ -1,27 +1,28 @@
-use std::io::{prelude::*, BufReader, Read};
-
-use anyhow::{anyhow, Result};
-
-use crate::dictionary::character::CategorySet;
+use std::io::Read;
 
 use super::{UnkEntry, UnkHandler};
+use crate::dictionary::character::CategorySet;
+use crate::errors::{Result, VibratoError};
 
 impl UnkHandler {
+    /// Creates a new instance from `unk.def`.
+    ///
+    /// # Arguments
+    ///
+    ///  - `rdr`: A reader of the file.
     pub fn from_reader<R>(rdr: R) -> Result<Self>
     where
         R: Read,
     {
         let mut map = vec![vec![]; CategorySet::NUM_CATEGORIES];
-
-        let reader = BufReader::new(rdr);
-        for line in reader.lines() {
-            let line = line?;
-            let line = line.trim();
-            if line.is_empty() || line.starts_with('#') {
-                continue;
-            }
-            let e = Self::parse_unk_entry(line)?;
-            map[e.cate_id as usize].push(e);
+        let mut reader = csv::ReaderBuilder::new()
+            .flexible(true)
+            .has_headers(false)
+            .from_reader(rdr);
+        for rec in reader.records() {
+            let rec = rec.map_err(|e| VibratoError::invalid_argument("rdr", e.to_string()))?;
+            let e = Self::parse_unk_entry(&rec)?;
+            map[usize::from(e.cate_id)].push(e);
         }
 
         let mut offsets = vec![];
@@ -34,19 +35,23 @@ impl UnkHandler {
         Ok(Self { offsets, entries })
     }
 
-    fn parse_unk_entry(line: &str) -> Result<UnkEntry> {
-        let cols: Vec<_> = line.split(',').collect();
-        if cols.len() < 4 {
-            return Err(anyhow!("Invalid format: {}", line));
+    fn parse_unk_entry(rec: &csv::StringRecord) -> Result<UnkEntry> {
+        if rec.len() < 4 {
+            let msg = format!(
+                "A csv row of lexicon must have four items at least, {:?}",
+                rec
+            );
+            return Err(VibratoError::invalid_argument("rec", msg));
         }
 
-        let category: CategorySet = cols[0].parse()?;
-        let left_id = cols[1].parse()?;
-        let right_id = cols[2].parse()?;
-        let word_cost = cols[3].parse()?;
-        let feature = cols.get(4..).map_or("".to_string(), |x| x.join(","));
+        let mut iter = rec.iter();
+        let category: CategorySet = iter.next().unwrap().parse()?;
+        let left_id = iter.next().unwrap().parse()?;
+        let right_id = iter.next().unwrap().parse()?;
+        let word_cost = iter.next().unwrap().parse()?;
+        let feature = iter.collect::<Vec<_>>().join(",");
 
-        let cate_id = category.first_id().unwrap() as u16;
+        let cate_id = u16::try_from(category.first_id().unwrap()).unwrap();
 
         Ok(UnkEntry {
             cate_id,

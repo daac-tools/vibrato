@@ -1,3 +1,4 @@
+//! Viterbi-based tokenizer.
 mod lattice;
 
 use std::cell::RefCell;
@@ -5,38 +6,48 @@ use std::rc::Rc;
 
 use crate::dictionary::character::CategorySet;
 use crate::dictionary::{ConnIdCounter, Dictionary};
+use crate::errors::Result;
 use crate::sentence::Sentence;
-use crate::token::Tokens;
+use crate::token::TokenList;
 use lattice::Lattice;
 
 pub(crate) use lattice::Node;
 
-/// Tokenizer
+use crate::common::MAX_SENTENCE_LENGTH;
+
+/// Tokenizer.
 pub struct Tokenizer<'a> {
     dict: &'a Dictionary,
     sent: Rc<RefCell<Sentence>>,
     lattice: Lattice,
-    tokens: Tokens<'a>,
-    // For MeCab compatible
+    tokens: TokenList<'a>,
+    // For the MeCab compatibility
     space_cate: Option<CategorySet>,
-    max_grouping_len: Option<usize>,
+    max_grouping_len: Option<u16>,
 }
 
 impl<'a> Tokenizer<'a> {
-    /// Creates an instance of [`Tokenizer`].
+    /// Creates a new instance.
+    ///
+    /// # Arguments
+    ///
+    ///  - `dict`: Dictionary to be used.
     pub fn new(dict: &'a Dictionary) -> Self {
         Self {
             dict,
             sent: Rc::new(RefCell::new(Sentence::new())),
             lattice: Lattice::default(),
-            tokens: Tokens::new(dict),
+            tokens: TokenList::new(dict),
             space_cate: None,
             max_grouping_len: None,
         }
     }
 
-    /// Enables MeCab compatible mode.
-    pub fn ignore_space(mut self, yes: bool) -> Self {
+    /// Ignores spaces from tokens.
+    ///
+    /// This option is for compatibility with MeCab.
+    /// Enable this if you want to obtain the same results as MeCab.
+    pub const fn ignore_space(mut self, yes: bool) -> Self {
         if yes {
             self.space_cate = Some(CategorySet::SPACE);
         } else {
@@ -45,10 +56,19 @@ impl<'a> Tokenizer<'a> {
         self
     }
 
-    /// Sets max_grouping_len
+    /// Specifies the maximum grouping length for unknown words.
+    /// By default, the length is infinity.
+    ///
+    /// This option is for compatibility with MeCab.
+    /// Specifies the argument with `24` if you want to obtain the same results as MeCab.
+    ///
+    /// # Arguments
+    ///
+    ///  - `max_grouping_len`: The maximum grouping length for unknown words.
+    ///                        The default value is 0, indicating the infinity length.
     pub fn max_grouping_len(mut self, max_grouping_len: usize) -> Self {
-        if max_grouping_len != 0 {
-            self.max_grouping_len = Some(max_grouping_len);
+        if max_grouping_len != 0 && max_grouping_len <= usize::from(MAX_SENTENCE_LENGTH) {
+            self.max_grouping_len = Some(max_grouping_len as u16);
         } else {
             self.max_grouping_len = None;
         }
@@ -56,7 +76,7 @@ impl<'a> Tokenizer<'a> {
     }
 
     /// Tokenizes an input text.
-    pub fn tokenize<S>(&mut self, input: S) -> &Tokens
+    pub fn tokenize<S>(&mut self, input: S) -> Result<&TokenList>
     where
         S: AsRef<str>,
     {
@@ -65,29 +85,30 @@ impl<'a> Tokenizer<'a> {
 
         let input = input.as_ref();
         if input.is_empty() {
-            return &self.tokens;
+            return Ok(&self.tokens);
         }
 
         self.sent.borrow_mut().set_sentence(input);
-        self.sent.borrow_mut().compile(self.dict.char_prop());
+        self.sent.borrow_mut().compile(self.dict.char_prop())?;
         self.build_lattice();
 
         self.tokens.sent = self.sent.clone();
         self.lattice.append_top_nodes(&mut self.tokens.nodes);
 
-        &self.tokens
+        Ok(&self.tokens)
     }
 
     fn build_lattice(&mut self) {
         let sent = self.sent.borrow();
         let input_chars = sent.chars();
+        let input_len = sent.len_char();
 
-        self.lattice.reset(input_chars.len());
+        self.lattice.reset(input_len);
 
         let mut start_node = 0;
         let mut start_word = 0;
 
-        while start_word < input_chars.len() {
+        while start_word < input_len {
             if !self.lattice.has_previous_node(start_node) {
                 start_word += 1;
                 start_node = start_word;
@@ -105,21 +126,23 @@ impl<'a> Tokenizer<'a> {
             }
 
             // Does the input end with spaces?
-            if start_word == input_chars.len() {
+            if start_word == input_len {
                 break;
             }
 
             let mut has_matched = false;
 
             if let Some(user_lexicon) = self.dict.user_lexicon() {
-                for m in user_lexicon.common_prefix_iterator(&input_chars[start_word..]) {
-                    debug_assert!(start_word + m.end_char() <= input_chars.len());
+                for m in
+                    user_lexicon.common_prefix_iterator(&input_chars[usize::from(start_word)..])
+                {
+                    debug_assert!(start_word + m.end_char <= input_len);
                     self.lattice.insert_node(
                         start_node,
                         start_word,
-                        start_word + m.end_char(),
-                        m.word_idx(),
-                        m.word_param(),
+                        start_word + m.end_char,
+                        m.word_idx,
+                        m.word_param,
                         self.dict.connector(),
                     );
                     has_matched = true;
@@ -129,15 +152,15 @@ impl<'a> Tokenizer<'a> {
             for m in self
                 .dict
                 .system_lexicon()
-                .common_prefix_iterator(&input_chars[start_word..])
+                .common_prefix_iterator(&input_chars[usize::from(start_word)..])
             {
-                debug_assert!(start_word + m.end_char() <= input_chars.len());
+                debug_assert!(start_word + m.end_char <= input_len);
                 self.lattice.insert_node(
                     start_node,
                     start_word,
-                    start_word + m.end_char(),
-                    m.word_idx(),
-                    m.word_param(),
+                    start_word + m.end_char,
+                    m.word_idx,
+                    m.word_param,
                     self.dict.connector(),
                 );
                 has_matched = true;
@@ -195,27 +218,30 @@ mod tests {
             Lexicon::from_reader(lexicon_csv.as_bytes(), LexType::System).unwrap(),
             None,
             Connector::from_reader(matrix_def.as_bytes()).unwrap(),
-            None,
             CharProperty::from_reader(char_def.as_bytes()).unwrap(),
             UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
         );
 
         let mut tokenizer = Tokenizer::new(&dict);
-        let tokens = tokenizer.tokenize("自然言語処理");
+        let tokens = tokenizer.tokenize("自然言語処理").unwrap();
 
         assert_eq!(tokens.len(), 2);
-
-        assert_eq!(tokens.surface(0).deref(), "自然");
-        assert_eq!(tokens.range_char(0), 0..2);
-        assert_eq!(tokens.range_byte(0), 0..6);
-        assert_eq!(tokens.feature(0), "sizen");
-        assert_eq!(tokens.total_cost(0), 1);
-
-        assert_eq!(tokens.surface(1).deref(), "言語処理");
-        assert_eq!(tokens.range_char(1), 2..6);
-        assert_eq!(tokens.range_byte(1), 6..18);
-        assert_eq!(tokens.feature(1), "gengoshori");
-        assert_eq!(tokens.total_cost(1), 6);
+        {
+            let t = tokens.get(0);
+            assert_eq!(t.surface().deref(), "自然");
+            assert_eq!(t.range_char(), 0..2);
+            assert_eq!(t.range_byte(), 0..6);
+            assert_eq!(t.feature(), "sizen");
+            assert_eq!(t.total_cost(), 1);
+        }
+        {
+            let t = tokens.get(1);
+            assert_eq!(t.surface().deref(), "言語処理");
+            assert_eq!(t.range_char(), 2..6);
+            assert_eq!(t.range_byte(), 6..18);
+            assert_eq!(t.feature(), "gengoshori");
+            assert_eq!(t.total_cost(), 6);
+        }
     }
 
     #[test]
@@ -233,27 +259,30 @@ mod tests {
             Lexicon::from_reader(lexicon_csv.as_bytes(), LexType::System).unwrap(),
             None,
             Connector::from_reader(matrix_def.as_bytes()).unwrap(),
-            None,
             CharProperty::from_reader(char_def.as_bytes()).unwrap(),
             UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
         );
 
         let mut tokenizer = Tokenizer::new(&dict);
-        let tokens = tokenizer.tokenize("自然日本語処理");
+        let tokens = tokenizer.tokenize("自然日本語処理").unwrap();
 
         assert_eq!(tokens.len(), 2);
-
-        assert_eq!(tokens.surface(0).deref(), "自然");
-        assert_eq!(tokens.range_char(0), 0..2);
-        assert_eq!(tokens.range_byte(0), 0..6);
-        assert_eq!(tokens.feature(0), "sizen");
-        assert_eq!(tokens.total_cost(0), 1);
-
-        assert_eq!(tokens.surface(1).deref(), "日本語処理");
-        assert_eq!(tokens.range_char(1), 2..7);
-        assert_eq!(tokens.range_byte(1), 6..21);
-        assert_eq!(tokens.feature(1), "*");
-        assert_eq!(tokens.total_cost(1), 101);
+        {
+            let t = tokens.get(0);
+            assert_eq!(t.surface().deref(), "自然");
+            assert_eq!(t.range_char(), 0..2);
+            assert_eq!(t.range_byte(), 0..6);
+            assert_eq!(t.feature(), "sizen");
+            assert_eq!(t.total_cost(), 1);
+        }
+        {
+            let t = tokens.get(1);
+            assert_eq!(t.surface().deref(), "日本語処理");
+            assert_eq!(t.range_char(), 2..7);
+            assert_eq!(t.range_byte(), 6..21);
+            assert_eq!(t.feature(), "*");
+            assert_eq!(t.total_cost(), 101);
+        }
     }
 
     #[test]
@@ -271,27 +300,30 @@ mod tests {
             Lexicon::from_reader(lexicon_csv.as_bytes(), LexType::System).unwrap(),
             None,
             Connector::from_reader(matrix_def.as_bytes()).unwrap(),
-            None,
             CharProperty::from_reader(char_def.as_bytes()).unwrap(),
             UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
         );
 
         let mut tokenizer = Tokenizer::new(&dict);
-        let tokens = tokenizer.tokenize("不自然言語処理");
+        let tokens = tokenizer.tokenize("不自然言語処理").unwrap();
 
         assert_eq!(tokens.len(), 2);
-
-        assert_eq!(tokens.surface(0).deref(), "不自然");
-        assert_eq!(tokens.range_char(0), 0..3);
-        assert_eq!(tokens.range_byte(0), 0..9);
-        assert_eq!(tokens.feature(0), "*");
-        assert_eq!(tokens.total_cost(0), 100);
-
-        assert_eq!(tokens.surface(1).deref(), "言語処理");
-        assert_eq!(tokens.range_char(1), 3..7);
-        assert_eq!(tokens.range_byte(1), 9..21);
-        assert_eq!(tokens.feature(1), "gengoshori");
-        assert_eq!(tokens.total_cost(1), 105);
+        {
+            let t = tokens.get(0);
+            assert_eq!(t.surface().deref(), "不自然");
+            assert_eq!(t.range_char(), 0..3);
+            assert_eq!(t.range_byte(), 0..9);
+            assert_eq!(t.feature(), "*");
+            assert_eq!(t.total_cost(), 100);
+        }
+        {
+            let t = tokens.get(1);
+            assert_eq!(t.surface().deref(), "言語処理");
+            assert_eq!(t.range_char(), 3..7);
+            assert_eq!(t.range_byte(), 9..21);
+            assert_eq!(t.feature(), "gengoshori");
+            assert_eq!(t.total_cost(), 105);
+        }
     }
 
     #[test]
@@ -309,13 +341,12 @@ mod tests {
             Lexicon::from_reader(lexicon_csv.as_bytes(), LexType::System).unwrap(),
             None,
             Connector::from_reader(matrix_def.as_bytes()).unwrap(),
-            None,
             CharProperty::from_reader(char_def.as_bytes()).unwrap(),
             UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
         );
 
         let mut tokenizer = Tokenizer::new(&dict);
-        let tokens = tokenizer.tokenize("");
+        let tokens = tokenizer.tokenize("").unwrap();
 
         assert_eq!(tokens.len(), 0);
     }
