@@ -4,7 +4,7 @@ use super::{
     CharProperty, ConnIdMapper, Connector, Dictionary, DictionaryInner, LexType, Lexicon,
     UnkHandler,
 };
-use crate::errors::Result;
+use crate::errors::{Result, VibratoError};
 
 impl Dictionary {
     /// Creates a new instance from readers.
@@ -19,7 +19,7 @@ impl Dictionary {
         system_lexicon_rdr: S,
         connector_rdr: C,
         char_prop_rdr: P,
-        unk_handler: U,
+        unk_handler_rdr: U,
     ) -> Result<Self>
     where
         S: Read,
@@ -30,7 +30,21 @@ impl Dictionary {
         let system_lexicon = Lexicon::from_reader(system_lexicon_rdr, LexType::System)?;
         let connector = Connector::from_reader(connector_rdr)?;
         let char_prop = CharProperty::from_reader(char_prop_rdr)?;
-        let unk_handler = UnkHandler::from_reader(unk_handler)?;
+        let unk_handler = UnkHandler::from_reader(unk_handler_rdr)?;
+
+        if !system_lexicon.verify(&connector) {
+            return Err(VibratoError::invalid_argument(
+                "system_lexicon_rdr",
+                "system_lexicon_rdr includes invalid connection ids.",
+            ));
+        }
+        if !unk_handler.verify(&connector) {
+            return Err(VibratoError::invalid_argument(
+                "unk_handler_rdr",
+                "unk_handler_rdr includes invalid connection ids.",
+            ));
+        }
+
         Ok(Self(DictionaryInner {
             system_lexicon,
             user_lexicon: None,
@@ -50,6 +64,12 @@ impl Dictionary {
             let mut user_lexicon = Lexicon::from_reader(user_lexicon_rdr, LexType::User)?;
             if let Some(mapper) = self.0.mapper.as_ref() {
                 user_lexicon.do_mapping(mapper);
+            }
+            if !user_lexicon.verify(self.connector()) {
+                return Err(VibratoError::invalid_argument(
+                    "user_lexicon_rdr",
+                    "user_lexicon_rdr includes invalid connection ids.",
+                ));
             }
             self.0.user_lexicon = Some(user_lexicon);
         } else {

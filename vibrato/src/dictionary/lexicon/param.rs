@@ -40,6 +40,11 @@ impl WordParams {
         self.params[word_id]
     }
 
+    #[inline(always)]
+    pub fn len(&self) -> usize {
+        self.params.len()
+    }
+
     pub fn do_mapping(&mut self, mapper: &ConnIdMapper) {
         for p in &mut self.params {
             p.left_id = mapper.left(p.left_id);

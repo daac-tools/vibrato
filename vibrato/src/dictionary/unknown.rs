@@ -2,6 +2,7 @@ mod builder;
 
 use bincode::{Decode, Encode};
 
+use super::connector::Connector;
 use super::mapper::ConnIdMapper;
 use super::{LexType, WordIdx};
 use crate::dictionary::character::CharInfo;
@@ -143,5 +144,18 @@ impl UnkHandler {
             e.left_id = mapper.left(e.left_id);
             e.right_id = mapper.right(e.right_id);
         }
+    }
+
+    /// Checks if left/right-ids are valid with connector.
+    pub(crate) fn verify(&self, conn: &Connector) -> bool {
+        for e in &self.entries {
+            if conn.num_left() <= usize::from(e.left_id) {
+                return false;
+            }
+            if conn.num_right() <= usize::from(e.right_id) {
+                return false;
+            }
+        }
+        true
     }
 }

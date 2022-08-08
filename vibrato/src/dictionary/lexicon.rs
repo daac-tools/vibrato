@@ -5,14 +5,14 @@ mod param;
 
 use bincode::{Decode, Encode};
 
+use super::connector::Connector;
 use super::mapper::ConnIdMapper;
 use super::{LexType, WordIdx};
 use crate::utils::FromU32;
 use feature::WordFeatures;
 use map::WordMap;
-use param::WordParams;
-
 pub use param::WordParam;
+use param::WordParams;
 
 /// Lexicon of words.
 #[derive(Decode, Encode)]
@@ -51,6 +51,20 @@ impl Lexicon {
     pub(crate) fn word_feature(&self, word_idx: WordIdx) -> &str {
         debug_assert_eq!(word_idx.lex_type, self.lex_type);
         self.features.get(usize::from_u32(word_idx.word_id))
+    }
+
+    /// Checks if left/right-ids are valid with connector.
+    pub(crate) fn verify(&self, conn: &Connector) -> bool {
+        for i in 0..self.params.len() {
+            let p = self.params.get(i);
+            if conn.num_left() <= usize::from(p.left_id) {
+                return false;
+            }
+            if conn.num_right() <= usize::from(p.right_id) {
+                return false;
+            }
+        }
+        true
     }
 }
 

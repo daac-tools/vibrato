@@ -47,10 +47,26 @@ impl ConnIdMapper {
             }
             old_ids.push(old_id);
         }
-        let mut new_ids = vec![0; old_ids.len()];
+        if usize::from(u16::MAX) <= old_ids.len() {
+            return Err(VibratoError::invalid_argument("rdr", "too many ids."));
+        }
+
+        let mut new_ids = vec![u16::MAX; old_ids.len()];
+        new_ids[usize::from(BOS_EOS_CONNECTION_ID)] = BOS_EOS_CONNECTION_ID;
+
         for (new_id, &old_id) in old_ids.iter().enumerate().skip(1) {
             debug_assert_ne!(old_id, BOS_EOS_CONNECTION_ID);
-            new_ids[usize::from(old_id)] = u16::try_from(new_id)?;
+            if new_ids[usize::from(old_id)] == u16::MAX {
+                return Err(VibratoError::invalid_argument("rdr", "ids are duplicate."));
+            }
+            if let Some(e) = new_ids.get_mut(usize::from(old_id)) {
+                *e = u16::try_from(new_id)?;
+            } else {
+                return Err(VibratoError::invalid_argument(
+                    "rdr",
+                    "ids are out of range.",
+                ));
+            }
         }
         Ok(new_ids)
     }
