@@ -56,7 +56,7 @@ impl ConnIdMapper {
 
         for (new_id, &old_id) in old_ids.iter().enumerate().skip(1) {
             debug_assert_ne!(old_id, BOS_EOS_CONNECTION_ID);
-            if new_ids[usize::from(old_id)] == u16::MAX {
+            if new_ids[usize::from(old_id)] != u16::MAX {
                 return Err(VibratoError::invalid_argument("rdr", "ids are duplicate."));
             }
             if let Some(e) = new_ids.get_mut(usize::from(old_id)) {
