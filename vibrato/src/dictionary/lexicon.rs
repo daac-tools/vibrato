@@ -34,7 +34,7 @@ impl Lexicon {
             .map(move |(word_id, end_char)| {
                 LexMatch::new(
                     WordIdx::new(self.lex_type, word_id),
-                    self.params.param(usize::from_u32(word_id)),
+                    self.params.get(usize::from_u32(word_id)),
                     end_char,
                 )
             })

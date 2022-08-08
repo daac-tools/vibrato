@@ -36,7 +36,7 @@ impl WordParams {
     }
 
     #[inline(always)]
-    pub fn param(&self, word_id: usize) -> WordParam {
+    pub fn get(&self, word_id: usize) -> WordParam {
         self.params[word_id]
     }
 
