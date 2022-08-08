@@ -123,7 +123,9 @@ impl Lattice {
         let mut min_cost = MAX_COST;
         for (i, left_node) in self.ends[usize::from(start_node)].iter().enumerate() {
             debug_assert!(left_node.is_connected_to_bos());
-            let conn_cost = i32::from(connector.cost(left_node.right_id, left_id));
+            // Safety: hogehoge
+            let conn_cost =
+                unsafe { i32::from(connector.cost_unchecked(left_node.right_id, left_id)) };
             let new_cost = left_node.min_cost + conn_cost;
             // Use <= to produce the same tokenization as MeCab
             if new_cost <= min_cost {

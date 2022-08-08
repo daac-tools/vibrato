@@ -34,9 +34,18 @@ impl Connector {
     #[inline(always)]
     pub fn cost(&self, right_id: u16, left_id: u16) -> i16 {
         let index = self.index(right_id, left_id);
-        // TODO: Test the time performance
-        *unsafe { self.data.get_unchecked(index) }
-        // self.data[index]
+        self.data[index]
+    }
+
+    /// Gets the value of the connection matrix
+    ///
+    /// # Safety
+    ///
+    /// hoge
+    #[inline(always)]
+    pub unsafe fn cost_unchecked(&self, right_id: u16, left_id: u16) -> i16 {
+        let index = self.index(right_id, left_id);
+        *self.data.get_unchecked(index)
     }
 
     /// Returns maximum number of left connection ID
