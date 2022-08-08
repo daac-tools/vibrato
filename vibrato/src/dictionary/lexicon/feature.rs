@@ -20,7 +20,7 @@ impl WordFeatures {
     }
 
     #[inline(always)]
-    pub fn feature(&self, word_id: usize) -> &str {
+    pub fn get(&self, word_id: usize) -> &str {
         &self.features[word_id]
     }
 }

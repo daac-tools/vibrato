@@ -132,10 +132,11 @@ impl<'a> Tokenizer<'a> {
 
             let mut has_matched = false;
 
+            // Safety: `start_word < input_len` is already checked.
+            let suffix = unsafe { input_chars.get_unchecked(usize::from(start_word)..) };
+
             if let Some(user_lexicon) = self.dict.user_lexicon() {
-                for m in
-                    user_lexicon.common_prefix_iterator(&input_chars[usize::from(start_word)..])
-                {
+                for m in user_lexicon.common_prefix_iterator(suffix) {
                     debug_assert!(start_word + m.end_char <= input_len);
                     self.lattice.insert_node(
                         start_node,
@@ -149,11 +150,7 @@ impl<'a> Tokenizer<'a> {
                 }
             }
 
-            for m in self
-                .dict
-                .system_lexicon()
-                .common_prefix_iterator(&input_chars[usize::from(start_word)..])
-            {
+            for m in self.dict.system_lexicon().common_prefix_iterator(suffix) {
                 debug_assert!(start_word + m.end_char <= input_len);
                 self.lattice.insert_node(
                     start_node,
