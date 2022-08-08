@@ -5,7 +5,8 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::dictionary::character::CategorySet;
-use crate::dictionary::{ConnIdCounter, Dictionary};
+use crate::dictionary::mapper::ConnIdCounter;
+use crate::dictionary::Dictionary;
 use crate::errors::Result;
 use crate::sentence::Sentence;
 use crate::token::TokenList;
@@ -185,6 +186,12 @@ impl<'a> Tokenizer<'a> {
         }
 
         self.lattice.insert_eos(start_node, self.dict.connector());
+    }
+
+    #[doc(hidden)]
+    pub fn new_connid_counter(&self) -> ConnIdCounter {
+        let connector = self.dict.connector();
+        ConnIdCounter::new(connector.num_left(), connector.num_right())
     }
 
     #[doc(hidden)]

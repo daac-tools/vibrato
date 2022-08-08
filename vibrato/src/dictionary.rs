@@ -13,11 +13,11 @@ use bincode::{Decode, Encode};
 use crate::common;
 use crate::errors::Result;
 
-pub use character::CharProperty;
-pub use connector::Connector;
-pub use lexicon::Lexicon;
-pub use mapper::{ConnIdCounter, ConnIdMapper, ConnIdProbs};
-pub use unknown::UnkHandler;
+use character::CharProperty;
+use connector::Connector;
+use lexicon::Lexicon;
+use mapper::ConnIdMapper;
+use unknown::UnkHandler;
 
 /// Type of lexicon that contains the word.
 #[derive(Clone, Copy, Eq, PartialEq, Debug, Decode, Encode)]
@@ -75,37 +75,38 @@ pub struct Dictionary(DictionaryInner);
 impl Dictionary {
     /// Gets the reference to the system lexicon.
     #[inline(always)]
-    pub const fn system_lexicon(&self) -> &Lexicon {
+    pub(crate) const fn system_lexicon(&self) -> &Lexicon {
         &self.0.system_lexicon
     }
 
     /// Gets the reference to the user lexicon.
     #[inline(always)]
-    pub const fn user_lexicon(&self) -> Option<&Lexicon> {
+    pub(crate) const fn user_lexicon(&self) -> Option<&Lexicon> {
         self.0.user_lexicon.as_ref()
     }
 
     /// Gets the reference to the connection matrix.
     #[inline(always)]
-    pub const fn connector(&self) -> &Connector {
+    pub(crate) const fn connector(&self) -> &Connector {
         &self.0.connector
     }
 
     /// Gets the reference to the mapper for connection ids.
+    #[allow(dead_code)]
     #[inline(always)]
-    pub const fn mapper(&self) -> Option<&ConnIdMapper> {
+    pub(crate) const fn mapper(&self) -> Option<&ConnIdMapper> {
         self.0.mapper.as_ref()
     }
 
     /// Gets the reference to the character property.
     #[inline(always)]
-    pub const fn char_prop(&self) -> &CharProperty {
+    pub(crate) const fn char_prop(&self) -> &CharProperty {
         &self.0.char_prop
     }
 
     /// Gets the reference to the handler of unknown words.
     #[inline(always)]
-    pub const fn unk_handler(&self) -> &UnkHandler {
+    pub(crate) const fn unk_handler(&self) -> &UnkHandler {
         &self.0.unk_handler
     }
 

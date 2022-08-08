@@ -1,5 +1,7 @@
+use crate::dictionary::connector::Connector;
+use crate::dictionary::mapper::ConnIdCounter;
+use crate::dictionary::WordIdx;
 use crate::dictionary::{lexicon::WordParam, LexType};
-use crate::dictionary::{ConnIdCounter, Connector, WordIdx};
 
 use crate::common::{BOS_EOS_CONNECTION_ID, MAX_SENTENCE_LENGTH};
 
