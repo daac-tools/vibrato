@@ -131,6 +131,8 @@ impl<'a> Tokenizer<'a> {
             }
 
             let mut has_matched = false;
+
+            // Safety: `start_word < input_len` is already checked.
             let suffix = unsafe { input_chars.get_unchecked(usize::from(start_word)..) };
 
             if let Some(user_lexicon) = self.dict.user_lexicon() {
