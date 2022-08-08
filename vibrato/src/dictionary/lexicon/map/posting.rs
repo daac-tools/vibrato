@@ -12,7 +12,8 @@ impl Postings {
     #[inline(always)]
     pub fn ids<'a>(&'a self, i: usize) -> impl Iterator<Item = u32> + 'a {
         let len = usize::from_u32(self.data[i]);
-        self.data[i + 1..i + 1 + len].iter().cloned()
+        // self.data[i + 1..i + 1 + len].iter().cloned()
+        unsafe { self.data.get_unchecked(i + 1..i + 1 + len).iter().cloned() }
     }
 }
 
