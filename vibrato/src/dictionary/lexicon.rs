@@ -50,7 +50,7 @@ impl Lexicon {
     #[inline(always)]
     pub(crate) fn word_feature(&self, word_idx: WordIdx) -> &str {
         debug_assert_eq!(word_idx.lex_type, self.lex_type);
-        self.features.feature(usize::from_u32(word_idx.word_id))
+        self.features.get(usize::from_u32(word_idx.word_id))
     }
 }
 
