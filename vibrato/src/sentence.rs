@@ -95,7 +95,8 @@ impl Sentence {
 
     #[inline(always)]
     pub fn len_char(&self) -> u16 {
-        self.chars.len() as u16
+        // Safety: self.chars.len() is always no more than MAX_SENTENCE_LENGTH.
+        unsafe { u16::try_from(self.chars.len()).unwrap_unchecked() }
     }
 
     #[inline(always)]
