@@ -10,7 +10,7 @@ pub struct Postings {
 
 impl Postings {
     #[inline(always)]
-    pub fn ids<'a>(&'a self, i: usize) -> impl Iterator<Item = u32> + 'a {
+    pub fn ids(&'_ self, i: usize) -> impl Iterator<Item = u32> + '_ {
         let len = usize::from_u32(self.data[i]);
         self.data[i + 1..i + 1 + len].iter().cloned()
         // The following unsafe version can shorten the time by 10%.
