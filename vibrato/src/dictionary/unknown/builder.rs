@@ -7,9 +7,8 @@ use crate::errors::{Result, VibratoError};
 impl UnkHandler {
     /// Creates a new instance from `unk.def`.
     ///
-    /// # Arguments
-    ///
-    ///  - `rdr`: A reader of the file.
+    /// Note that the reader is buffered automatically, so you should not
+    /// wrap `rdr` in a buffered reader like `io::BufReader`.
     pub fn from_reader<R>(rdr: R) -> Result<Self>
     where
         R: Read,
@@ -18,7 +17,7 @@ impl UnkHandler {
         let mut reader = csv::ReaderBuilder::new()
             .flexible(true)
             .has_headers(false)
-            .from_reader(rdr);
+            .from_reader(rdr); // automatically buffered
         for rec in reader.records() {
             let rec = rec.map_err(|e| VibratoError::invalid_format("unk.def", e.to_string()))?;
             let e = Self::parse_unk_entry(&rec)?;

@@ -2,6 +2,14 @@
 name = "vibrato"
 version = "0.1.0"
 edition = "2021"
+authors = ["Shunsuke Kanda <shnsk.knd@gmail.com>"]
+description = "Vibrato: viterbi-based accelerated tokenizer"
+license = "MIT OR Apache-2.0"
+homepage = "https://github.com/daac-tools/viterbi"
+repository = "https://github.com/daac-tools/viterbi"
+readme = "README.md"
+keywords = ["japanese", "analyzer", "tokenizer", "morphological"]
+categories = ["text-processing"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

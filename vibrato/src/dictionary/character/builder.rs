@@ -15,9 +15,8 @@ struct CharRange {
 impl CharProperty {
     /// Creates a new instance from `char.def`.
     ///
-    /// # Arguments
-    ///
-    ///  - `rdr`: A reader of the file.
+    /// Note that the reader is buffered automatically, so you should not
+    /// wrap `rdr` in a buffered reader like `io::BufReader`.
     pub fn from_reader<R>(rdr: R) -> Result<Self>
     where
         R: Read,

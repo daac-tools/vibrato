@@ -34,7 +34,7 @@ assert_eq!(t1.feature(), "東京都,名詞,固有名詞,地名,一般,*,*,トウ
 
 ## Feature flags
 
- - `unchecked`: Allows faster tokenization.
+ - `unchecked` allows faster tokenization.
    Activate it only if you can guarantee that the input file is exported from this library
 
 ## License
@@ -42,9 +42,9 @@ assert_eq!(t1.feature(), "東京都,名詞,固有名詞,地名,一般,*,*,トウ
 Licensed under either of
 
  * Apache License, Version 2.0
-   ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
+   ([LICENSE-APACHE](../LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
  * MIT license
-   ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+   ([LICENSE-MIT](../LICENSE-MIT) or http://opensource.org/licenses/MIT)
 
 at your option.
 
