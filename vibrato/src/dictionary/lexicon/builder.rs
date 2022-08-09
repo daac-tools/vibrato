@@ -6,7 +6,10 @@ use crate::dictionary::lexicon::{
 use crate::errors::{Result, VibratoError};
 
 impl Lexicon {
-    /// Builds a new [`Lexicon`] from a lexicon file in the CSV format.
+    /// Builds a new instance from a lexicon file in the CSV format.
+    ///
+    /// Note that the reader is buffered automatically, so you should not
+    /// wrap `rdr` in a buffered reader like `io::BufReader`.
     pub fn from_reader<R>(rdr: R, lex_type: LexType) -> Result<Self>
     where
         R: Read,
@@ -15,7 +18,7 @@ impl Lexicon {
         let mut reader = csv::ReaderBuilder::new()
             .flexible(true)
             .has_headers(false)
-            .from_reader(rdr);
+            .from_reader(rdr); // automatically buffered
 
         for (i, rec) in reader.records().enumerate() {
             let rec = rec.map_err(|e| VibratoError::invalid_format("lex.csv", e.to_string()))?;
