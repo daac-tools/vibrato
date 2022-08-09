@@ -7,7 +7,7 @@ Vibrato is a fast implementation of tokenization (or morphological analysis) bas
  - Fast tokenization
  - MeCab compatible
 
-## Example usage
+## Basic usage
 
 This software is implemented in Rust.
 First of all, install `rustc` and `cargo` following the [official instructions](https://www.rust-lang.org/tools/install).
@@ -72,7 +72,7 @@ $ echo '本とカレーの街神保町へようこそ。' | cargo run --release 
 本 と カレー の 街 神保 町 へ ようこそ 。
 ```
 
-### 3. Faster tokenization
+## Faster tokenization
 
 If you can guarantee that `system.dic` is exported from this library,
 you can specify `--features=unchecked` for faster tokenization.
