@@ -1,6 +1,6 @@
 # 🎤 vibrato: VIterbi-Based acceleRAted TOkenizer
 
-Vibrato is a fast implementation of tokenization (or morphological analysis) based on the viterbi algorithm.
+Vibrato is a fast implementation of tokenization (or morphological analysis) based on the Viterbi algorithm.
 
 ## Features
 
