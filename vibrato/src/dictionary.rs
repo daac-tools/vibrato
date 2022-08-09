@@ -138,8 +138,6 @@ impl Dictionary {
     /// # Errors
     ///
     /// When bincode generates an error, it will be returned as is.
-    #[cfg(any(feature = "unchecked", doc))]
-    #[doc(cfg(feature = "unchecked"))]
     #[cfg(feature = "unchecked")]
     pub unsafe fn read_unchecked<R>(mut rdr: R) -> Result<Self>
     where
