@@ -12,24 +12,24 @@ const INVALID_IDX: u16 = u16::MAX;
 /// 160 bits of each
 #[derive(Default, Debug, Clone)]
 pub struct Node {
-    pub(crate) word_id: u32,
-    pub(crate) lex_type: LexType, // 8 bits
-    pub(crate) start_node: u16,
-    pub(crate) start_word: u16,
-    pub(crate) left_id: u16,
-    pub(crate) right_id: u16,
-    pub(crate) min_idx: u16,
-    pub(crate) min_cost: i32,
+    pub word_id: u32,
+    pub lex_type: LexType, // 8 bits
+    pub start_node: u16,
+    pub start_word: u16,
+    pub left_id: u16,
+    pub right_id: u16,
+    pub min_idx: u16,
+    pub min_cost: i32,
 }
 
 impl Node {
     #[inline(always)]
-    pub(crate) const fn word_idx(&self) -> WordIdx {
+    pub const fn word_idx(&self) -> WordIdx {
         WordIdx::new(self.lex_type, self.word_id)
     }
 
     #[inline(always)]
-    pub(crate) const fn is_connected_to_bos(&self) -> bool {
+    pub const fn is_connected_to_bos(&self) -> bool {
         self.min_cost != MAX_COST
     }
 }
@@ -42,7 +42,7 @@ pub struct Lattice {
 }
 
 impl Lattice {
-    pub(crate) fn reset(&mut self, len_char: u16) {
+    pub fn reset(&mut self, len_char: u16) {
         Self::reset_vec(&mut self.ends, len_char + 1);
         self.len_char = len_char;
         self.eos = None;
@@ -64,7 +64,7 @@ impl Lattice {
 
     /// Returns the number of characters of the set sentence.
     #[inline(always)]
-    pub(crate) const fn len_char(&self) -> u16 {
+    pub const fn len_char(&self) -> u16 {
         self.len_char
     }
 
@@ -81,7 +81,7 @@ impl Lattice {
         });
     }
 
-    pub(crate) fn insert_eos(&mut self, start_node: u16, connector: &Connector) {
+    pub fn insert_eos(&mut self, start_node: u16, connector: &Connector) {
         let (min_idx, min_cost) = self.search_min_node(start_node, 0, connector);
         self.eos = Some(Node {
             word_id: u32::MAX,
@@ -95,7 +95,7 @@ impl Lattice {
         });
     }
 
-    pub(crate) fn insert_node(
+    pub fn insert_node(
         &mut self,
         start_node: u16,
         start_word: u16,
