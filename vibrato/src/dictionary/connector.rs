@@ -36,6 +36,7 @@ impl Connector {
         let index = self.index(right_id, left_id);
         #[cfg(feature = "unchecked")]
         unsafe {
+            // The tokenization time can be shortened by 5--10%.
             *self.data.get_unchecked(index)
         }
         #[cfg(not(feature = "unchecked"))]

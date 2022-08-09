@@ -23,7 +23,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     eprintln!("Loading the dictionary...");
-    let dict = Dictionary::read(BufReader::new(File::open(args.sysdic_filename)?))?;
+    let reader = BufReader::new(File::open(args.sysdic_filename)?);
+    #[cfg(not(feature = "unchecked"))]
+    let dict = Dictionary::read(reader)?;
+    #[cfg(feature = "unchecked")]
+    let dict = unsafe { Dictionary::read_unchecked(reader)? };
 
     eprintln!("Loading and doing the mapping...");
     let dict = dict.mapping_from_reader(

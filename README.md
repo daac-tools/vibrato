@@ -4,10 +4,19 @@ Vibrato is a fast implementation of tokenization (or morphological analysis) bas
 
 ## Features
 
- - Fast tokenization
- - MeCab compatible
+### Fast tokenization
 
-## Example usage
+Vibrato is a Rust reimplementation of the fast tokenizer [MeCab](https://taku910.github.io/mecab/),
+although its implementation has been simplified and optimized for even faster tokenization.
+Especially for language resources with a large matrix
+(e.g., [`unidic-cwj-3.1.0`](https://clrd.ninjal.ac.jp/unidic/back_number.html#unidic_cwj) with a matrix of 459 MiB),
+Vibrato will be efficient thanks to cache-efficient id mappings.
+
+### MeCab compatibility
+
+Vibrato supports outputting the same tokenization results as MeCab.
+
+## Basic usage
 
 This software is implemented in Rust.
 First of all, install `rustc` and `cargo` following the [official instructions](https://www.rust-lang.org/tools/install).
@@ -70,6 +79,15 @@ If you want to output tokens separated by spaces, specify `-O wakati`.
 ```
 $ echo '本とカレーの街神保町へようこそ。' | cargo run --release -p tokenize -- -i resources_ipadic-mecab-2_7_0/system.dic -O wakati
 本 と カレー の 街 神保 町 へ ようこそ 。
+```
+
+## Faster tokenization
+
+If you can guarantee that `system.dic` is exported from this library,
+you can specify `--features=unchecked` for faster tokenization.
+
+```
+$ echo '本とカレーの街神保町へようこそ。' | cargo run --release -p tokenize --features=unchecked -- -i resources_ipadic-mecab-2_7_0/system.dic -O wakati
 ```
 
 ## MeCab-compatible options
@@ -150,7 +168,7 @@ EOS
 You can measure the tokenization speed.
 
 ```
-$ cargo run --release -p benchmark -- -i resources_ipadic-mecab-2_7_0/system.dic < data/wagahaiwa_nekodearu.txt
+$ cargo run --release -p benchmark --features=unchecked -- -i resources_ipadic-mecab-2_7_0/system.dic < data/wagahaiwa_nekodearu.txt
 ```
 
 ## License
