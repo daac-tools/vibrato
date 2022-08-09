@@ -82,13 +82,18 @@ impl CharProperty {
                 "A character category must consists of four items separated by spaces, {}",
                 line
             );
-            return Err(VibratoError::invalid_argument("line", msg));
+            return Err(VibratoError::invalid_argument("char.def", msg));
         }
 
-        // TODO: Handle errors
         let category = cols[0].parse()?;
-        let invoke = cols[1] == "1";
-        let group = cols[2] == "1";
+        let invoke = ["1", "0"]
+            .contains(&cols[1])
+            .then(|| cols[1] == "1")
+            .ok_or_else(|| VibratoError::invalid_argument("char.def", "INVOKE must be 1 or 0."))?;
+        let group = ["1", "0"]
+            .contains(&cols[2])
+            .then(|| cols[2] == "1")
+            .ok_or_else(|| VibratoError::invalid_argument("char.def", "GROUP must be 1 or 0."))?;
         let length = cols[3].parse()?;
 
         Ok((category, invoke, group, length))
@@ -101,7 +106,7 @@ impl CharProperty {
         let cols: Vec<_> = line.split_whitespace().collect();
         if cols.len() < 2 {
             let msg = format!("A character range must have two items at least, {}", line);
-            return Err(VibratoError::invalid_argument("line", msg));
+            return Err(VibratoError::invalid_argument("char.def", msg));
         }
 
         let r: Vec<_> = cols[0].split("..").collect();
@@ -116,11 +121,11 @@ impl CharProperty {
                 "The start of a character range must be no more than the end, {}",
                 line
             );
-            return Err(VibratoError::invalid_argument("line", msg));
+            return Err(VibratoError::invalid_argument("char.def", msg));
         }
-        if start > 0xFFFF || end >= 0xFFFF {
+        if start > 0xFFFF || end > 0x10000 {
             let msg = format!("A character range must be no more 0xFFFF, {}", line);
-            return Err(VibratoError::invalid_argument("line", msg));
+            return Err(VibratoError::invalid_argument("char.def", msg));
         }
 
         let mut cate_ids = vec![];
@@ -133,5 +138,83 @@ impl CharProperty {
             end,
             cate_ids,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_basic() {
+        let data = "DEFAULT 0 1 0\nSPACE 0 1 0\n0x0020 SPACE";
+        let prop = CharProperty::from_reader(data.as_bytes()).unwrap();
+        assert_eq!(prop.chr2inf[0x0020].cate_ids(), "SPACE".parse().unwrap());
+        assert_eq!(prop.chr2inf[0x0020].base_id(), 1);
+        assert_eq!(prop.chr2inf[0x0020].invoke(), false);
+        assert_eq!(prop.chr2inf[0x0020].group(), true);
+        assert_eq!(prop.chr2inf[0x0020].length(), 0);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_invalid_cate() {
+        let data = "INVALID 0 1 0";
+        CharProperty::from_reader(data.as_bytes()).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_invalid_invoke() {
+        let data = "DEFAULT 2 1 0";
+        CharProperty::from_reader(data.as_bytes()).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_invalid_group() {
+        let data = "DEFAULT 0 2 0";
+        CharProperty::from_reader(data.as_bytes()).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_invalid_length() {
+        let data = "DEFAULT 0 2 -1";
+        CharProperty::from_reader(data.as_bytes()).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_few_cols() {
+        let data = "DEFAULT 0 2";
+        CharProperty::from_reader(data.as_bytes()).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_char_range_1() {
+        let data = "DEFAULT 0 1 0\n0x10000 DEFAULT";
+        CharProperty::from_reader(data.as_bytes()).unwrap();
+    }
+
+    #[test]
+    fn test_char_range_2() {
+        let data = "DEFAULT 0 1 0\n0x0..0xFFFF DEFAULT";
+        CharProperty::from_reader(data.as_bytes()).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_char_range_3() {
+        let data = "DEFAULT 0 1 0\n0x0..0x10000 DEFAULT";
+        CharProperty::from_reader(data.as_bytes()).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_char_range_4() {
+        let data = "DEFAULT 0 1 0\n0x0020..0x0019 DEFAULT";
+        CharProperty::from_reader(data.as_bytes()).unwrap();
     }
 }

@@ -23,6 +23,12 @@ impl Connector {
             let line = line?;
             if !line.is_empty() {
                 let (right_id, left_id, conn_cost) = Self::parse_body(&line)?;
+                if num_right <= right_id || num_left <= left_id {
+                    return Err(VibratoError::invalid_argument(
+                        "matrix.def",
+                        "left/right_id must be within num_left/right.",
+                    ));
+                }
                 data[left_id * num_right + right_id] = conn_cost;
             }
         }
@@ -36,9 +42,11 @@ impl Connector {
                 "The header must consists of two integers separated by spaces, {}",
                 line
             );
-            Err(VibratoError::invalid_argument("line", msg))
+            Err(VibratoError::invalid_argument("matrix.def", msg))
         } else {
-            Ok((cols[0].parse()?, cols[1].parse()?))
+            let num_right: u16 = cols[0].parse()?;
+            let num_left: u16 = cols[1].parse()?;
+            Ok((usize::from(num_right), usize::from(num_left)))
         }
     }
 
@@ -49,7 +57,7 @@ impl Connector {
                 "A row other than the header must consists of three integers separated by spaces, {}",
                 line
             );
-            Err(VibratoError::invalid_argument("line", msg))
+            Err(VibratoError::invalid_argument("matrix.def", msg))
         } else {
             Ok((cols[0].parse()?, cols[1].parse()?, cols[2].parse()?))
         }
@@ -90,5 +98,78 @@ mod tests {
         assert_eq!(conn.cost(1, 0), -3);
         assert_eq!(conn.cost(1, 1), -4);
         assert_eq!(conn.cost(1, 2), -5);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_less_header() {
+        let data = "2
+0 0 0
+0 1 1
+1 0 -2
+1 1 -3";
+        Connector::from_reader(data.as_bytes()).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_more_header() {
+        let data = "2 2 2
+0 0 0
+0 1 1
+1 0 -2
+1 1 -3";
+        Connector::from_reader(data.as_bytes()).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_less_body() {
+        let data = "2 2
+0 0 0
+0 1 1
+1 -2
+1 1 -3";
+        Connector::from_reader(data.as_bytes()).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_more_body() {
+        let data = "2 2
+0 0 0
+0 1 1
+1 0 1 -2
+1 1 -3";
+        Connector::from_reader(data.as_bytes()).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_larger_matrix() {
+        let data = "65536 65536";
+        Connector::from_reader(data.as_bytes()).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_larger_left_id() {
+        let data = "2 2
+0 0 0
+0 1 1
+1 2 -2
+1 1 -3";
+        Connector::from_reader(data.as_bytes()).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_larger_right_id() {
+        let data = "2 2
+0 0 0
+0 1 1
+2 0 -2
+1 1 -3";
+        Connector::from_reader(data.as_bytes()).unwrap();
     }
 }

@@ -18,7 +18,7 @@ impl Lexicon {
             .from_reader(rdr);
 
         for (i, rec) in reader.records().enumerate() {
-            let rec = rec.map_err(|e| VibratoError::invalid_argument("rdr", e.to_string()))?;
+            let rec = rec.map_err(|e| VibratoError::invalid_argument("lex.csv", e.to_string()))?;
             let e = Self::parse_csv(&rec)?;
             if e.surface.is_empty() {
                 println!("Skipped an empty surface (at line {})", i);
@@ -45,7 +45,7 @@ impl Lexicon {
                 "A csv row of lexicon must have four items at least, {:?}",
                 rec
             );
-            return Err(VibratoError::invalid_argument("rec", msg));
+            return Err(VibratoError::invalid_argument("lex.csv", msg));
         }
 
         let mut iter = rec.iter();
@@ -60,5 +60,60 @@ impl Lexicon {
             param: WordParam::new(left_id, right_id, word_cost),
             feature,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_system() {
+        let data = "自然,0,2,1,sizen\n言語,1,0,-4,gengo,げんご";
+        let lex = Lexicon::from_reader(data.as_bytes(), LexType::System).unwrap();
+        assert_eq!(lex.params.get(0), WordParam::new(0, 2, 1));
+        assert_eq!(lex.params.get(1), WordParam::new(1, 0, -4));
+        assert_eq!(lex.features.get(0), "sizen");
+        assert_eq!(lex.features.get(1), "gengo,げんご");
+        assert_eq!(lex.lex_type, LexType::System);
+    }
+
+    #[test]
+    fn test_user() {
+        let data = "自然,0,2,1,sizen\n言語,1,0,-4,gengo,げんご";
+        let lex = Lexicon::from_reader(data.as_bytes(), LexType::User).unwrap();
+        assert_eq!(lex.params.get(0), WordParam::new(0, 2, 1));
+        assert_eq!(lex.params.get(1), WordParam::new(1, 0, -4));
+        assert_eq!(lex.features.get(0), "sizen");
+        assert_eq!(lex.features.get(1), "gengo,げんご");
+        assert_eq!(lex.lex_type, LexType::User);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_few_cols() {
+        let data = "自然,0,2";
+        Lexicon::from_reader(data.as_bytes(), LexType::System).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_invalid_left_id() {
+        let data = "自然,-2,2,1";
+        Lexicon::from_reader(data.as_bytes(), LexType::System).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_invalid_right_id() {
+        let data = "自然,2,-2,1";
+        Lexicon::from_reader(data.as_bytes(), LexType::System).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_invalid_cost() {
+        let data = "自然,2,1,コスト";
+        Lexicon::from_reader(data.as_bytes(), LexType::System).unwrap();
     }
 }

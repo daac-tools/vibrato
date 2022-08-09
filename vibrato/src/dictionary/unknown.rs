@@ -13,7 +13,7 @@ use crate::utils::FromU32;
 
 use crate::common::MAX_SENTENCE_LENGTH;
 
-#[derive(Default, Debug, Clone, Decode, Encode)]
+#[derive(Default, Debug, Clone, Decode, Encode, PartialEq, Eq)]
 pub struct UnkEntry {
     pub cate_id: u16,
     pub left_id: u16,
