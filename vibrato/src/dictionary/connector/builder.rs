@@ -1,8 +1,7 @@
 use std::io::{prelude::*, BufReader, Read};
 
+use crate::dictionary::Connector;
 use crate::errors::{Result, VibratoError};
-
-use super::Connector;
 
 impl Connector {
     /// Creates a new instance from `matrix.def`.

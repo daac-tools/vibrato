@@ -56,7 +56,8 @@ impl CategorySet {
     }
 
     /// # Safety
-    /// hogehoge
+    ///
+    /// `bits >> Self::NUM_CATEGORIES == 0`
     #[inline(always)]
     pub unsafe fn from_raw_unchecked(bits: u32) -> Self {
         debug_assert_eq!(bits >> Self::NUM_CATEGORIES, 0);

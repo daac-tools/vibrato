@@ -5,7 +5,8 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::dictionary::character::CategorySet;
-use crate::dictionary::{ConnIdCounter, Dictionary};
+use crate::dictionary::mapper::ConnIdCounter;
+use crate::dictionary::Dictionary;
 use crate::errors::Result;
 use crate::sentence::Sentence;
 use crate::token::TokenList;
@@ -187,7 +188,13 @@ impl<'a> Tokenizer<'a> {
         self.lattice.insert_eos(start_node, self.dict.connector());
     }
 
-    #[doc(hidden)]
+    /// Creates a counter for frequencies of connection ids to train mappings.
+    pub fn new_connid_counter(&self) -> ConnIdCounter {
+        let connector = self.dict.connector();
+        ConnIdCounter::new(connector.num_left(), connector.num_right())
+    }
+
+    /// Adds frequencies of connection ids at the last tokenization.
     pub fn add_connid_counts(&self, counter: &mut ConnIdCounter) {
         self.lattice.add_connid_counts(counter);
     }
@@ -198,7 +205,6 @@ mod tests {
     use std::ops::Deref;
 
     use super::*;
-    use crate::dictionary::*;
 
     #[test]
     fn test_tokenize_1() {
@@ -211,13 +217,13 @@ mod tests {
         let char_def = "DEFAULT 0 1 0";
         let unk_def = "DEFAULT,0,0,100,*";
 
-        let dict = Dictionary::new(
-            Lexicon::from_reader(lexicon_csv.as_bytes(), LexType::System).unwrap(),
-            None,
-            Connector::from_reader(matrix_def.as_bytes()).unwrap(),
-            CharProperty::from_reader(char_def.as_bytes()).unwrap(),
-            UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
-        );
+        let dict = Dictionary::from_reader(
+            lexicon_csv.as_bytes(),
+            matrix_def.as_bytes(),
+            char_def.as_bytes(),
+            unk_def.as_bytes(),
+        )
+        .unwrap();
 
         let mut tokenizer = Tokenizer::new(&dict);
         let tokens = tokenizer.tokenize("自然言語処理").unwrap();
@@ -252,13 +258,13 @@ mod tests {
         let char_def = "DEFAULT 0 1 0";
         let unk_def = "DEFAULT,0,0,100,*";
 
-        let dict = Dictionary::new(
-            Lexicon::from_reader(lexicon_csv.as_bytes(), LexType::System).unwrap(),
-            None,
-            Connector::from_reader(matrix_def.as_bytes()).unwrap(),
-            CharProperty::from_reader(char_def.as_bytes()).unwrap(),
-            UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
-        );
+        let dict = Dictionary::from_reader(
+            lexicon_csv.as_bytes(),
+            matrix_def.as_bytes(),
+            char_def.as_bytes(),
+            unk_def.as_bytes(),
+        )
+        .unwrap();
 
         let mut tokenizer = Tokenizer::new(&dict);
         let tokens = tokenizer.tokenize("自然日本語処理").unwrap();
@@ -293,13 +299,13 @@ mod tests {
         let char_def = "DEFAULT 0 0 3";
         let unk_def = "DEFAULT,0,0,100,*";
 
-        let dict = Dictionary::new(
-            Lexicon::from_reader(lexicon_csv.as_bytes(), LexType::System).unwrap(),
-            None,
-            Connector::from_reader(matrix_def.as_bytes()).unwrap(),
-            CharProperty::from_reader(char_def.as_bytes()).unwrap(),
-            UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
-        );
+        let dict = Dictionary::from_reader(
+            lexicon_csv.as_bytes(),
+            matrix_def.as_bytes(),
+            char_def.as_bytes(),
+            unk_def.as_bytes(),
+        )
+        .unwrap();
 
         let mut tokenizer = Tokenizer::new(&dict);
         let tokens = tokenizer.tokenize("不自然言語処理").unwrap();
@@ -334,13 +340,13 @@ mod tests {
         let char_def = "DEFAULT 0 0 3";
         let unk_def = "DEFAULT,0,0,100,*";
 
-        let dict = Dictionary::new(
-            Lexicon::from_reader(lexicon_csv.as_bytes(), LexType::System).unwrap(),
-            None,
-            Connector::from_reader(matrix_def.as_bytes()).unwrap(),
-            CharProperty::from_reader(char_def.as_bytes()).unwrap(),
-            UnkHandler::from_reader(unk_def.as_bytes()).unwrap(),
-        );
+        let dict = Dictionary::from_reader(
+            lexicon_csv.as_bytes(),
+            matrix_def.as_bytes(),
+            char_def.as_bytes(),
+            unk_def.as_bytes(),
+        )
+        .unwrap();
 
         let mut tokenizer = Tokenizer::new(&dict);
         let tokens = tokenizer.tokenize("").unwrap();

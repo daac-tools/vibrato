@@ -1,12 +1,12 @@
 use bincode::{Decode, Encode};
 
-use super::ConnIdMapper;
+use crate::dictionary::mapper::ConnIdMapper;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Decode, Encode)]
 pub struct WordParam {
-    pub(crate) left_id: u16,
-    pub(crate) right_id: u16,
-    pub(crate) word_cost: i16,
+    pub left_id: u16,
+    pub right_id: u16,
+    pub word_cost: i16,
 }
 
 impl WordParam {
@@ -38,6 +38,11 @@ impl WordParams {
     #[inline(always)]
     pub fn get(&self, word_id: usize) -> WordParam {
         self.params[word_id]
+    }
+
+    #[inline(always)]
+    pub fn len(&self) -> usize {
+        self.params.len()
     }
 
     pub fn do_mapping(&mut self, mapper: &ConnIdMapper) {

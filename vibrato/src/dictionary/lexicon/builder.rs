@@ -1,8 +1,9 @@
 use std::io::Read;
 
+use crate::dictionary::lexicon::{
+    LexType, Lexicon, RawWordEntry, WordFeatures, WordMap, WordParam, WordParams,
+};
 use crate::errors::{Result, VibratoError};
-
-use super::{LexType, Lexicon, RawWordEntry, WordFeatures, WordMap, WordParam, WordParams};
 
 impl Lexicon {
     /// Builds a new [`Lexicon`] from a lexicon file in the CSV format.

@@ -2,7 +2,7 @@ use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
 
-use vibrato::dictionary::{ConnIdCounter, Dictionary};
+use vibrato::dictionary::Dictionary;
 use vibrato::Tokenizer;
 
 use clap::Parser;
@@ -24,9 +24,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let dict = Dictionary::read(BufReader::new(File::open(args.sysdic_filename)?))?;
 
     eprintln!("Training connection id mappings...");
-    let connector = dict.connector();
     let mut tokenizer = Tokenizer::new(&dict);
-    let mut counter = ConnIdCounter::new(connector.num_left(), connector.num_right());
+    let mut counter = tokenizer.new_connid_counter();
 
     #[allow(clippy::significant_drop_in_scrutinee)]
     for line in std::io::stdin().lock().lines() {

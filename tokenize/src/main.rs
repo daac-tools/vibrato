@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::str::FromStr;
 
-use vibrato::dictionary::{Dictionary, LexType, Lexicon};
+use vibrato::dictionary::Dictionary;
 use vibrato::Tokenizer;
 
 use clap::Parser;
@@ -51,8 +51,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut dict = Dictionary::read(BufReader::new(File::open(args.sysdic_filename)?))?;
 
     if let Some(userlex_csv_filename) = args.userlex_csv_filename {
-        let user_lexicon = Lexicon::from_reader(File::open(userlex_csv_filename)?, LexType::User)?;
-        dict.reset_user_lexicon(Some(user_lexicon));
+        dict = dict.user_lexicon_from_reader(Some(File::open(userlex_csv_filename)?))?;
     }
 
     let mut tokenizer = Tokenizer::new(&dict);

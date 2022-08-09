@@ -1,9 +1,8 @@
 use std::collections::BTreeMap;
 use std::io::{prelude::*, BufReader, Read};
 
+use crate::dictionary::character::{CategorySet, CharInfo, CharProperty};
 use crate::errors::{Result, VibratoError};
-
-use super::{CategorySet, CharInfo, CharProperty};
 
 struct CharRange {
     start: usize,

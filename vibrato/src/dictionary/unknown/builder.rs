@@ -1,7 +1,7 @@
 use std::io::Read;
 
-use super::{UnkEntry, UnkHandler};
 use crate::dictionary::character::CategorySet;
+use crate::dictionary::unknown::{UnkEntry, UnkHandler};
 use crate::errors::{Result, VibratoError};
 
 impl UnkHandler {

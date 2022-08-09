@@ -2,10 +2,12 @@ mod builder;
 
 use bincode::{Decode, Encode};
 
-use super::mapper::ConnIdMapper;
-use super::{LexType, WordIdx};
 use crate::dictionary::character::CharInfo;
+use crate::dictionary::connector::Connector;
 use crate::dictionary::lexicon::WordParam;
+use crate::dictionary::mapper::ConnIdMapper;
+use crate::dictionary::word_idx::WordIdx;
+use crate::dictionary::LexType;
 use crate::sentence::Sentence;
 use crate::utils::FromU32;
 
@@ -60,7 +62,7 @@ pub struct UnkHandler {
 }
 
 impl UnkHandler {
-    pub(crate) fn gen_unk_words<F>(
+    pub fn gen_unk_words<F>(
         &self,
         sent: &Sentence,
         start_char: u16,
@@ -130,7 +132,7 @@ impl UnkHandler {
         f
     }
 
-    pub(crate) fn word_feature(&self, word_idx: WordIdx) -> &str {
+    pub fn word_feature(&self, word_idx: WordIdx) -> &str {
         debug_assert_eq!(word_idx.lex_type, LexType::Unknown);
         &self.entries[usize::from_u32(word_idx.word_id)].feature
     }
@@ -138,10 +140,23 @@ impl UnkHandler {
     /// Do NOT make this function public to maintain consistency in
     /// the connection-id mapping among members of `Dictionary`.
     /// The consistency is managed in `Dictionary`.
-    pub(crate) fn do_mapping(&mut self, mapper: &ConnIdMapper) {
+    pub fn do_mapping(&mut self, mapper: &ConnIdMapper) {
         for e in &mut self.entries {
             e.left_id = mapper.left(e.left_id);
             e.right_id = mapper.right(e.right_id);
         }
+    }
+
+    /// Checks if left/right-ids are valid to the connector.
+    pub fn verify(&self, conn: &Connector) -> bool {
+        for e in &self.entries {
+            if conn.num_left() <= usize::from(e.left_id) {
+                return false;
+            }
+            if conn.num_right() <= usize::from(e.right_id) {
+                return false;
+            }
+        }
+        true
     }
 }

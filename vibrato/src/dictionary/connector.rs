@@ -13,7 +13,7 @@ pub struct Connector {
 }
 
 impl Connector {
-    pub(crate) fn new(data: Vec<i16>, num_right: usize, num_left: usize) -> Self {
+    pub fn new(data: Vec<i16>, num_right: usize, num_left: usize) -> Self {
         Self {
             data,
             num_right,
@@ -59,7 +59,7 @@ impl Connector {
     /// Do NOT make this function public to maintain consistency in
     /// the connection-id mapping among members of `Dictionary`.
     /// The consistency is managed in `Dictionary`.
-    pub(crate) fn do_mapping(&mut self, mapper: &ConnIdMapper) {
+    pub fn do_mapping(&mut self, mapper: &ConnIdMapper) {
         assert_eq!(mapper.num_left(), self.num_left);
         assert_eq!(mapper.num_right(), self.num_right);
 
