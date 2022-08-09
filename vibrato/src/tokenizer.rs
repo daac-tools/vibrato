@@ -77,6 +77,11 @@ impl<'a> Tokenizer<'a> {
     }
 
     /// Tokenizes an input text.
+    ///
+    /// # Errors
+    ///
+    /// When the input text includes characters more than [`MAX_SENTENCE_LENGTH`],
+    /// an error will be returned.
     pub fn tokenize<S>(&mut self, input: S) -> Result<&TokenList>
     where
         S: AsRef<str>,
