@@ -8,7 +8,7 @@ bitflags! {
     ///
     /// Implemented as a bitset with fixed size
     #[repr(transparent)]
-    pub(crate) struct CategorySet: u32 {
+    pub struct CategorySet: u32 {
         const DEFAULT = (1 << 0);
         const SPACE = (1 << 1);
         const KANJI = (1 << 2);

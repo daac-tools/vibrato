@@ -7,17 +7,18 @@ use bincode::{Decode, Encode};
 
 use crate::dictionary::connector::Connector;
 use crate::dictionary::mapper::ConnIdMapper;
-use crate::dictionary::{LexType, WordIdx};
+use crate::dictionary::word_idx::WordIdx;
+use crate::dictionary::LexType;
 use crate::utils::FromU32;
 use feature::WordFeatures;
 use map::WordMap;
 use param::WordParams;
 
-pub(crate) use param::WordParam;
+pub use param::WordParam;
 
 /// Lexicon of words.
 #[derive(Decode, Encode)]
-pub(crate) struct Lexicon {
+pub struct Lexicon {
     map: WordMap,
     params: WordParams,
     features: WordFeatures,
@@ -70,7 +71,7 @@ impl Lexicon {
 }
 
 #[derive(Eq, PartialEq, Debug)]
-pub(crate) struct LexMatch {
+pub struct LexMatch {
     pub word_idx: WordIdx,
     pub word_param: WordParam,
     pub end_char: u16,
@@ -88,7 +89,7 @@ impl LexMatch {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub(crate) struct RawWordEntry {
+pub struct RawWordEntry {
     pub surface: String,
     pub param: WordParam,
     pub feature: String,

@@ -3,7 +3,7 @@ use bincode::{Decode, Encode};
 use crate::dictionary::mapper::ConnIdMapper;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Decode, Encode)]
-pub(crate) struct WordParam {
+pub struct WordParam {
     pub left_id: u16,
     pub right_id: u16,
     pub word_cost: i16,
@@ -21,7 +21,7 @@ impl WordParam {
 }
 
 #[derive(Decode, Encode)]
-pub(crate) struct WordParams {
+pub struct WordParams {
     params: Vec<WordParam>,
 }
 

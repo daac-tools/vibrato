@@ -11,7 +11,7 @@ use posting::{Postings, PostingsBuilder};
 use trie::Trie;
 
 #[derive(Decode, Encode)]
-pub(crate) struct WordMap {
+pub struct WordMap {
     trie: Trie,
     postings: Postings,
 }
@@ -43,7 +43,7 @@ impl WordMap {
 }
 
 #[derive(Default)]
-pub(crate) struct WordMapBuilder {
+pub struct WordMapBuilder {
     map: BTreeMap<String, Vec<u32>>,
 }
 

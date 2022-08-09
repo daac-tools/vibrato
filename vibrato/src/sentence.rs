@@ -3,7 +3,7 @@ use crate::dictionary::character::{CharInfo, CharProperty};
 use crate::errors::{Result, VibratoError};
 
 #[derive(Default, Clone, Debug)]
-pub(crate) struct Sentence {
+pub struct Sentence {
     input: String,
     chars: Vec<char>,
     c2b: Vec<usize>,

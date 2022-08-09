@@ -6,7 +6,7 @@ use super::mapper::ConnIdMapper;
 
 /// Matrix of connection costs.
 #[derive(Decode, Encode)]
-pub(crate) struct Connector {
+pub struct Connector {
     data: Vec<i16>,
     num_right: usize,
     num_left: usize,

@@ -5,6 +5,7 @@ pub(crate) mod connector;
 pub(crate) mod lexicon;
 pub(crate) mod mapper;
 pub(crate) mod unknown;
+pub(crate) mod word_idx;
 
 use std::io::{Read, Write};
 
@@ -17,6 +18,7 @@ use connector::Connector;
 use lexicon::Lexicon;
 use mapper::ConnIdMapper;
 use unknown::UnkHandler;
+use word_idx::WordIdx;
 
 /// Type of a lexicon that contains the word.
 #[derive(Clone, Copy, Eq, PartialEq, Debug, Decode, Encode)]
@@ -33,27 +35,6 @@ pub enum LexType {
 impl Default for LexType {
     fn default() -> Self {
         Self::System
-    }
-}
-
-/// Identifier of a word.
-#[derive(Clone, Copy, Eq, PartialEq, Debug)]
-pub(crate) struct WordIdx {
-    pub lex_type: LexType,
-    pub word_id: u32,
-}
-
-impl Default for WordIdx {
-    fn default() -> Self {
-        Self::new(LexType::System, u32::MAX)
-    }
-}
-
-impl WordIdx {
-    /// Creates a new instance.
-    #[inline(always)]
-    pub const fn new(lex_type: LexType, word_id: u32) -> Self {
-        Self { lex_type, word_id }
     }
 }
 

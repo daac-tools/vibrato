@@ -4,7 +4,7 @@ use crate::errors::Result;
 use crate::utils::FromU32;
 
 #[derive(Decode, Encode)]
-pub(crate) struct Postings {
+pub struct Postings {
     // Sets of ids are stored by interleaving their length and values.
     // Then, 8 bits would be sufficient to represent the length in most cases, and
     // serializing `data` into a byte sequence can reduce the memory usage.
@@ -30,7 +30,7 @@ impl Postings {
 }
 
 #[derive(Default)]
-pub(crate) struct PostingsBuilder {
+pub struct PostingsBuilder {
     data: Vec<u32>,
 }
 

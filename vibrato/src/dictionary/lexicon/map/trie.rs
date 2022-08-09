@@ -7,7 +7,7 @@ use bincode::{
 
 use crate::errors::{Result, VibratoError};
 
-pub(crate) struct Trie {
+pub struct Trie {
     da: crawdad::Trie,
 }
 
@@ -53,7 +53,7 @@ impl Trie {
 }
 
 #[derive(Debug, Eq, PartialEq, Clone)]
-pub(crate) struct TrieMatch {
+pub struct TrieMatch {
     pub value: u32,
     pub end_char: u16,
 }

@@ -6,14 +6,15 @@ use crate::dictionary::character::CharInfo;
 use crate::dictionary::connector::Connector;
 use crate::dictionary::lexicon::WordParam;
 use crate::dictionary::mapper::ConnIdMapper;
-use crate::dictionary::{LexType, WordIdx};
+use crate::dictionary::word_idx::WordIdx;
+use crate::dictionary::LexType;
 use crate::sentence::Sentence;
 use crate::utils::FromU32;
 
 use crate::common::MAX_SENTENCE_LENGTH;
 
 #[derive(Default, Debug, Clone, Decode, Encode)]
-pub(crate) struct UnkEntry {
+pub struct UnkEntry {
     pub cate_id: u16,
     pub left_id: u16,
     pub right_id: u16,
@@ -22,7 +23,7 @@ pub(crate) struct UnkEntry {
 }
 
 #[derive(Default, Debug, Clone)]
-pub(crate) struct UnkWord {
+pub struct UnkWord {
     start_char: u16,
     end_char: u16,
     left_id: u16,
@@ -55,7 +56,7 @@ impl UnkWord {
 
 /// Handler of unknown words.
 #[derive(Decode, Encode)]
-pub(crate) struct UnkHandler {
+pub struct UnkHandler {
     offsets: Vec<usize>, // indexed by category id
     entries: Vec<UnkEntry>,
 }

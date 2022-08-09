@@ -1,7 +1,7 @@
 use bincode::{Decode, Encode};
 
 #[derive(Default, Decode, Encode)]
-pub(crate) struct WordFeatures {
+pub struct WordFeatures {
     features: Vec<String>,
 }
 
