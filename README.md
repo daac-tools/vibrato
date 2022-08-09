@@ -6,8 +6,8 @@ Vibrato is a fast implementation of tokenization (or morphological analysis) bas
 
 ### Fast tokenization
 
-Vibrato is a Rust reimplementation of the fast tokenizer [MeCab](https://taku910.github.io/mecab/).
-Its implementation has been simplified and optimized for even faster tokenization.
+Vibrato is a Rust reimplementation of the fast tokenizer [MeCab](https://taku910.github.io/mecab/),
+although its implementation has been simplified and optimized for even faster tokenization.
 Especially for language resources with a large matrix
 (e.g., [`unidic-cwj-3.1.0`](https://clrd.ninjal.ac.jp/unidic/back_number.html#unidic_cwj) with a matrix of 459 MiB),
 Vibrato will be efficient thanks to cache-efficient id mappings.
