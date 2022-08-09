@@ -11,7 +11,7 @@ const UNK_DEF: &str = include_str!("./resources/unk.def");
 
 #[test]
 fn test_tokenize_tokyo() {
-    let dict = Dictionary::from_reader(
+    let dict = Dictionary::from_readers(
         LEX_CSV.as_bytes(),
         MATRIX_DEF.as_bytes(),
         CHAR_DEF.as_bytes(),
@@ -43,7 +43,7 @@ fn test_tokenize_tokyo() {
 
 #[test]
 fn test_tokenize_kyotokyo() {
-    let dict = Dictionary::from_reader(
+    let dict = Dictionary::from_readers(
         LEX_CSV.as_bytes(),
         MATRIX_DEF.as_bytes(),
         CHAR_DEF.as_bytes(),
@@ -103,7 +103,7 @@ fn test_tokenize_kyotokyo() {
 
 #[test]
 fn test_tokenize_kyotokyo_with_user() {
-    let dict = Dictionary::from_reader(
+    let dict = Dictionary::from_readers(
         LEX_CSV.as_bytes(),
         MATRIX_DEF.as_bytes(),
         CHAR_DEF.as_bytes(),
@@ -148,7 +148,7 @@ fn test_tokenize_kyotokyo_with_user() {
 
 #[test]
 fn test_tokenize_tokyoto_with_space() {
-    let dict = Dictionary::from_reader(
+    let dict = Dictionary::from_readers(
         LEX_CSV.as_bytes(),
         MATRIX_DEF.as_bytes(),
         CHAR_DEF.as_bytes(),
@@ -202,7 +202,7 @@ fn test_tokenize_tokyoto_with_space() {
 
 #[test]
 fn test_tokenize_tokyoto_with_space_ignored() {
-    let dict = Dictionary::from_reader(
+    let dict = Dictionary::from_readers(
         LEX_CSV.as_bytes(),
         MATRIX_DEF.as_bytes(),
         CHAR_DEF.as_bytes(),
@@ -245,7 +245,7 @@ fn test_tokenize_tokyoto_with_space_ignored() {
 
 #[test]
 fn test_tokenize_tokyoto_with_spaces_ignored() {
-    let dict = Dictionary::from_reader(
+    let dict = Dictionary::from_readers(
         LEX_CSV.as_bytes(),
         MATRIX_DEF.as_bytes(),
         CHAR_DEF.as_bytes(),
@@ -288,7 +288,7 @@ fn test_tokenize_tokyoto_with_spaces_ignored() {
 
 #[test]
 fn test_tokenize_tokyoto_startswith_spaces_ignored() {
-    let dict = Dictionary::from_reader(
+    let dict = Dictionary::from_readers(
         LEX_CSV.as_bytes(),
         MATRIX_DEF.as_bytes(),
         CHAR_DEF.as_bytes(),
@@ -320,7 +320,7 @@ fn test_tokenize_tokyoto_startswith_spaces_ignored() {
 
 #[test]
 fn test_tokenize_tokyoto_endswith_spaces_ignored() {
-    let dict = Dictionary::from_reader(
+    let dict = Dictionary::from_readers(
         LEX_CSV.as_bytes(),
         MATRIX_DEF.as_bytes(),
         CHAR_DEF.as_bytes(),
@@ -352,7 +352,7 @@ fn test_tokenize_tokyoto_endswith_spaces_ignored() {
 
 #[test]
 fn test_tokenize_kampersanda() {
-    let dict = Dictionary::from_reader(
+    let dict = Dictionary::from_readers(
         LEX_CSV.as_bytes(),
         MATRIX_DEF.as_bytes(),
         CHAR_DEF.as_bytes(),
@@ -381,7 +381,7 @@ fn test_tokenize_kampersanda() {
 
 #[test]
 fn test_tokenize_kampersanda_with_user() {
-    let dict = Dictionary::from_reader(
+    let dict = Dictionary::from_readers(
         LEX_CSV.as_bytes(),
         MATRIX_DEF.as_bytes(),
         CHAR_DEF.as_bytes(),
@@ -412,7 +412,7 @@ fn test_tokenize_kampersanda_with_user() {
 
 #[test]
 fn test_tokenize_kampersanda_with_max_grouping() {
-    let dict = Dictionary::from_reader(
+    let dict = Dictionary::from_readers(
         LEX_CSV.as_bytes(),
         MATRIX_DEF.as_bytes(),
         CHAR_DEF.as_bytes(),
@@ -452,7 +452,7 @@ fn test_tokenize_kampersanda_with_max_grouping() {
 
 #[test]
 fn test_tokenize_tokyoken() {
-    let dict = Dictionary::from_reader(
+    let dict = Dictionary::from_readers(
         LEX_CSV.as_bytes(),
         MATRIX_DEF.as_bytes(),
         CHAR_DEF.as_bytes(),
@@ -469,7 +469,7 @@ fn test_tokenize_tokyoken() {
 /// This test is to check if the category order in char.def is preserved.
 #[test]
 fn test_tokenize_kanjinumeric() {
-    let dict = Dictionary::from_reader(
+    let dict = Dictionary::from_readers(
         LEX_CSV.as_bytes(),
         MATRIX_DEF.as_bytes(),
         CHAR_DEF.as_bytes(),
@@ -492,7 +492,7 @@ fn test_tokenize_kanjinumeric() {
 
 #[test]
 fn test_tokenize_empty() {
-    let dict = Dictionary::from_reader(
+    let dict = Dictionary::from_readers(
         LEX_CSV.as_bytes(),
         MATRIX_DEF.as_bytes(),
         CHAR_DEF.as_bytes(),

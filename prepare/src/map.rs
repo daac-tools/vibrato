@@ -1,6 +1,6 @@
 use std::error::Error;
 use std::fs::File;
-use std::io::{BufReader, BufWriter};
+use std::io::{prelude::*, BufReader, BufWriter};
 
 use vibrato::dictionary::Dictionary;
 
@@ -30,10 +30,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let dict = unsafe { Dictionary::read_unchecked(reader)? };
 
     eprintln!("Loading and doing the mapping...");
-    let dict = dict.mapping_from_reader(
-        File::open(format!("{}.lmap", &args.mapping_basename))?,
-        File::open(format!("{}.rmap", &args.mapping_basename))?,
-    )?;
+    let lmap = load_mapping(File::open(format!("{}.lmap", &args.mapping_basename))?)?;
+    let rmap = load_mapping(File::open(format!("{}.rmap", &args.mapping_basename))?)?;
+    let dict = dict.mapping_from_iter(lmap, rmap)?;
 
     eprintln!(
         "Writting the mapped system dictionary...: {}",
@@ -43,4 +42,19 @@ fn main() -> Result<(), Box<dyn Error>> {
     eprintln!("{} MiB", num_bytes as f64 / (1024. * 1024.));
 
     Ok(())
+}
+
+fn load_mapping<R>(rdr: R) -> Result<Vec<u16>, Box<dyn Error>>
+where
+    R: Read,
+{
+    let reader = BufReader::new(rdr);
+    let lines = reader.lines();
+    let mut ids = vec![];
+    for line in lines {
+        let line = line?;
+        let cols: Vec<_> = line.split('\t').collect();
+        ids.push(cols[0].parse()?);
+    }
+    Ok(ids)
 }
