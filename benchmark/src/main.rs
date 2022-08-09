@@ -29,9 +29,14 @@ struct Args {
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
-    let dict = Dictionary::read(BufReader::new(File::open(args.sysdic_filename)?))?;
-    let mut tokenizer = Tokenizer::new(&dict);
+    let reader = BufReader::new(File::open(args.sysdic_filename)?);
 
+    #[cfg(not(feature = "unchecked"))]
+    let dict = Dictionary::read(reader)?;
+    #[cfg(feature = "unchecked")]
+    let dict = unsafe { Dictionary::read_unchecked(reader)? };
+
+    let mut tokenizer = Tokenizer::new(&dict);
     if args.ignore_space {
         tokenizer = tokenizer.ignore_space(true);
     }

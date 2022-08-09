@@ -119,7 +119,27 @@ impl Dictionary {
     /// # Errors
     ///
     /// When bincode generates an error, it will be returned as is.
+    #[cfg(not(feature = "unchecked"))]
     pub fn read<R>(mut rdr: R) -> Result<Self>
+    where
+        R: Read,
+    {
+        let data = bincode::decode_from_std_read(&mut rdr, common::bincode_config())?;
+        Ok(Self(data))
+    }
+
+    /// Creates a dictionary from a reader.
+    ///
+    /// # Safety
+    ///
+    /// The given data must be a correct automaton exported by
+    /// [`Dictionary::write()`].
+    ///
+    /// # Errors
+    ///
+    /// When bincode generates an error, it will be returned as is.
+    #[cfg(feature = "unchecked")]
+    pub unsafe fn read_unchecked<R>(mut rdr: R) -> Result<Self>
     where
         R: Read,
     {
