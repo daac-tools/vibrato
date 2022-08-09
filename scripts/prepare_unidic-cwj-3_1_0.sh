@@ -14,6 +14,7 @@ if [ -d ${resources_dir} ]; then
   exit
 fi
 
+# Builds the system dictionary.
 wget "https://clrd.ninjal.ac.jp/unidic_archive/cwj/3.1.0/unidic-cwj-3.1.0-full.zip" -O "./unidic-cwj-3.1.0-full.zip" --no-check-certificate
 unzip unidic-cwj-3.1.0-full.zip
 
@@ -27,6 +28,18 @@ rm -rf unidic-cwj-3.1.0-full
 rm -f unidic-cwj-3.1.0-full.zip
 
 cargo run --release -p prepare --bin system -- -r ${resources_dir} -o ${resources_dir}/system.dic
-cargo run --release -p prepare --bin map -- -i ${resources_dir}/system.dic -m data/mappings/${corpus_name} -o ${resources_dir}/system.dic
 
-rm -f ${resources_dir}/lex.csv ${resources_dir}/char.def ${resources_dir}/unk.def ${resources_dir}/matrix.def
+# Trains the mapping
+wget http://www.phontron.com/kftt/download/kftt-data-1.0.tar.gz
+tar -xzf kftt-data-1.0.tar.gz
+
+cargo run --release -p prepare --bin train -- -i ${resources_dir}/system.dic -o ${resources_dir}/kftt < kftt-data-1.0/data/orig/kyoto-train.ja
+
+rm -rf kftt-data-1.0
+rm -f kftt-data-1.0.tar.gz
+
+# Maps ids
+cargo run --release -p prepare --bin map -- -i ${resources_dir}/system.dic -m ${resources_dir}/kftt -o ${resources_dir}/system.dic
+
+# Removes unnecessary data
+rm -f ${resources_dir}/lex.csv ${resources_dir}/char.def ${resources_dir}/unk.def ${resources_dir}/matrix.def ${resources_dir}/kftt.lmap ${resources_dir}/kftt.rmap
