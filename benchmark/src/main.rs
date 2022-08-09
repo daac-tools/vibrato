@@ -30,7 +30,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     let reader = BufReader::new(File::open(args.sysdic_filename)?);
-
     #[cfg(not(feature = "unchecked"))]
     let dict = Dictionary::read(reader)?;
     #[cfg(feature = "unchecked")]

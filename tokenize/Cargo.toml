@@ -5,6 +5,10 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = []
+unchecked = ["vibrato/unchecked"]
+
 [dependencies]
 vibrato = { path = "../vibrato" }
 bincode = "2.0.0-rc.1"  # MIT

@@ -132,7 +132,7 @@ impl Dictionary {
     ///
     /// # Safety
     ///
-    /// The given data must be a correct automaton exported by
+    /// The given reader must be a correct file exported by
     /// [`Dictionary::write()`].
     ///
     /// # Errors
