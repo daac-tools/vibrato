@@ -12,6 +12,9 @@ pub enum VibratoError {
     /// The error variant for [`InvalidArgumentError`].
     InvalidArgument(InvalidArgumentError),
 
+    /// The error variant for [`InvalidFormatError`].
+    InvalidFormat(InvalidFormatError),
+
     /// The error variant for [`TryFromIntError`](std::num::TryFromIntError).
     TryFromInt(std::num::TryFromIntError),
 
@@ -38,12 +41,23 @@ impl VibratoError {
             msg: msg.into(),
         })
     }
+
+    pub(crate) fn invalid_format<S>(arg: &'static str, msg: S) -> Self
+    where
+        S: Into<String>,
+    {
+        Self::InvalidFormat(InvalidFormatError {
+            arg,
+            msg: msg.into(),
+        })
+    }
 }
 
 impl fmt::Display for VibratoError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::InvalidArgument(e) => e.fmt(f),
+            Self::InvalidFormat(e) => e.fmt(f),
             Self::TryFromInt(e) => e.fmt(f),
             Self::ParseInt(e) => e.fmt(f),
             Self::BincodeDecode(e) => e.fmt(f),
@@ -72,6 +86,24 @@ impl fmt::Display for InvalidArgumentError {
 }
 
 impl Error for InvalidArgumentError {}
+
+/// Error used when the input format is invalid.
+#[derive(Debug)]
+pub struct InvalidFormatError {
+    /// Name of the format.
+    pub(crate) arg: &'static str,
+
+    /// Error message.
+    pub(crate) msg: String,
+}
+
+impl fmt::Display for InvalidFormatError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "InvalidFormatError: {}: {}", self.arg, self.msg)
+    }
+}
+
+impl Error for InvalidFormatError {}
 
 impl From<std::num::TryFromIntError> for VibratoError {
     fn from(error: std::num::TryFromIntError) -> Self {

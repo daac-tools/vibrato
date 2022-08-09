@@ -24,7 +24,7 @@ impl Connector {
             if !line.is_empty() {
                 let (right_id, left_id, conn_cost) = Self::parse_body(&line)?;
                 if num_right <= right_id || num_left <= left_id {
-                    return Err(VibratoError::invalid_argument(
+                    return Err(VibratoError::invalid_format(
                         "matrix.def",
                         "left/right_id must be within num_left/right.",
                     ));
@@ -42,7 +42,7 @@ impl Connector {
                 "The header must consists of two integers separated by spaces, {}",
                 line
             );
-            Err(VibratoError::invalid_argument("matrix.def", msg))
+            Err(VibratoError::invalid_format("matrix.def", msg))
         } else {
             let num_right: u16 = cols[0].parse()?;
             let num_left: u16 = cols[1].parse()?;
@@ -57,7 +57,7 @@ impl Connector {
                 "A row other than the header must consists of three integers separated by spaces, {}",
                 line
             );
-            Err(VibratoError::invalid_argument("matrix.def", msg))
+            Err(VibratoError::invalid_format("matrix.def", msg))
         } else {
             Ok((cols[0].parse()?, cols[1].parse()?, cols[2].parse()?))
         }

@@ -18,7 +18,7 @@ impl Lexicon {
             .from_reader(rdr);
 
         for (i, rec) in reader.records().enumerate() {
-            let rec = rec.map_err(|e| VibratoError::invalid_argument("lex.csv", e.to_string()))?;
+            let rec = rec.map_err(|e| VibratoError::invalid_format("lex.csv", e.to_string()))?;
             let e = Self::parse_csv(&rec)?;
             if e.surface.is_empty() {
                 println!("Skipped an empty surface (at line {})", i);
@@ -45,7 +45,7 @@ impl Lexicon {
                 "A csv row of lexicon must have four items at least, {:?}",
                 rec
             );
-            return Err(VibratoError::invalid_argument("lex.csv", msg));
+            return Err(VibratoError::invalid_format("lex.csv", msg));
         }
 
         let mut iter = rec.iter();

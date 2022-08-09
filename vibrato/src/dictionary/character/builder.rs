@@ -82,18 +82,18 @@ impl CharProperty {
                 "A character category must consists of four items separated by spaces, {}",
                 line
             );
-            return Err(VibratoError::invalid_argument("char.def", msg));
+            return Err(VibratoError::invalid_format("char.def", msg));
         }
 
         let category = cols[0].parse()?;
         let invoke = ["1", "0"]
             .contains(&cols[1])
             .then(|| cols[1] == "1")
-            .ok_or_else(|| VibratoError::invalid_argument("char.def", "INVOKE must be 1 or 0."))?;
+            .ok_or_else(|| VibratoError::invalid_format("char.def", "INVOKE must be 1 or 0."))?;
         let group = ["1", "0"]
             .contains(&cols[2])
             .then(|| cols[2] == "1")
-            .ok_or_else(|| VibratoError::invalid_argument("char.def", "GROUP must be 1 or 0."))?;
+            .ok_or_else(|| VibratoError::invalid_format("char.def", "GROUP must be 1 or 0."))?;
         let length = cols[3].parse()?;
 
         Ok((category, invoke, group, length))
@@ -106,7 +106,7 @@ impl CharProperty {
         let cols: Vec<_> = line.split_whitespace().collect();
         if cols.len() < 2 {
             let msg = format!("A character range must have two items at least, {}", line);
-            return Err(VibratoError::invalid_argument("char.def", msg));
+            return Err(VibratoError::invalid_format("char.def", msg));
         }
 
         let r: Vec<_> = cols[0].split("..").collect();
@@ -121,11 +121,11 @@ impl CharProperty {
                 "The start of a character range must be no more than the end, {}",
                 line
             );
-            return Err(VibratoError::invalid_argument("char.def", msg));
+            return Err(VibratoError::invalid_format("char.def", msg));
         }
         if start > 0xFFFF || end > 0x10000 {
             let msg = format!("A character range must be no more 0xFFFF, {}", line);
-            return Err(VibratoError::invalid_argument("char.def", msg));
+            return Err(VibratoError::invalid_format("char.def", msg));
         }
 
         let mut cate_ids = vec![];
