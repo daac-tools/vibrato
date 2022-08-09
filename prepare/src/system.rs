@@ -27,7 +27,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     eprintln!("Compiling the system dictionary...");
     let start = Instant::now();
-    let dict = Dictionary::from_reader(
+    let dict = Dictionary::from_readers(
         File::open(sysdic_filename)?,
         File::open(matrix_filename)?,
         File::open(chardef_filename)?,

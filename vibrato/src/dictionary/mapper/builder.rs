@@ -1,54 +1,30 @@
-use std::io::{prelude::*, BufReader, Read};
-
 use crate::dictionary::mapper::ConnIdMapper;
 use crate::errors::{Result, VibratoError};
 
 use crate::common::BOS_EOS_CONNECTION_ID;
 
 impl ConnIdMapper {
-    /// Creates a new instance from tsv files in which the first column indicates
-    /// connection ids sorted by rank.
-    ///
-    /// # Arguments
-    ///
-    ///  - `l_rdr`: A reader of the file for left-ids.
-    ///  - `r_rdr`: A reader of the file for right-ids.
-    pub fn from_reader<L, R>(l_rdr: L, r_rdr: R) -> Result<Self>
+    pub fn from_iter<L, R>(lmap: L, rmap: R) -> Result<Self>
     where
-        L: Read,
-        R: Read,
+        L: IntoIterator<Item = u16>,
+        R: IntoIterator<Item = u16>,
     {
-        let left = Self::read(l_rdr)?;
-        let right = Self::read(r_rdr)?;
+        let left = Self::parse(lmap)?;
+        let right = Self::parse(rmap)?;
         Ok(Self { left, right })
     }
 
-    fn read<R>(rdr: R) -> Result<Vec<u16>>
+    fn parse<I>(map: I) -> Result<Vec<u16>>
     where
-        R: Read,
+        I: IntoIterator<Item = u16>,
     {
-        let reader = BufReader::new(rdr);
-        let lines = reader.lines();
-
         let mut old_ids = vec![BOS_EOS_CONNECTION_ID];
-        for line in lines {
-            let line = line?;
-            let cols: Vec<_> = line.split('\t').collect();
-            if cols.is_empty() {
-                return Err(VibratoError::invalid_format(
-                    "map",
-                    "A line must not be empty.",
-                ));
-            }
-            let old_id = cols[0].parse()?;
+        for old_id in map {
             if old_id == BOS_EOS_CONNECTION_ID {
-                let msg = format!("Id {} is reserved, {}", BOS_EOS_CONNECTION_ID, line);
-                return Err(VibratoError::invalid_format("map", msg));
+                let msg = format!("Id {} is reserved.", BOS_EOS_CONNECTION_ID);
+                return Err(VibratoError::invalid_argument("map", msg));
             }
             old_ids.push(old_id);
-        }
-        if usize::from(u16::MAX) <= old_ids.len() {
-            return Err(VibratoError::invalid_format("map", "too many ids."));
         }
 
         let mut new_ids = vec![u16::MAX; old_ids.len()];
@@ -57,12 +33,15 @@ impl ConnIdMapper {
         for (new_id, &old_id) in old_ids.iter().enumerate().skip(1) {
             debug_assert_ne!(old_id, BOS_EOS_CONNECTION_ID);
             if new_ids[usize::from(old_id)] != u16::MAX {
-                return Err(VibratoError::invalid_format("map", "ids are duplicate."));
+                return Err(VibratoError::invalid_argument("map", "ids are duplicate."));
             }
             if let Some(e) = new_ids.get_mut(usize::from(old_id)) {
                 *e = u16::try_from(new_id)?;
             } else {
-                return Err(VibratoError::invalid_format("map", "ids are out of range."));
+                return Err(VibratoError::invalid_argument(
+                    "map",
+                    "ids are out of range.",
+                ));
             }
         }
         Ok(new_ids)
@@ -75,22 +54,22 @@ mod tests {
 
     #[test]
     fn test_basic() {
-        let data = "2\n3\n4\n1\n";
-        let mapping = ConnIdMapper::read(data.as_bytes()).unwrap();
+        let map = vec![2, 3, 4, 1];
+        let mapping = ConnIdMapper::parse(map.into_iter()).unwrap();
         assert_eq!(mapping, vec![0, 4, 1, 2, 3]);
     }
 
     #[test]
     #[should_panic]
     fn test_zero() {
-        let data = "2\n3\n0\n1\n";
-        ConnIdMapper::read(data.as_bytes()).unwrap();
+        let map = vec![2, 3, 0, 1];
+        ConnIdMapper::parse(map.into_iter()).unwrap();
     }
 
     #[test]
     #[should_panic]
     fn test_oor() {
-        let data = "2\n3\n5\n1\n";
-        ConnIdMapper::read(data.as_bytes()).unwrap();
+        let map = vec![2, 3, 5, 1];
+        ConnIdMapper::parse(map.into_iter()).unwrap();
     }
 }
