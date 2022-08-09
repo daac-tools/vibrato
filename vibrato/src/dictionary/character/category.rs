@@ -8,7 +8,7 @@ bitflags! {
     ///
     /// Implemented as a bitset with fixed size
     #[repr(transparent)]
-    pub struct CategorySet: u32 {
+    pub(crate) struct CategorySet: u32 {
         const DEFAULT = (1 << 0);
         const SPACE = (1 << 1);
         const KANJI = (1 << 2);
@@ -56,7 +56,8 @@ impl CategorySet {
     }
 
     /// # Safety
-    /// hogehoge
+    ///
+    /// `bits >> Self::NUM_CATEGORIES == 0`
     #[inline(always)]
     pub unsafe fn from_raw_unchecked(bits: u32) -> Self {
         debug_assert_eq!(bits >> Self::NUM_CATEGORIES, 0);

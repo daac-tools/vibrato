@@ -23,12 +23,12 @@ pub struct Node {
 
 impl Node {
     #[inline(always)]
-    pub const fn word_idx(&self) -> WordIdx {
+    pub(crate) const fn word_idx(&self) -> WordIdx {
         WordIdx::new(self.lex_type, self.word_id)
     }
 
     #[inline(always)]
-    pub const fn is_connected_to_bos(&self) -> bool {
+    pub(crate) const fn is_connected_to_bos(&self) -> bool {
         self.min_cost != MAX_COST
     }
 }
@@ -41,7 +41,7 @@ pub struct Lattice {
 }
 
 impl Lattice {
-    pub fn reset(&mut self, len_char: u16) {
+    pub(crate) fn reset(&mut self, len_char: u16) {
         Self::reset_vec(&mut self.ends, len_char + 1);
         self.len_char = len_char;
         self.eos = None;
@@ -63,7 +63,7 @@ impl Lattice {
 
     /// Returns the number of characters of the set sentence.
     #[inline(always)]
-    pub const fn len_char(&self) -> u16 {
+    pub(crate) const fn len_char(&self) -> u16 {
         self.len_char
     }
 
@@ -80,7 +80,7 @@ impl Lattice {
         });
     }
 
-    pub fn insert_eos(&mut self, start_node: u16, connector: &Connector) {
+    pub(crate) fn insert_eos(&mut self, start_node: u16, connector: &Connector) {
         let (min_idx, min_cost) = self.search_min_node(start_node, 0, connector);
         self.eos = Some(Node {
             word_id: u32::MAX,
@@ -94,7 +94,7 @@ impl Lattice {
         });
     }
 
-    pub fn insert_node(
+    pub(crate) fn insert_node(
         &mut self,
         start_node: u16,
         start_word: u16,

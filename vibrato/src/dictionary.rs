@@ -12,14 +12,13 @@ use bincode::{Decode, Encode};
 
 use crate::common;
 use crate::errors::Result;
-
 use character::CharProperty;
 use connector::Connector;
 use lexicon::Lexicon;
 use mapper::ConnIdMapper;
 use unknown::UnkHandler;
 
-/// Type of lexicon that contains the word.
+/// Type of a lexicon that contains the word.
 #[derive(Clone, Copy, Eq, PartialEq, Debug, Decode, Encode)]
 #[repr(u8)]
 pub enum LexType {
@@ -39,9 +38,9 @@ impl Default for LexType {
 
 /// Identifier of a word.
 #[derive(Clone, Copy, Eq, PartialEq, Debug)]
-pub struct WordIdx {
-    pub(crate) lex_type: LexType,
-    pub(crate) word_id: u32,
+pub(crate) struct WordIdx {
+    pub lex_type: LexType,
+    pub word_id: u32,
 }
 
 impl Default for WordIdx {
@@ -110,6 +109,7 @@ impl Dictionary {
         &self.0.unk_handler
     }
 
+    /// Gets the reference to the feature string.
     #[inline(always)]
     pub(crate) fn word_feature(&self, word_idx: WordIdx) -> &str {
         match word_idx.lex_type {

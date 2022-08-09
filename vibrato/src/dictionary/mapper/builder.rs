@@ -1,6 +1,6 @@
 use std::io::{prelude::*, BufReader, Read};
 
-use super::ConnIdMapper;
+use crate::dictionary::mapper::ConnIdMapper;
 use crate::errors::{Result, VibratoError};
 
 use crate::common::BOS_EOS_CONNECTION_ID;

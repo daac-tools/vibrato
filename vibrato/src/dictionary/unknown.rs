@@ -2,18 +2,18 @@ mod builder;
 
 use bincode::{Decode, Encode};
 
-use super::connector::Connector;
-use super::mapper::ConnIdMapper;
-use super::{LexType, WordIdx};
 use crate::dictionary::character::CharInfo;
+use crate::dictionary::connector::Connector;
 use crate::dictionary::lexicon::WordParam;
+use crate::dictionary::mapper::ConnIdMapper;
+use crate::dictionary::{LexType, WordIdx};
 use crate::sentence::Sentence;
 use crate::utils::FromU32;
 
 use crate::common::MAX_SENTENCE_LENGTH;
 
 #[derive(Default, Debug, Clone, Decode, Encode)]
-pub struct UnkEntry {
+pub(crate) struct UnkEntry {
     pub cate_id: u16,
     pub left_id: u16,
     pub right_id: u16,
@@ -22,7 +22,7 @@ pub struct UnkEntry {
 }
 
 #[derive(Default, Debug, Clone)]
-pub struct UnkWord {
+pub(crate) struct UnkWord {
     start_char: u16,
     end_char: u16,
     left_id: u16,
@@ -55,13 +55,13 @@ impl UnkWord {
 
 /// Handler of unknown words.
 #[derive(Decode, Encode)]
-pub struct UnkHandler {
+pub(crate) struct UnkHandler {
     offsets: Vec<usize>, // indexed by category id
     entries: Vec<UnkEntry>,
 }
 
 impl UnkHandler {
-    pub(crate) fn gen_unk_words<F>(
+    pub fn gen_unk_words<F>(
         &self,
         sent: &Sentence,
         start_char: u16,
@@ -131,7 +131,7 @@ impl UnkHandler {
         f
     }
 
-    pub(crate) fn word_feature(&self, word_idx: WordIdx) -> &str {
+    pub fn word_feature(&self, word_idx: WordIdx) -> &str {
         debug_assert_eq!(word_idx.lex_type, LexType::Unknown);
         &self.entries[usize::from_u32(word_idx.word_id)].feature
     }
@@ -139,15 +139,15 @@ impl UnkHandler {
     /// Do NOT make this function public to maintain consistency in
     /// the connection-id mapping among members of `Dictionary`.
     /// The consistency is managed in `Dictionary`.
-    pub(crate) fn do_mapping(&mut self, mapper: &ConnIdMapper) {
+    pub fn do_mapping(&mut self, mapper: &ConnIdMapper) {
         for e in &mut self.entries {
             e.left_id = mapper.left(e.left_id);
             e.right_id = mapper.right(e.right_id);
         }
     }
 
-    /// Checks if left/right-ids are valid with connector.
-    pub(crate) fn verify(&self, conn: &Connector) -> bool {
+    /// Checks if left/right-ids are valid to the connector.
+    pub fn verify(&self, conn: &Connector) -> bool {
         for e in &self.entries {
             if conn.num_left() <= usize::from(e.left_id) {
                 return false;

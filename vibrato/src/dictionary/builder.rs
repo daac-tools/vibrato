@@ -1,13 +1,13 @@
 use std::io::Read;
 
-use super::{
+use crate::dictionary::{
     CharProperty, ConnIdMapper, Connector, Dictionary, DictionaryInner, LexType, Lexicon,
     UnkHandler,
 };
 use crate::errors::{Result, VibratoError};
 
 impl Dictionary {
-    /// Creates a new instance from readers.
+    /// Creates a new instance from readers in the MeCab format.
     ///
     /// # Arguments
     ///

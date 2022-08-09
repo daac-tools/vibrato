@@ -188,13 +188,13 @@ impl<'a> Tokenizer<'a> {
         self.lattice.insert_eos(start_node, self.dict.connector());
     }
 
-    #[doc(hidden)]
+    /// Creates a counter for frequencies of connection ids to train mappings.
     pub fn new_connid_counter(&self) -> ConnIdCounter {
         let connector = self.dict.connector();
         ConnIdCounter::new(connector.num_left(), connector.num_right())
     }
 
-    #[doc(hidden)]
+    /// Adds frequencies of connection ids at the last tokenization.
     pub fn add_connid_counts(&self, counter: &mut ConnIdCounter) {
         self.lattice.add_connid_counts(counter);
     }

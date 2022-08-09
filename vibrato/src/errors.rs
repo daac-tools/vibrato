@@ -6,7 +6,7 @@ use std::fmt;
 /// A specialized Result type for Vibrato.
 pub type Result<T, E = VibratoError> = std::result::Result<T, E>;
 
-/// The error type for Vaporetto.
+/// The error type for Vibrato.
 #[derive(Debug)]
 pub enum VibratoError {
     /// The error variant for [`InvalidArgumentError`].

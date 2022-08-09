@@ -7,7 +7,7 @@ use bincode::{Decode, Encode};
 
 use crate::utils::FromU32;
 
-pub use category::CategorySet;
+pub(crate) use category::CategorySet;
 
 const CATE_IDS_BITS: usize = 18;
 const CATE_IDS_MASK: u32 = (1 << CATE_IDS_BITS) - 1;
@@ -24,7 +24,7 @@ const LENGTH_BITS: usize = 4;
 ///  -    group:  1 bit
 ///  -   length:  4 bits
 #[derive(Default, Clone, Copy, Decode, Encode)]
-pub struct CharInfo(u32);
+pub(crate) struct CharInfo(u32);
 
 impl fmt::Debug for CharInfo {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -99,13 +99,13 @@ impl CharInfo {
 
 /// Mapping from characters to their information.
 #[derive(Decode, Encode)]
-pub struct CharProperty {
+pub(crate) struct CharProperty {
     chr2inf: Vec<CharInfo>,
 }
 
 impl CharProperty {
     #[inline(always)]
-    pub(crate) fn char_info(&self, c: char) -> CharInfo {
+    pub fn char_info(&self, c: char) -> CharInfo {
         self.chr2inf
             .get(usize::from_u32(u32::from(c)))
             .map_or_else(|| self.chr2inf[0], |cinfo| *cinfo)

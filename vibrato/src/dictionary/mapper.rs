@@ -4,29 +4,29 @@ use bincode::{Decode, Encode};
 
 /// Mapper for connection ids.
 #[derive(Decode, Encode)]
-pub struct ConnIdMapper {
+pub(crate) struct ConnIdMapper {
     left: Vec<u16>,
     right: Vec<u16>,
 }
 
 impl ConnIdMapper {
     #[inline(always)]
-    pub(crate) fn num_left(&self) -> usize {
+    pub fn num_left(&self) -> usize {
         self.left.len()
     }
 
     #[inline(always)]
-    pub(crate) fn num_right(&self) -> usize {
+    pub fn num_right(&self) -> usize {
         self.right.len()
     }
 
     #[inline(always)]
-    pub(crate) fn left(&self, id: u16) -> u16 {
+    pub fn left(&self, id: u16) -> u16 {
         self.left[usize::from(id)]
     }
 
     #[inline(always)]
-    pub(crate) fn right(&self, id: u16) -> u16 {
+    pub fn right(&self, id: u16) -> u16 {
         self.right[usize::from(id)]
     }
 }
@@ -41,7 +41,7 @@ pub struct ConnIdCounter {
 
 impl ConnIdCounter {
     /// Creates a new counter for the matrix of `num_left \times num_right`.
-    pub fn new(num_left: usize, num_right: usize) -> Self {
+    pub(crate) fn new(num_left: usize, num_right: usize) -> Self {
         Self {
             lid_to_rid_count: vec![vec![0; num_right]; num_left],
         }
