@@ -21,7 +21,6 @@
     not(feature = "unchecked"),
     doc = "let dict = Dictionary::read(BufReader::new(file)).unwrap();"
 )]
-//! let dict = Dictionary::read(BufReader::new(file)).unwrap();
 //!
 //! let mut tokenizer = vibrato::Tokenizer::new(&dict);
 //! let tokens = tokenizer.tokenize("京都東京都").unwrap();
