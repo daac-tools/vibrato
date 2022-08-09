@@ -9,7 +9,7 @@ use crate::common::{BOS_EOS_CONNECTION_ID, MAX_SENTENCE_LENGTH};
 const MAX_COST: i32 = i32::MAX;
 const INVALID_IDX: u16 = u16::MAX;
 
-/// 160 bits of each
+/// 160 bits of each without extra padding.
 #[derive(Default, Debug, Clone)]
 pub struct Node {
     pub word_id: u32,
@@ -34,6 +34,7 @@ impl Node {
     }
 }
 
+/// This implementation inspired by sudachi.rs.
 #[derive(Default)]
 pub struct Lattice {
     ends: Vec<Vec<Node>>,

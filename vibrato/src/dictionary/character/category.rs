@@ -4,9 +4,7 @@ use std::str::FromStr;
 use crate::errors::{Result, VibratoError};
 
 bitflags! {
-    /// A set of categories for a character
-    ///
-    /// Implemented as a bitset with fixed size
+    /// A set of categories for a character, inspired by sudachi.rs.
     #[repr(transparent)]
     pub struct CategorySet: u32 {
         const DEFAULT = (1 << 0);
