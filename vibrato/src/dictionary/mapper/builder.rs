@@ -35,20 +35,20 @@ impl ConnIdMapper {
             let line = line?;
             let cols: Vec<_> = line.split('\t').collect();
             if cols.is_empty() {
-                return Err(VibratoError::invalid_argument(
-                    "rdr",
+                return Err(VibratoError::invalid_format(
+                    "map",
                     "A line must not be empty.",
                 ));
             }
             let old_id = cols[0].parse()?;
             if old_id == BOS_EOS_CONNECTION_ID {
                 let msg = format!("Id {} is reserved, {}", BOS_EOS_CONNECTION_ID, line);
-                return Err(VibratoError::invalid_argument("rdr", msg));
+                return Err(VibratoError::invalid_format("map", msg));
             }
             old_ids.push(old_id);
         }
         if usize::from(u16::MAX) <= old_ids.len() {
-            return Err(VibratoError::invalid_argument("rdr", "too many ids."));
+            return Err(VibratoError::invalid_format("map", "too many ids."));
         }
 
         let mut new_ids = vec![u16::MAX; old_ids.len()];
@@ -57,15 +57,12 @@ impl ConnIdMapper {
         for (new_id, &old_id) in old_ids.iter().enumerate().skip(1) {
             debug_assert_ne!(old_id, BOS_EOS_CONNECTION_ID);
             if new_ids[usize::from(old_id)] != u16::MAX {
-                return Err(VibratoError::invalid_argument("rdr", "ids are duplicate."));
+                return Err(VibratoError::invalid_format("map", "ids are duplicate."));
             }
             if let Some(e) = new_ids.get_mut(usize::from(old_id)) {
                 *e = u16::try_from(new_id)?;
             } else {
-                return Err(VibratoError::invalid_argument(
-                    "rdr",
-                    "ids are out of range.",
-                ));
+                return Err(VibratoError::invalid_format("map", "ids are out of range."));
             }
         }
         Ok(new_ids)
@@ -77,9 +74,23 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read() {
+    fn test_basic() {
         let data = "2\n3\n4\n1\n";
         let mapping = ConnIdMapper::read(data.as_bytes()).unwrap();
         assert_eq!(mapping, vec![0, 4, 1, 2, 3]);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_zero() {
+        let data = "2\n3\n0\n1\n";
+        ConnIdMapper::read(data.as_bytes()).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_oor() {
+        let data = "2\n3\n5\n1\n";
+        ConnIdMapper::read(data.as_bytes()).unwrap();
     }
 }

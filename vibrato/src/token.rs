@@ -1,4 +1,4 @@
-//! Tokens
+//! Container of resultant tokens.
 use std::cell::{Ref, RefCell};
 use std::ops::Range;
 use std::rc::Rc;
@@ -90,14 +90,14 @@ impl<'a> Token<'a> {
         self.list.dict.word_feature(node.word_idx())
     }
 
-    /// Checks if the token is unknown one.
+    /// Gets the lexicon type where the token is from.
     #[inline(always)]
     pub fn lex_type(&self) -> LexType {
         let (_, node) = &self.list.nodes[self.index];
         node.word_idx().lex_type
     }
 
-    /// Gets the total cost of the token's node.
+    /// Gets the total cost from BOS to the token's node.
     #[inline(always)]
     pub fn total_cost(&self) -> i32 {
         let (_, node) = &self.list.nodes[self.index];
