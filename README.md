@@ -145,7 +145,7 @@ The others (i.e., `<features...>`) are optional.
 For example,
 
 ```
-$ cat data/user.csv
+$ cat user.csv
 神保町,1293,1293,334,カスタム名詞,ジンボチョウ
 本とカレーの街,1293,1293,0,カスタム名詞,ホントカレーノマチ
 ようこそ,3,3,-1000,感動詞,ヨーコソ,Welcome,欢迎欢迎,Benvenuto,Willkommen
@@ -154,7 +154,7 @@ $ cat data/user.csv
 To use the user dictionary, specify the file with the `-u` argument.
 
 ```
-$ echo '本とカレーの街神保町へようこそ。' | cargo run --release -p tokenize -- -i resources_ipadic-mecab-2_7_0/system.dic -u data/user.csv
+$ echo '本とカレーの街神保町へようこそ。' | cargo run --release -p tokenize -- -i resources_ipadic-mecab-2_7_0/system.dic -u user.csv
 本とカレーの街	カスタム名詞,ホントカレーノマチ
 神保町	カスタム名詞,ジンボチョウ
 へ	助詞,格助詞,一般,*,*,*,へ,ヘ,エ
@@ -165,10 +165,10 @@ EOS
 
 ## Benchmark
 
-You can measure the tokenization speed.
+You can measure the tokenization speed for sentences in `test.txt`.
 
 ```
-$ cargo run --release -p benchmark --features=unchecked -- -i resources_ipadic-mecab-2_7_0/system.dic < data/wagahaiwa_nekodearu.txt
+$ cargo run --release -p benchmark --features=unchecked -- -i resources_ipadic-mecab-2_7_0/system.dic < test.txt
 ```
 
 ## License
