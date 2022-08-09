@@ -11,10 +11,10 @@ impl Dictionary {
     ///
     /// # Arguments
     ///
-    ///  - `system_lexicon_rdr`: A reader of file `lex.csv`.
-    ///  - `connector_rdr`: A reader of file `matrix.def`.
-    ///  - `char_prop_rdr`: A reader of file `char.def`.
-    ///  - `unk_handler`: A reader of file `unk.def`.
+    ///  - `system_lexicon_rdr`: A reader of a lexicon file `*.csv`.
+    ///  - `connector_rdr`: A reader of matrix file `matrix.def`.
+    ///  - `char_prop_rdr`: A reader of character definition file `char.def`.
+    ///  - `unk_handler`: A reader of unknown definition file `unk.def`.
     pub fn from_reader<S, C, P, U>(
         system_lexicon_rdr: S,
         connector_rdr: C,
@@ -56,6 +56,11 @@ impl Dictionary {
     }
 
     /// Resets the user dictionary from a reader.
+    ///
+    /// # Arguments
+    ///
+    ///  - `user_lexicon_rdr`: A reader of a lexicon file `*.csv` in the MeCab format.
+    ///                        If `None`, clear the current user dictionary.
     pub fn user_lexicon_from_reader<R>(mut self, user_lexicon_rdr: Option<R>) -> Result<Self>
     where
         R: Read,
@@ -79,6 +84,30 @@ impl Dictionary {
     }
 
     /// Edits connection ids with the given mappings.
+    ///
+    /// # Format
+    ///
+    /// Mappings are written line by line.
+    /// The `i`-th line (1-origin) indicates a mapping from id `i`.
+    /// If a file is in the tsv format, only the first column is evaluated.
+    /// Since id zero is fixed for BOS/EOS, a mapping to zero must not be incldeuded.
+    ///
+    /// # Examples
+    ///
+    /// The following text indicates the mapping
+    /// `(1,2,3,4) -> (2,3,4,1)`.
+    ///
+    /// ```text
+    /// 2
+    /// 3
+    /// 4
+    /// 1
+    /// ```
+    ///
+    /// # Arguments
+    ///
+    ///  - `l_rdr`: A reader of mappings of left ids.
+    ///  - `r_rdr`: A reader of mappings of right ids.
     pub fn mapping_from_reader<L, R>(mut self, l_rdr: L, r_rdr: R) -> Result<Self>
     where
         L: Read,
