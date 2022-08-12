@@ -6,6 +6,7 @@ which wget
 which tar
 which iconv
 which sort
+which openssl
 
 corpus_name="ipadic-mecab-2_7_0"
 resources_dir="resources_${corpus_name}"
@@ -36,17 +37,25 @@ rm -f mecab-ipadic-2.7.0-20070801.tar.gz
 cargo run --release -p prepare --bin system -- -r ${resources_dir} -o ${resources_dir}/system.dic
 
 # Trains the mapping
-wget --timeout 3 -t 10 http://www.phontron.com/kftt/download/kftt-data-1.0.tar.gz
-if [ $? -ne 0 ]; then
-  echo "[ERROR] Failed to download the resource. Please retry later."
-  exit 1
+if [ ! -e kftt-data-1.0.tar.gz ]; then
+  wget --timeout 3 -t 10 http://www.phontron.com/kftt/download/kftt-data-1.0.tar.gz
+  if [ $? -ne 0 ]; then
+    echo "[ERROR] Failed to download the resource. Please retry later."
+    exit 1
+  fi
+else
+  echo "kftt-data-1.0.tar.gz is already there."
 fi
+
+tmp_hash=`openssl sha1 kftt-data-1.0.tar.gz | cut -d $' ' -f 2,2`
+if [ "${tmp_hash}" != "0e1f5a9dc993b7d74ca6a0521232d17ce94c8cb4" ]; then
+  echo "[ERROR] Hash value of kftt-data-1.0.tar.gz doesn't match."
+  exit 1;
+fi
+
 tar -xzf kftt-data-1.0.tar.gz
-
 cargo run --release -p prepare --bin train -- -i ${resources_dir}/system.dic -o ${resources_dir}/kftt < kftt-data-1.0/data/orig/kyoto-train.ja
-
 rm -rf kftt-data-1.0
-rm -f kftt-data-1.0.tar.gz
 
 # Maps ids
 cargo run --release -p prepare --bin map -- -i ${resources_dir}/system.dic -m ${resources_dir}/kftt -o ${resources_dir}/system.dic
