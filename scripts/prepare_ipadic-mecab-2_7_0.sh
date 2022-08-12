@@ -12,11 +12,16 @@ resources_dir="resources_${corpus_name}"
 
 if [ -d ${resources_dir} ]; then
   echo "Directory ${resources_dir} already exits."
-  exit
+  exit 1
 fi
 
 # Builds the system dictionary.
-wget http://jaist.dl.sourceforge.net/project/mecab/mecab-ipadic/2.7.0-20070801/mecab-ipadic-2.7.0-20070801.tar.gz
+wget --timeout 3 -t 10 http://jaist.dl.sourceforge.net/project/mecab/mecab-ipadic/2.7.0-20070801/mecab-ipadic-2.7.0-20070801.tar.gz
+if [ $? -ne 0 ]; then
+  echo "[ERROR] Failed to download the resource. Please retry later."
+  exit 1
+fi
+
 tar -xzf mecab-ipadic-2.7.0-20070801.tar.gz
 
 mkdir ${resources_dir}
@@ -31,7 +36,11 @@ rm -f mecab-ipadic-2.7.0-20070801.tar.gz
 cargo run --release -p prepare --bin system -- -r ${resources_dir} -o ${resources_dir}/system.dic
 
 # Trains the mapping
-wget http://www.phontron.com/kftt/download/kftt-data-1.0.tar.gz
+wget --timeout 3 -t 10 http://www.phontron.com/kftt/download/kftt-data-1.0.tar.gz
+if [ $? -ne 0 ]; then
+  echo "[ERROR] Failed to download the resource. Please retry later."
+  exit 1
+fi
 tar -xzf kftt-data-1.0.tar.gz
 
 cargo run --release -p prepare --bin train -- -i ${resources_dir}/system.dic -o ${resources_dir}/kftt < kftt-data-1.0/data/orig/kyoto-train.ja

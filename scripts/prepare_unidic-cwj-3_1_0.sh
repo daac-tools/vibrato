@@ -11,11 +11,15 @@ resources_dir="resources_${corpus_name}"
 
 if [ -d ${resources_dir} ]; then
   echo "Directory ${resources_dir} already exits."
-  exit
+  exit 1
 fi
 
 # Builds the system dictionary.
-wget "https://clrd.ninjal.ac.jp/unidic_archive/cwj/3.1.0/unidic-cwj-3.1.0-full.zip" -O "./unidic-cwj-3.1.0-full.zip" --no-check-certificate
+wget --timeout 3 -t 10 "https://clrd.ninjal.ac.jp/unidic_archive/cwj/3.1.0/unidic-cwj-3.1.0-full.zip" -O "./unidic-cwj-3.1.0-full.zip" --no-check-certificate
+if [ $? -ne 0 ]; then
+  echo "[ERROR] Failed to download the resource. Please retry later."
+  exit 1
+fi
 unzip unidic-cwj-3.1.0-full.zip
 
 mkdir ${resources_dir}
@@ -30,7 +34,11 @@ rm -f unidic-cwj-3.1.0-full.zip
 cargo run --release -p prepare --bin system -- -r ${resources_dir} -o ${resources_dir}/system.dic
 
 # Trains the mapping
-wget http://www.phontron.com/kftt/download/kftt-data-1.0.tar.gz
+wget --timeout 3 -t 10 http://www.phontron.com/kftt/download/kftt-data-1.0.tar.gz
+if [ $? -ne 0 ]; then
+  echo "[ERROR] Failed to download the resource. Please retry later."
+  exit 1
+fi
 tar -xzf kftt-data-1.0.tar.gz
 
 cargo run --release -p prepare --bin train -- -i ${resources_dir}/system.dic -o ${resources_dir}/kftt < kftt-data-1.0/data/orig/kyoto-train.ja

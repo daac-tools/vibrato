@@ -31,6 +31,7 @@ The directory `scripts` provides scripts to prepare system dictionaries from sev
 ```
 $ ls -1 scripts
 prepare_ipadic-mecab-2_7_0.sh
+prepare_ipadic-mecab-neologd-20200910.sh
 prepare_unidic-cwj-3_1_0.sh
 prepare_unidic-mecab-2_1_2.sh
 ```
