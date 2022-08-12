@@ -2,36 +2,47 @@
 
 set -eux
 
+which git
 which wget
 which tar
 which iconv
 which sort
 
-corpus_name="ipadic-mecab-2_7_0"
-resources_dir="resources_${corpus_name}"
+# Edit these if you want to download another version.
+ymd="20200910"
+commitid="abc61e3"
 
+corpus_name="ipadic-mecab-neologd-${ymd}"
+resources_dir="resources_${corpus_name}"
+workspace_dir="workspace_${corpus_name}"
+
+if [ -d ${workspace_dir} ]; then
+  echo "Directory ${workspace_dir} already exits."
+  exit 1
+fi
 if [ -d ${resources_dir} ]; then
   echo "Directory ${resources_dir} already exits."
   exit 1
 fi
 
 # Builds the system dictionary.
-wget --timeout 3 -t 10 http://jaist.dl.sourceforge.net/project/mecab/mecab-ipadic/2.7.0-20070801/mecab-ipadic-2.7.0-20070801.tar.gz
-if [ $? -ne 0 ]; then
-  echo "[ERROR] Failed to download the resource. Please retry later."
-  exit 1
-fi
+mkdir ${workspace_dir}
+pushd ${workspace_dir}
+  git clone https://github.com/neologd/mecab-ipadic-neologd.git
+  pushd mecab-ipadic-neologd
+    git checkout ${commitid}
+    ./libexec/make-mecab-ipadic-neologd.sh
+  popd
+popd
 
-tar -xzf mecab-ipadic-2.7.0-20070801.tar.gz
+target_resources_dir="${workspace_dir}/mecab-ipadic-neologd/build/mecab-ipadic-2.7.0-20070801-neologd-${ymd}"
 
 mkdir ${resources_dir}
-env LC_ALL=C cat mecab-ipadic-2.7.0-20070801/*.csv | iconv -f EUCJP -t UTF8 | sort > ${resources_dir}/lex.csv
-cat mecab-ipadic-2.7.0-20070801/char.def | iconv -f EUCJP -t UTF8 > ${resources_dir}/char.def
-cat mecab-ipadic-2.7.0-20070801/unk.def | iconv -f EUCJP -t UTF8 > ${resources_dir}/unk.def
-mv mecab-ipadic-2.7.0-20070801/matrix.def ${resources_dir}/matrix.def
-
-rm -rf mecab-ipadic-2.7.0-20070801
-rm -f mecab-ipadic-2.7.0-20070801.tar.gz
+env LC_ALL=C cat ${target_resources_dir}/*.csv | sort >| ${resources_dir}/lex.csv
+mv ${target_resources_dir}/matrix.def ${resources_dir}/matrix.def
+mv ${target_resources_dir}/char.def ${resources_dir}/char.def
+mv ${target_resources_dir}/unk.def ${resources_dir}/unk.def
+rm -rf ${workspace_dir}
 
 cargo run --release -p prepare --bin system -- -r ${resources_dir} -o ${resources_dir}/system.dic
 
