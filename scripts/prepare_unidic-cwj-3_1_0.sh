@@ -7,7 +7,7 @@ which unzip
 which sort
 
 corpus_name="unidic-cwj-3_1_0"
-resources_dir="resources_"${corpus_name}
+resources_dir="resources_${corpus_name}"
 
 if [ -d ${resources_dir} ]; then
   echo "Directory ${resources_dir} already exits."

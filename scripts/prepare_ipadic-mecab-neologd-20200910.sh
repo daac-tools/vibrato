@@ -2,30 +2,47 @@
 
 set -eux
 
+which git
 which wget
-which unzip
+which tar
+which iconv
 which sort
 
-corpus_name="unidic-mecab-2_1_2"
-resources_dir="resources_${corpus_name}"
+# Edit these if you want to download another version.
+ymd="20200910"
+commitid="abc61e3"
 
+corpus_name="ipadic-mecab-neologd-${ymd}"
+resources_dir="resources_${corpus_name}"
+workspace_dir="workspace_${corpus_name}"
+
+if [ -d ${workspace_dir} ]; then
+  echo "Directory ${workspace_dir} already exits."
+  exit
+fi
 if [ -d ${resources_dir} ]; then
   echo "Directory ${resources_dir} already exits."
   exit
 fi
 
 # Builds the system dictionary.
-wget "https://clrd.ninjal.ac.jp/unidic_archive/cwj/2.1.2/unidic-mecab-2.1.2_src.zip" -O "./unidic-mecab-2.1.2_src.zip" --no-check-certificate
-unzip unidic-mecab-2.1.2_src.zip
+mkdir ${workspace_dir}
+pushd ${workspace_dir}
+  git clone https://github.com/neologd/mecab-ipadic-neologd.git
+  pushd mecab-ipadic-neologd
+    git checkout ${commitid}
+    ./libexec/make-mecab-ipadic-neologd.sh
+  popd
+popd
+
+target_resources_dir="${workspace_dir}/mecab-ipadic-neologd/build/mecab-ipadic-2.7.0-20070801-neologd-${ymd}"
 
 mkdir ${resources_dir}
-env LC_ALL=C cat unidic-mecab-2.1.2_src/lex.csv | sort > ${resources_dir}/lex.csv
-mv unidic-mecab-2.1.2_src/char.def ${resources_dir}/char.def
-mv unidic-mecab-2.1.2_src/unk.def ${resources_dir}/unk.def
-mv unidic-mecab-2.1.2_src/matrix.def ${resources_dir}/matrix.def
-
-rm -rf unidic-mecab-2.1.2_src
-rm -f unidic-mecab-2.1.2_src.zip
+env LC_ALL=C cat ${target_resources_dir}/*.csv | sort >| ${resources_dir}/lex.csv
+mv ${target_resources_dir}/matrix.def ${resources_dir}/matrix.def
+mv ${target_resources_dir}/char.def ${resources_dir}/char.def
+mv ${target_resources_dir}/unk.def ${resources_dir}/unk.def
+rm -rf ${workspace_dir}
 
 cargo run --release -p prepare --bin system -- -r ${resources_dir} -o ${resources_dir}/system.dic
 

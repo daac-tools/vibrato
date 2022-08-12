@@ -8,7 +8,7 @@ which iconv
 which sort
 
 corpus_name="ipadic-mecab-2_7_0"
-resources_dir="resources_"${corpus_name}
+resources_dir="resources_${corpus_name}"
 
 if [ -d ${resources_dir} ]; then
   echo "Directory ${resources_dir} already exits."
