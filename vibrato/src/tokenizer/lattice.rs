@@ -39,7 +39,7 @@ impl Node {
 pub struct Lattice {
     ends: Vec<Vec<Node>>,
     eos: Option<Node>,
-    len_char: u16, // needed for avoiding to be free ends
+    len_char: u16, // needed for avoiding to free ends
 }
 
 impl Lattice {
