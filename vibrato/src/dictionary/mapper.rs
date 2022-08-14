@@ -88,6 +88,7 @@ impl ConnIdCounter {
             *rid = i;
             for lid in 0..num_left {
                 assert_eq!(lid, lid_probs[lid].0);
+                // TODO: Take care underflow
                 *rp += lid_probs[lid].1 * lid_to_rid_probs[lid][*rid];
             }
         }
