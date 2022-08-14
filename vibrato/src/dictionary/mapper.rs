@@ -43,7 +43,8 @@ impl ConnIdCounter {
     /// Creates a new counter for the matrix of `num_left \times num_right`.
     pub(crate) fn new(num_left: usize, num_right: usize) -> Self {
         Self {
-            lid_to_rid_count: vec![vec![0; num_right]; num_left],
+            // The initial value 1 is for avoiding zero frequency.
+            lid_to_rid_count: vec![vec![1; num_right]; num_left],
         }
     }
 
