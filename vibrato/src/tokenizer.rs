@@ -6,7 +6,7 @@ use std::rc::Rc;
 
 use crate::dictionary::mapper::ConnIdCounter;
 use crate::dictionary::Dictionary;
-use crate::errors::Result;
+use crate::errors::{Result, VibratoError};
 use crate::sentence::Sentence;
 use crate::token::TokenList;
 use lattice::Lattice;
@@ -47,14 +47,25 @@ impl<'a> Tokenizer<'a> {
     ///
     /// This option is for compatibility with MeCab.
     /// Enable this if you want to obtain the same results as MeCab.
-    pub fn ignore_space(mut self, yes: bool) -> Self {
+    ///
+    /// # Errors
+    ///
+    /// [`VibratoError`] is returned when category `SPACE` is not defined in the input dictionary.
+    pub fn ignore_space(mut self, yes: bool) -> Result<Self> {
         if yes {
-            let cate_id = self.dict.char_prop().cate_id("SPACE").unwrap();
+            let cate_id =
+                self.dict
+                    .char_prop()
+                    .cate_id("SPACE")
+                    .ok_or(VibratoError::invalid_argument(
+                        "dict",
+                        "SPACE is not defined in the input dictionary (i.e., char.def).",
+                    ))?;
             self.space_cateset = Some(1 << cate_id);
         } else {
             self.space_cateset = None;
         }
-        self
+        Ok(self)
     }
 
     /// Specifies the maximum grouping length for unknown words.
