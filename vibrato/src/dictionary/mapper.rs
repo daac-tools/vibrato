@@ -43,7 +43,8 @@ impl ConnIdCounter {
     /// Creates a new counter for the matrix of `num_left \times num_right`.
     pub(crate) fn new(num_left: usize, num_right: usize) -> Self {
         Self {
-            lid_to_rid_count: vec![vec![0; num_right]; num_left],
+            // The initial value 1 is for avoiding zero frequency.
+            lid_to_rid_count: vec![vec![1; num_right]; num_left],
         }
     }
 
@@ -53,7 +54,6 @@ impl ConnIdCounter {
     }
 
     /// Computes the trained probabilities of connection ids.
-    /// TODO: Should do smoothing?
     pub fn compute_probs(&self) -> (ConnIdProbs, ConnIdProbs) {
         let lid_to_rid_count = &self.lid_to_rid_count;
 
@@ -89,7 +89,6 @@ impl ConnIdCounter {
             *rid = i;
             for lid in 0..num_left {
                 assert_eq!(lid, lid_probs[lid].0);
-                // TODO: Take care underflow
                 *rp += lid_probs[lid].1 * lid_to_rid_probs[lid][*rid];
             }
         }
