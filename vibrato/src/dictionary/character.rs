@@ -68,7 +68,7 @@ impl CharInfo {
     }
 
     #[inline(always)]
-    pub fn cate_idset(&self) -> u32 {
+    pub const fn cate_idset(&self) -> u32 {
         self.0 & CATE_IDSET_MASK
     }
 

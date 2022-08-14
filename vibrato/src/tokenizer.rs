@@ -53,14 +53,12 @@ impl<'a> Tokenizer<'a> {
     /// [`VibratoError`] is returned when category `SPACE` is not defined in the input dictionary.
     pub fn ignore_space(mut self, yes: bool) -> Result<Self> {
         if yes {
-            let cate_id =
-                self.dict
-                    .char_prop()
-                    .cate_id("SPACE")
-                    .ok_or(VibratoError::invalid_argument(
-                        "dict",
-                        "SPACE is not defined in the input dictionary (i.e., char.def).",
-                    ))?;
+            let cate_id = self.dict.char_prop().cate_id("SPACE").ok_or_else(|| {
+                VibratoError::invalid_argument(
+                    "dict",
+                    "SPACE is not defined in the input dictionary (i.e., char.def).",
+                )
+            })?;
             self.space_cateset = Some(1 << cate_id);
         } else {
             self.space_cateset = None;
