@@ -53,6 +53,7 @@ impl ConnIdCounter {
     }
 
     /// Computes the trained probabilities of connection ids.
+    /// TODO: Should do smoothing?
     pub fn compute_probs(&self) -> (ConnIdProbs, ConnIdProbs) {
         let lid_to_rid_count = &self.lid_to_rid_count;
 
