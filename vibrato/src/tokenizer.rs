@@ -134,10 +134,11 @@ impl<'a> Tokenizer<'a> {
 
             // on mecab compatible mode
             if let Some(space_cateset) = self.space_cateset {
-                let is_space = sent.char_info(start_node).cate_idset() & space_cateset;
-                start_word += if is_space == 0 {
+                let is_space = (sent.char_info(start_node).cate_idset() & space_cateset) != 0;
+                start_word += if !is_space {
                     0
                 } else {
+                    // Skips space characters.
                     sent.groupable(start_node)
                 };
             }
