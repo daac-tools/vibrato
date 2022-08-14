@@ -72,11 +72,11 @@ impl Sentence {
         debug_assert_eq!(self.chars.len(), self.cinfos.len());
 
         self.groupable.resize(self.chars.len(), 1);
-        let mut rhs = self.cinfos.last().unwrap().cate_ids();
+        let mut rhs = self.cinfos.last().unwrap().cate_idset();
 
         for i in (1..self.chars.len()).rev() {
-            let lhs = self.cinfos[i - 1].cate_ids();
-            if !(lhs & rhs).is_empty() {
+            let lhs = self.cinfos[i - 1].cate_idset();
+            if (lhs & rhs) != 0 {
                 self.groupable[i - 1] = self.groupable[i] + 1;
             }
             rhs = lhs;

@@ -4,10 +4,9 @@ mod lattice;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::dictionary::character::CategorySet;
 use crate::dictionary::mapper::ConnIdCounter;
 use crate::dictionary::Dictionary;
-use crate::errors::Result;
+use crate::errors::{Result, VibratoError};
 use crate::sentence::Sentence;
 use crate::token::TokenList;
 use lattice::Lattice;
@@ -23,7 +22,7 @@ pub struct Tokenizer<'a> {
     lattice: Lattice,
     tokens: TokenList<'a>,
     // For the MeCab compatibility
-    space_cate: Option<CategorySet>,
+    space_cateset: Option<u32>,
     max_grouping_len: Option<u16>,
 }
 
@@ -39,7 +38,7 @@ impl<'a> Tokenizer<'a> {
             sent: Rc::new(RefCell::new(Sentence::new())),
             lattice: Lattice::default(),
             tokens: TokenList::new(dict),
-            space_cate: None,
+            space_cateset: None,
             max_grouping_len: None,
         }
     }
@@ -48,13 +47,23 @@ impl<'a> Tokenizer<'a> {
     ///
     /// This option is for compatibility with MeCab.
     /// Enable this if you want to obtain the same results as MeCab.
-    pub const fn ignore_space(mut self, yes: bool) -> Self {
+    ///
+    /// # Errors
+    ///
+    /// [`VibratoError`] is returned when category `SPACE` is not defined in the input dictionary.
+    pub fn ignore_space(mut self, yes: bool) -> Result<Self> {
         if yes {
-            self.space_cate = Some(CategorySet::SPACE);
+            let cate_id = self.dict.char_prop().cate_id("SPACE").ok_or_else(|| {
+                VibratoError::invalid_argument(
+                    "dict",
+                    "SPACE is not defined in the input dictionary (i.e., char.def).",
+                )
+            })?;
+            self.space_cateset = Some(1 << cate_id);
         } else {
-            self.space_cate = None;
+            self.space_cateset = None;
         }
-        self
+        Ok(self)
     }
 
     /// Specifies the maximum grouping length for unknown words.
@@ -122,11 +131,12 @@ impl<'a> Tokenizer<'a> {
             }
 
             // on mecab compatible mode
-            if let Some(space_cate) = self.space_cate {
-                let is_space = sent.char_info(start_node).cate_ids() & space_cate;
-                start_word += if is_space.is_empty() {
+            if let Some(space_cateset) = self.space_cateset {
+                let is_space = (sent.char_info(start_node).cate_idset() & space_cateset) != 0;
+                start_word += if !is_space {
                     0
                 } else {
+                    // Skips space characters.
                     sent.groupable(start_node)
                 };
             }

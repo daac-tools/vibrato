@@ -15,7 +15,6 @@ categories = ["text-processing"]
 
 [dependencies]
 bincode = "2.0.0-rc.1"  # MIT
-bitflags = "1.3" # MIT/Apache 2.0
 csv = "1.1"
 crawdad = "0.3.0"
 

@@ -39,7 +39,7 @@ impl Dictionary {
         let system_lexicon = Lexicon::from_reader(system_lexicon_rdr, LexType::System)?;
         let connector = Connector::from_reader(connector_rdr)?;
         let char_prop = CharProperty::from_reader(char_prop_rdr)?;
-        let unk_handler = UnkHandler::from_reader(unk_handler_rdr)?;
+        let unk_handler = UnkHandler::from_reader(unk_handler_rdr, &char_prop)?;
 
         if !system_lexicon.verify(&connector) {
             return Err(VibratoError::invalid_argument(

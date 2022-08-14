@@ -1,6 +1,6 @@
 use std::io::Read;
 
-use crate::dictionary::character::CategorySet;
+use crate::dictionary::character::CharProperty;
 use crate::dictionary::unknown::{UnkEntry, UnkHandler};
 use crate::errors::{Result, VibratoError};
 
@@ -9,18 +9,18 @@ impl UnkHandler {
     ///
     /// Note that the reader is buffered automatically, so you should not
     /// wrap `rdr` in a buffered reader like `io::BufReader`.
-    pub fn from_reader<R>(rdr: R) -> Result<Self>
+    pub fn from_reader<R>(rdr: R, char_prop: &CharProperty) -> Result<Self>
     where
         R: Read,
     {
-        let mut map = vec![vec![]; CategorySet::NUM_CATEGORIES];
+        let mut map = vec![vec![]; char_prop.num_categories()];
         let mut reader = csv::ReaderBuilder::new()
             .flexible(true)
             .has_headers(false)
             .from_reader(rdr); // automatically buffered
         for rec in reader.records() {
             let rec = rec.map_err(|e| VibratoError::invalid_format("unk.def", e.to_string()))?;
-            let e = Self::parse_unk_entry(&rec)?;
+            let e = Self::parse_unk_entry(&rec, char_prop)?;
             map[usize::from(e.cate_id)].push(e);
         }
 
@@ -34,7 +34,7 @@ impl UnkHandler {
         Ok(Self { offsets, entries })
     }
 
-    fn parse_unk_entry(rec: &csv::StringRecord) -> Result<UnkEntry> {
+    fn parse_unk_entry(rec: &csv::StringRecord, char_prop: &CharProperty) -> Result<UnkEntry> {
         if rec.len() < 4 {
             let msg = format!(
                 "A csv row of lexicon must have four items at least, {:?}",
@@ -44,13 +44,14 @@ impl UnkHandler {
         }
 
         let mut iter = rec.iter();
-        let category: CategorySet = iter.next().unwrap().parse()?;
+        let category = iter.next().unwrap();
         let left_id = iter.next().unwrap().parse()?;
         let right_id = iter.next().unwrap().parse()?;
         let word_cost = iter.next().unwrap().parse()?;
         let feature = iter.collect::<Vec<_>>().join(",");
 
-        let cate_id = u16::try_from(category.first_id().unwrap()).unwrap();
+        // TODO: Handling unfound error.
+        let cate_id = u16::try_from(char_prop.cate_id(category).unwrap()).unwrap();
 
         Ok(UnkEntry {
             cate_id,
@@ -68,14 +69,16 @@ mod tests {
 
     #[test]
     fn test_basic() {
-        let data = "DEFAULT,0,2,1,補助記号\nALPHA,1,0,-4,名詞\nALPHA,2,2,3,Meishi";
-        let unk = UnkHandler::from_reader(data.as_bytes()).unwrap();
+        let char_def = "DEFAULT 0 1 0\nSPACE 0 1 0\nALPHA 1 1 0";
+        let unk_def = "DEFAULT,0,2,1,補助記号\nALPHA,1,0,-4,名詞\nALPHA,2,2,3,Meishi";
+        let prop = CharProperty::from_reader(char_def.as_bytes()).unwrap();
+        let unk = UnkHandler::from_reader(unk_def.as_bytes(), &prop).unwrap();
         assert_eq!(
             unk.offsets,
             vec![
                 0, //DEFAULT = 0
-                1, 1, 1, 1, 1, // ALPHA = 5
-                3, 3, 3, 3, 3, 3
+                1, 1, // ALPHA = 2
+                3,
             ]
         );
         assert_eq!(
@@ -89,14 +92,14 @@ mod tests {
                     feature: "補助記号".to_string(),
                 },
                 UnkEntry {
-                    cate_id: 5,
+                    cate_id: 2,
                     left_id: 1,
                     right_id: 0,
                     word_cost: -4,
                     feature: "名詞".to_string(),
                 },
                 UnkEntry {
-                    cate_id: 5,
+                    cate_id: 2,
                     left_id: 2,
                     right_id: 2,
                     word_cost: 3,
@@ -109,14 +112,18 @@ mod tests {
     #[test]
     #[should_panic]
     fn test_few_cols() {
-        let data = "DEFAULT,0,2";
-        UnkHandler::from_reader(data.as_bytes()).unwrap();
+        let char_def = "DEFAULT 0 1 0";
+        let unk_def = "DEFAULT,0,2";
+        let prop = CharProperty::from_reader(char_def.as_bytes()).unwrap();
+        UnkHandler::from_reader(unk_def.as_bytes(), &prop).unwrap();
     }
 
     #[test]
     #[should_panic]
     fn test_invalid_cate() {
-        let data = "INVALID,0,2,1,補助記号";
-        UnkHandler::from_reader(data.as_bytes()).unwrap();
+        let char_def = "DEFAULT 0 1 0";
+        let unk_def = "INVALID,0,2,1,補助記号";
+        let prop = CharProperty::from_reader(char_def.as_bytes()).unwrap();
+        UnkHandler::from_reader(unk_def.as_bytes(), &prop).unwrap();
     }
 }
