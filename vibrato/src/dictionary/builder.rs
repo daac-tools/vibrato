@@ -133,6 +133,7 @@ impl Dictionary {
         }
         self.0.connector.do_mapping(&mapper);
         self.0.unk_handler.do_mapping(&mapper);
+        self.0.context_ids.do_mapping(&mapper);
         self.0.mapper = Some(mapper);
         Ok(self)
     }
