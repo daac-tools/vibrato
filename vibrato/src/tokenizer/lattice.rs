@@ -80,13 +80,14 @@ impl Lattice {
     }
 
     pub fn insert_eos(&mut self, start_node: u16, connector: &Connector, context_ids: &ContextIds) {
-        let (min_idx, min_cost) = self.search_min_node(start_node, 0, connector);
+        let left_id = context_ids.eos_left_id();
+        let (min_idx, min_cost) = self.search_min_node(start_node, left_id, connector);
         self.eos = Some(Node {
             word_id: u32::MAX,
             lex_type: LexType::default(),
             start_node,
             start_word: self.len_char(),
-            left_id: context_ids.eos_left_id(),
+            left_id,
             right_id: u16::MAX,
             min_idx,
             min_cost,
