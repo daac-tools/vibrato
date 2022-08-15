@@ -14,7 +14,7 @@ Vibrato will run faster thanks to cache-efficient id mappings.
 
 ### MeCab compatibility
 
-Vibrato supports outputting the same tokenization results as MeCab.
+Vibrato supports options for outputting tokenized results identical to MeCab, such as ignoring whitespace.
 
 ## Basic usage
 
