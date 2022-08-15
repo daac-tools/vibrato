@@ -27,6 +27,8 @@ mkdir ${resources_dir}
 env LC_ALL=C cat unidic-cwj-3.1.0-full/lex_3_1.csv | sort > ${resources_dir}/lex.csv
 mv unidic-cwj-3.1.0-full/char.def ${resources_dir}/
 mv unidic-cwj-3.1.0-full/unk.def ${resources_dir}/
+mv unidic-cwj-3.1.0-full/left-id.def ${resources_dir}/
+mv unidic-cwj-3.1.0-full/right-id.def ${resources_dir}/
 mv unidic-cwj-3.1.0-full/matrix.def ${resources_dir}/
 
 rm -rf unidic-cwj-3.1.0-full
@@ -58,5 +60,5 @@ rm -rf kftt-data-1.0
 # Maps ids
 cargo run --release -p prepare --bin map -- -i ${resources_dir}/system.dic -m ${resources_dir}/kftt -o ${resources_dir}/system.dic
 
-# Removes unnecessary data
-rm -f ${resources_dir}/lex.csv ${resources_dir}/char.def ${resources_dir}/unk.def ${resources_dir}/matrix.def ${resources_dir}/kftt.lmap ${resources_dir}/kftt.rmap
+# Removes unnecessary large data
+rm -f ${resources_dir}/lex.csv ${resources_dir}/matrix.def

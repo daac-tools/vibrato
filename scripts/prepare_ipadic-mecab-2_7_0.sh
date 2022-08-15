@@ -29,6 +29,8 @@ mkdir ${resources_dir}
 env LC_ALL=C cat mecab-ipadic-2.7.0-20070801/*.csv | iconv -f EUCJP -t UTF8 | sort > ${resources_dir}/lex.csv
 cat mecab-ipadic-2.7.0-20070801/char.def | iconv -f EUCJP -t UTF8 > ${resources_dir}/char.def
 cat mecab-ipadic-2.7.0-20070801/unk.def | iconv -f EUCJP -t UTF8 > ${resources_dir}/unk.def
+cat mecab-ipadic-2.7.0-20070801/left-id.def | iconv -f EUCJP -t UTF8 > ${resources_dir}/left-id.def
+cat mecab-ipadic-2.7.0-20070801/right-id.def | iconv -f EUCJP -t UTF8 > ${resources_dir}/right-id.def
 mv mecab-ipadic-2.7.0-20070801/matrix.def ${resources_dir}/matrix.def
 
 rm -rf mecab-ipadic-2.7.0-20070801
@@ -60,5 +62,5 @@ rm -rf kftt-data-1.0
 # Maps ids
 cargo run --release -p prepare --bin map -- -i ${resources_dir}/system.dic -m ${resources_dir}/kftt -o ${resources_dir}/system.dic
 
-# Removes unnecessary data
-rm -f ${resources_dir}/lex.csv ${resources_dir}/char.def ${resources_dir}/unk.def ${resources_dir}/matrix.def ${resources_dir}/kftt.lmap ${resources_dir}/kftt.rmap
+# Removes unnecessary large data
+rm -f ${resources_dir}/lex.csv ${resources_dir}/matrix.def

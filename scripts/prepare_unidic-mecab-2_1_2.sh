@@ -25,9 +25,11 @@ unzip unidic-mecab-2.1.2_src.zip
 
 mkdir ${resources_dir}
 env LC_ALL=C cat unidic-mecab-2.1.2_src/lex.csv | sort > ${resources_dir}/lex.csv
-mv unidic-mecab-2.1.2_src/char.def ${resources_dir}/char.def
-mv unidic-mecab-2.1.2_src/unk.def ${resources_dir}/unk.def
-mv unidic-mecab-2.1.2_src/matrix.def ${resources_dir}/matrix.def
+mv unidic-mecab-2.1.2_src/char.def ${resources_dir}/
+mv unidic-mecab-2.1.2_src/unk.def ${resources_dir}/
+mv unidic-mecab-2.1.2_src/left-id.def ${resources_dir}/
+mv unidic-mecab-2.1.2_src/right-id.def ${resources_dir}/
+mv unidic-mecab-2.1.2_src/matrix.def ${resources_dir}/
 
 rm -rf unidic-mecab-2.1.2_src
 rm -f unidic-mecab-2.1.2_src.zip
@@ -58,5 +60,5 @@ rm -rf kftt-data-1.0
 # Maps ids
 cargo run --release -p prepare --bin map -- -i ${resources_dir}/system.dic -m ${resources_dir}/kftt -o ${resources_dir}/system.dic
 
-# Removes unnecessary data
-rm -f ${resources_dir}/lex.csv ${resources_dir}/char.def ${resources_dir}/unk.def ${resources_dir}/matrix.def ${resources_dir}/kftt.lmap ${resources_dir}/kftt.rmap
+# Removes unnecessary large data
+rm -f ${resources_dir}/lex.csv ${resources_dir}/matrix.def

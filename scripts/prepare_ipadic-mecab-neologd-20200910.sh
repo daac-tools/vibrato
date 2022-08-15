@@ -43,6 +43,8 @@ env LC_ALL=C cat ${target_resources_dir}/*.csv | sort >| ${resources_dir}/lex.cs
 mv ${target_resources_dir}/matrix.def ${resources_dir}/matrix.def
 mv ${target_resources_dir}/char.def ${resources_dir}/char.def
 mv ${target_resources_dir}/unk.def ${resources_dir}/unk.def
+mv ${target_resources_dir}/left-id.def ${resources_dir}/left-id.def
+mv ${target_resources_dir}/right-id.def ${resources_dir}/right-id.def
 rm -rf ${workspace_dir}
 
 cargo run --release -p prepare --bin system -- -r ${resources_dir} -o ${resources_dir}/system.dic
@@ -71,5 +73,5 @@ rm -rf kftt-data-1.0
 # Maps ids
 cargo run --release -p prepare --bin map -- -i ${resources_dir}/system.dic -m ${resources_dir}/kftt -o ${resources_dir}/system.dic
 
-# Removes unnecessary data
-rm -f ${resources_dir}/lex.csv ${resources_dir}/char.def ${resources_dir}/unk.def ${resources_dir}/matrix.def ${resources_dir}/kftt.lmap ${resources_dir}/kftt.rmap
+# Removes unnecessary large data
+rm -f ${resources_dir}/lex.csv ${resources_dir}/matrix.def
