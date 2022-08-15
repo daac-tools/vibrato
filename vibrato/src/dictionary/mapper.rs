@@ -93,10 +93,6 @@ impl ConnIdCounter {
             }
         }
 
-        // Pop Id = 0
-        lid_probs.drain(..1);
-        rid_probs.drain(..1);
-
         // Sort
         lid_probs.sort_unstable_by(|(i1, p1), (i2, p2)| {
             p2.partial_cmp(p1)

@@ -1,8 +1,6 @@
 use crate::dictionary::mapper::ConnIdMapper;
 use crate::errors::{Result, VibratoError};
 
-use crate::common::BOS_EOS_CONNECTION_ID;
-
 impl ConnIdMapper {
     pub fn from_iter<L, R>(lmap: L, rmap: R) -> Result<Self>
     where
@@ -18,20 +16,13 @@ impl ConnIdMapper {
     where
         I: IntoIterator<Item = u16>,
     {
-        let mut old_ids = vec![BOS_EOS_CONNECTION_ID];
+        let mut old_ids = vec![];
         for old_id in map {
-            if old_id == BOS_EOS_CONNECTION_ID {
-                let msg = format!("Id {} is reserved.", BOS_EOS_CONNECTION_ID);
-                return Err(VibratoError::invalid_argument("map", msg));
-            }
             old_ids.push(old_id);
         }
 
         let mut new_ids = vec![u16::MAX; old_ids.len()];
-        new_ids[usize::from(BOS_EOS_CONNECTION_ID)] = BOS_EOS_CONNECTION_ID;
-
-        for (new_id, &old_id) in old_ids.iter().enumerate().skip(1) {
-            debug_assert_ne!(old_id, BOS_EOS_CONNECTION_ID);
+        for (new_id, &old_id) in old_ids.iter().enumerate() {
             if new_ids[usize::from(old_id)] != u16::MAX {
                 return Err(VibratoError::invalid_argument("map", "ids are duplicate."));
             }
@@ -54,22 +45,22 @@ mod tests {
 
     #[test]
     fn test_basic() {
-        let map = vec![2, 3, 4, 1];
+        let map = vec![2, 3, 0, 4, 1];
         let mapping = ConnIdMapper::parse(map.into_iter()).unwrap();
-        assert_eq!(mapping, vec![0, 4, 1, 2, 3]);
-    }
-
-    #[test]
-    #[should_panic]
-    fn test_zero() {
-        let map = vec![2, 3, 0, 1];
-        ConnIdMapper::parse(map.into_iter()).unwrap();
+        assert_eq!(mapping, vec![2, 4, 0, 1, 3]);
     }
 
     #[test]
     #[should_panic]
     fn test_oor() {
-        let map = vec![2, 3, 5, 1];
+        let map = vec![2, 3, 0, 5, 1];
+        ConnIdMapper::parse(map.into_iter()).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_dup() {
+        let map = vec![2, 3, 0, 2, 1];
         ConnIdMapper::parse(map.into_iter()).unwrap();
     }
 }

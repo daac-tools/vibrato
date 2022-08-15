@@ -1,10 +1,11 @@
 use crate::dictionary::connector::Connector;
+use crate::dictionary::context_id::ContextIds;
 use crate::dictionary::lexicon::WordParam;
 use crate::dictionary::mapper::ConnIdCounter;
 use crate::dictionary::word_idx::WordIdx;
 use crate::dictionary::LexType;
 
-use crate::common::{BOS_EOS_CONNECTION_ID, MAX_SENTENCE_LENGTH};
+use crate::common::MAX_SENTENCE_LENGTH;
 
 const MAX_COST: i32 = i32::MAX;
 const INVALID_IDX: u16 = u16::MAX;
@@ -43,13 +44,6 @@ pub struct Lattice {
 }
 
 impl Lattice {
-    pub fn reset(&mut self, len_char: u16) {
-        Self::reset_vec(&mut self.ends, len_char + 1);
-        self.len_char = len_char;
-        self.eos = None;
-        self.insert_bos();
-    }
-
     fn reset_vec<T>(data: &mut Vec<Vec<T>>, new_len: u16) {
         for v in data.iter_mut() {
             v.clear();
@@ -69,27 +63,30 @@ impl Lattice {
         self.len_char
     }
 
-    fn insert_bos(&mut self) {
+    pub fn insert_bos(&mut self, len_char: u16, context_ids: &ContextIds) {
+        Self::reset_vec(&mut self.ends, len_char + 1);
+        self.len_char = len_char;
+        self.eos = None;
         self.ends[0].push(Node {
             word_id: u32::MAX,
             lex_type: LexType::default(),
             start_node: MAX_SENTENCE_LENGTH,
             start_word: MAX_SENTENCE_LENGTH,
             left_id: u16::MAX,
-            right_id: BOS_EOS_CONNECTION_ID,
+            right_id: context_ids.bos_right_id(),
             min_idx: INVALID_IDX,
             min_cost: 0,
         });
     }
 
-    pub fn insert_eos(&mut self, start_node: u16, connector: &Connector) {
+    pub fn insert_eos(&mut self, start_node: u16, connector: &Connector, context_ids: &ContextIds) {
         let (min_idx, min_cost) = self.search_min_node(start_node, 0, connector);
         self.eos = Some(Node {
             word_id: u32::MAX,
             lex_type: LexType::default(),
             start_node,
             start_word: self.len_char(),
-            left_id: BOS_EOS_CONNECTION_ID,
+            left_id: context_ids.eos_left_id(),
             right_id: u16::MAX,
             min_idx,
             min_cost,

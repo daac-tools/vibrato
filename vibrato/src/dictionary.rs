@@ -2,6 +2,7 @@
 pub(crate) mod builder;
 pub(crate) mod character;
 pub(crate) mod connector;
+pub(crate) mod context_id;
 pub(crate) mod lexicon;
 pub(crate) mod mapper;
 pub(crate) mod unknown;
@@ -15,6 +16,7 @@ use crate::common;
 use crate::errors::Result;
 use character::CharProperty;
 use connector::Connector;
+use context_id::ContextIds;
 use lexicon::Lexicon;
 use mapper::ConnIdMapper;
 use unknown::UnkHandler;
@@ -47,6 +49,7 @@ struct DictionaryInner {
     mapper: Option<ConnIdMapper>,
     char_prop: CharProperty,
     unk_handler: UnkHandler,
+    context_ids: ContextIds,
 }
 
 /// Dictionary for tokenization.
@@ -88,6 +91,12 @@ impl Dictionary {
     #[inline(always)]
     pub(crate) const fn unk_handler(&self) -> &UnkHandler {
         &self.0.unk_handler
+    }
+
+    /// Gets the reference to the context ids.
+    #[inline(always)]
+    pub(crate) const fn context_ids(&self) -> &ContextIds {
+        &self.0.context_ids
     }
 
     /// Gets the reference to the feature string.

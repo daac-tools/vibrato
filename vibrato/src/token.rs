@@ -143,12 +143,16 @@ mod tests {
         let matrix_def = "1 1\n0 0 0";
         let char_def = "DEFAULT 0 1 0";
         let unk_def = "DEFAULT,0,0,100,*";
+        let left_id_def = "0 BOS/EOS";
+        let right_id_def = "0 BOS/EOS";
 
         let dict = Dictionary::from_readers(
             lexicon_csv.as_bytes(),
             matrix_def.as_bytes(),
             char_def.as_bytes(),
             unk_def.as_bytes(),
+            left_id_def.as_bytes(),
+            right_id_def.as_bytes(),
         )
         .unwrap();
 

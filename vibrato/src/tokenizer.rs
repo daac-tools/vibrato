@@ -118,7 +118,7 @@ impl<'a> Tokenizer<'a> {
         let input_chars = sent.chars();
         let input_len = sent.len_char();
 
-        self.lattice.reset(input_len);
+        self.lattice.insert_bos(input_len, self.dict.context_ids());
 
         let mut start_node = 0;
         let mut start_word = 0;
@@ -200,7 +200,8 @@ impl<'a> Tokenizer<'a> {
             start_node = start_word;
         }
 
-        self.lattice.insert_eos(start_node, self.dict.connector());
+        self.lattice
+            .insert_eos(start_node, self.dict.connector(), self.dict.context_ids());
     }
 
     /// Creates a counter for frequencies of connection ids to train mappings.
@@ -231,12 +232,16 @@ mod tests {
         let matrix_def = "1 1\n0 0 0";
         let char_def = "DEFAULT 0 1 0";
         let unk_def = "DEFAULT,0,0,100,*";
+        let left_id_def = "0 BOS/EOS";
+        let right_id_def = "0 BOS/EOS";
 
         let dict = Dictionary::from_readers(
             lexicon_csv.as_bytes(),
             matrix_def.as_bytes(),
             char_def.as_bytes(),
             unk_def.as_bytes(),
+            left_id_def.as_bytes(),
+            right_id_def.as_bytes(),
         )
         .unwrap();
 
@@ -272,12 +277,16 @@ mod tests {
         let matrix_def = "1 1\n0 0 0";
         let char_def = "DEFAULT 0 1 0";
         let unk_def = "DEFAULT,0,0,100,*";
+        let left_id_def = "0 BOS/EOS";
+        let right_id_def = "0 BOS/EOS";
 
         let dict = Dictionary::from_readers(
             lexicon_csv.as_bytes(),
             matrix_def.as_bytes(),
             char_def.as_bytes(),
             unk_def.as_bytes(),
+            left_id_def.as_bytes(),
+            right_id_def.as_bytes(),
         )
         .unwrap();
 
@@ -313,12 +322,16 @@ mod tests {
         let matrix_def = "1 1\n0 0 0";
         let char_def = "DEFAULT 0 0 3";
         let unk_def = "DEFAULT,0,0,100,*";
+        let left_id_def = "0 BOS/EOS";
+        let right_id_def = "0 BOS/EOS";
 
         let dict = Dictionary::from_readers(
             lexicon_csv.as_bytes(),
             matrix_def.as_bytes(),
             char_def.as_bytes(),
             unk_def.as_bytes(),
+            left_id_def.as_bytes(),
+            right_id_def.as_bytes(),
         )
         .unwrap();
 
@@ -354,12 +367,16 @@ mod tests {
         let matrix_def = "1 1\n0 0 0";
         let char_def = "DEFAULT 0 0 3";
         let unk_def = "DEFAULT,0,0,100,*";
+        let left_id_def = "0 BOS/EOS";
+        let right_id_def = "0 BOS/EOS";
 
         let dict = Dictionary::from_readers(
             lexicon_csv.as_bytes(),
             matrix_def.as_bytes(),
             char_def.as_bytes(),
             unk_def.as_bytes(),
+            left_id_def.as_bytes(),
+            right_id_def.as_bytes(),
         )
         .unwrap();
 

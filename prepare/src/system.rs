@@ -24,6 +24,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let matrix_filename = format!("{}/matrix.def", &args.resource_dirname);
     let chardef_filename = format!("{}/char.def", &args.resource_dirname);
     let unkdef_filename = format!("{}/unk.def", &args.resource_dirname);
+    let leftdef_filename = format!("{}/left-id.def", &args.resource_dirname);
+    let rightdef_filename = format!("{}/right-id.def", &args.resource_dirname);
 
     eprintln!("Compiling the system dictionary...");
     let start = Instant::now();
@@ -32,6 +34,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         File::open(matrix_filename)?,
         File::open(chardef_filename)?,
         File::open(unkdef_filename)?,
+        File::open(leftdef_filename)?,
+        File::open(rightdef_filename)?,
     )?;
     eprintln!("{} seconds", start.elapsed().as_secs_f64());
 

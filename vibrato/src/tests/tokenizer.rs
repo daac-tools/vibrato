@@ -8,6 +8,8 @@ const USER_CSV: &str = include_str!("./resources/user.csv");
 const MATRIX_DEF: &str = include_str!("./resources/matrix.def");
 const CHAR_DEF: &str = include_str!("./resources/char.def");
 const UNK_DEF: &str = include_str!("./resources/unk.def");
+const LEFT_ID_DEF: &str = include_str!("./resources/left-id.def");
+const RIGHT_ID_DEF: &str = include_str!("./resources/right-id.def");
 
 #[test]
 fn test_tokenize_tokyo() {
@@ -16,6 +18,8 @@ fn test_tokenize_tokyo() {
         MATRIX_DEF.as_bytes(),
         CHAR_DEF.as_bytes(),
         UNK_DEF.as_bytes(),
+        LEFT_ID_DEF.as_bytes(),
+        RIGHT_ID_DEF.as_bytes(),
     )
     .unwrap();
 
@@ -48,6 +52,8 @@ fn test_tokenize_kyotokyo() {
         MATRIX_DEF.as_bytes(),
         CHAR_DEF.as_bytes(),
         UNK_DEF.as_bytes(),
+        LEFT_ID_DEF.as_bytes(),
+        RIGHT_ID_DEF.as_bytes(),
     )
     .unwrap();
 
@@ -108,6 +114,8 @@ fn test_tokenize_kyotokyo_with_user() {
         MATRIX_DEF.as_bytes(),
         CHAR_DEF.as_bytes(),
         UNK_DEF.as_bytes(),
+        LEFT_ID_DEF.as_bytes(),
+        RIGHT_ID_DEF.as_bytes(),
     )
     .unwrap()
     .user_lexicon_from_reader(Some(USER_CSV.as_bytes()))
@@ -153,6 +161,8 @@ fn test_tokenize_tokyoto_with_space() {
         MATRIX_DEF.as_bytes(),
         CHAR_DEF.as_bytes(),
         UNK_DEF.as_bytes(),
+        LEFT_ID_DEF.as_bytes(),
+        RIGHT_ID_DEF.as_bytes(),
     )
     .unwrap();
 
@@ -207,6 +217,8 @@ fn test_tokenize_tokyoto_with_space_ignored() {
         MATRIX_DEF.as_bytes(),
         CHAR_DEF.as_bytes(),
         UNK_DEF.as_bytes(),
+        LEFT_ID_DEF.as_bytes(),
+        RIGHT_ID_DEF.as_bytes(),
     )
     .unwrap();
 
@@ -250,6 +262,8 @@ fn test_tokenize_tokyoto_with_spaces_ignored() {
         MATRIX_DEF.as_bytes(),
         CHAR_DEF.as_bytes(),
         UNK_DEF.as_bytes(),
+        LEFT_ID_DEF.as_bytes(),
+        RIGHT_ID_DEF.as_bytes(),
     )
     .unwrap();
 
@@ -293,6 +307,8 @@ fn test_tokenize_tokyoto_startswith_spaces_ignored() {
         MATRIX_DEF.as_bytes(),
         CHAR_DEF.as_bytes(),
         UNK_DEF.as_bytes(),
+        LEFT_ID_DEF.as_bytes(),
+        RIGHT_ID_DEF.as_bytes(),
     )
     .unwrap();
 
@@ -325,6 +341,8 @@ fn test_tokenize_tokyoto_endswith_spaces_ignored() {
         MATRIX_DEF.as_bytes(),
         CHAR_DEF.as_bytes(),
         UNK_DEF.as_bytes(),
+        LEFT_ID_DEF.as_bytes(),
+        RIGHT_ID_DEF.as_bytes(),
     )
     .unwrap();
 
@@ -357,6 +375,8 @@ fn test_tokenize_kampersanda() {
         MATRIX_DEF.as_bytes(),
         CHAR_DEF.as_bytes(),
         UNK_DEF.as_bytes(),
+        LEFT_ID_DEF.as_bytes(),
+        RIGHT_ID_DEF.as_bytes(),
     )
     .unwrap();
 
@@ -386,6 +406,8 @@ fn test_tokenize_kampersanda_with_user() {
         MATRIX_DEF.as_bytes(),
         CHAR_DEF.as_bytes(),
         UNK_DEF.as_bytes(),
+        LEFT_ID_DEF.as_bytes(),
+        RIGHT_ID_DEF.as_bytes(),
     )
     .unwrap()
     .user_lexicon_from_reader(Some(USER_CSV.as_bytes()))
@@ -417,6 +439,8 @@ fn test_tokenize_kampersanda_with_max_grouping() {
         MATRIX_DEF.as_bytes(),
         CHAR_DEF.as_bytes(),
         UNK_DEF.as_bytes(),
+        LEFT_ID_DEF.as_bytes(),
+        RIGHT_ID_DEF.as_bytes(),
     )
     .unwrap();
 
@@ -460,6 +484,8 @@ fn test_tokenize_tokyoken() {
         MATRIX_DEF.as_bytes(),
         CHAR_DEF.as_bytes(),
         UNK_DEF.as_bytes(),
+        LEFT_ID_DEF.as_bytes(),
+        RIGHT_ID_DEF.as_bytes(),
     )
     .unwrap();
 
@@ -477,6 +503,8 @@ fn test_tokenize_kanjinumeric() {
         MATRIX_DEF.as_bytes(),
         CHAR_DEF.as_bytes(),
         UNK_DEF.as_bytes(),
+        LEFT_ID_DEF.as_bytes(),
+        RIGHT_ID_DEF.as_bytes(),
     )
     .unwrap();
 
@@ -500,6 +528,8 @@ fn test_tokenize_empty() {
         MATRIX_DEF.as_bytes(),
         CHAR_DEF.as_bytes(),
         UNK_DEF.as_bytes(),
+        LEFT_ID_DEF.as_bytes(),
+        RIGHT_ID_DEF.as_bytes(),
     )
     .unwrap();
 

@@ -1,8 +1,8 @@
 use std::io::Read;
 
 use crate::dictionary::{
-    CharProperty, ConnIdMapper, Connector, Dictionary, DictionaryInner, LexType, Lexicon,
-    UnkHandler,
+    CharProperty, ConnIdMapper, Connector, ContextIds, Dictionary, DictionaryInner, LexType,
+    Lexicon, UnkHandler,
 };
 use crate::errors::{Result, VibratoError};
 
@@ -14,7 +14,9 @@ impl Dictionary {
     ///  - `system_lexicon_rdr`: A reader of a lexicon file `*.csv`.
     ///  - `connector_rdr`: A reader of matrix file `matrix.def`.
     ///  - `char_prop_rdr`: A reader of character definition file `char.def`.
-    ///  - `unk_handler`: A reader of unknown definition file `unk.def`.
+    ///  - `unk_handler_rdr`: A reader of unknown definition file `unk.def`.
+    ///  - `left_id_rdr`: A reader of left-id definition file `left-id.def`.
+    ///  - `right_id_rdr`: A reader of right-id definition file `right-id.def`.
     ///
     /// # Errors
     ///
@@ -24,22 +26,27 @@ impl Dictionary {
     ///
     /// The readers are buffered automatically, so you should not
     /// wrap them in a buffered reader like [`std::io::BufReader`].
-    pub fn from_readers<S, C, P, U>(
+    pub fn from_readers<S, C, P, U, L, R>(
         system_lexicon_rdr: S,
         connector_rdr: C,
         char_prop_rdr: P,
         unk_handler_rdr: U,
+        left_id_rdr: L,
+        right_id_rdr: R,
     ) -> Result<Self>
     where
         S: Read,
         C: Read,
         P: Read,
         U: Read,
+        L: Read,
+        R: Read,
     {
         let system_lexicon = Lexicon::from_reader(system_lexicon_rdr, LexType::System)?;
         let connector = Connector::from_reader(connector_rdr)?;
         let char_prop = CharProperty::from_reader(char_prop_rdr)?;
         let unk_handler = UnkHandler::from_reader(unk_handler_rdr, &char_prop)?;
+        let context_ids = ContextIds::from_readers(left_id_rdr, right_id_rdr)?;
 
         if !system_lexicon.verify(&connector) {
             return Err(VibratoError::invalid_argument(
@@ -61,6 +68,7 @@ impl Dictionary {
             mapper: None,
             char_prop,
             unk_handler,
+            context_ids,
         }))
     }
 
@@ -106,13 +114,11 @@ impl Dictionary {
     /// # Arguments
     ///
     ///  - `lmap/rmap`: An iterator of mappings of left/right ids, where
-    ///                 the `i`-th item (1-origin) indicates a new id mapped from id `i`.
+    ///                 the `i`-th item (0-origin) indicates a new id mapped from id `i`.
     ///
     /// # Errors
     ///
     /// [`VibratoError`] is returned when
-    ///  - a new id of [`BOS_EOS_CONNECTION_ID`](crate::common::BOS_EOS_CONNECTION_ID)
-    ///    is included,
     ///  - new ids are duplicated, or
     ///  - the set of new ids are not same as that of old ids.
     pub fn mapping_from_iter<L, R>(mut self, lmap: L, rmap: R) -> Result<Self>
@@ -143,12 +149,16 @@ mod tests {
         let matrix_def = "1 1\n0 0 0";
         let char_def = "DEFAULT 0 1 0";
         let unk_def = "DEFAULT,0,0,100,*";
+        let left_id_def = "0 BOS/EOS";
+        let right_id_def = "0 BOS/EOS";
 
         Dictionary::from_readers(
             lexicon_csv.as_bytes(),
             matrix_def.as_bytes(),
             char_def.as_bytes(),
             unk_def.as_bytes(),
+            left_id_def.as_bytes(),
+            right_id_def.as_bytes(),
         )
         .unwrap();
     }
@@ -160,12 +170,16 @@ mod tests {
         let matrix_def = "1 1\n0 0 0";
         let char_def = "DEFAULT 0 1 0";
         let unk_def = "DEFAULT,1,1,100,*";
+        let left_id_def = "0 BOS/EOS";
+        let right_id_def = "0 BOS/EOS";
 
         Dictionary::from_readers(
             lexicon_csv.as_bytes(),
             matrix_def.as_bytes(),
             char_def.as_bytes(),
             unk_def.as_bytes(),
+            left_id_def.as_bytes(),
+            right_id_def.as_bytes(),
         )
         .unwrap();
     }
