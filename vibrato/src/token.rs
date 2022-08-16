@@ -97,6 +97,27 @@ impl<'a> Token<'a> {
         node.word_idx().lex_type
     }
 
+    /// Gets the left id of the token's node.
+    #[inline(always)]
+    pub fn left_id(&self) -> u16 {
+        let (_, node) = &self.list.nodes[self.index];
+        node.left_id
+    }
+
+    /// Gets the right id of the token's node.
+    #[inline(always)]
+    pub fn right_id(&self) -> u16 {
+        let (_, node) = &self.list.nodes[self.index];
+        node.right_id
+    }
+
+    /// Gets the word cost of the token's node.
+    #[inline(always)]
+    pub fn word_cost(&self) -> i16 {
+        let (_, node) = &self.list.nodes[self.index];
+        self.list.dict.word_param(node.word_idx()).word_cost
+    }
+
     /// Gets the total cost from BOS to the token's node.
     #[inline(always)]
     pub fn total_cost(&self) -> i32 {

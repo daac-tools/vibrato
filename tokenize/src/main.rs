@@ -12,6 +12,7 @@ use clap::Parser;
 enum OutputMode {
     Mecab,
     Wakati,
+    Detail,
 }
 
 impl FromStr for OutputMode {
@@ -20,6 +21,7 @@ impl FromStr for OutputMode {
         match mode {
             "mecab" => Ok(Self::Mecab),
             "wakati" => Ok(Self::Wakati),
+            "detail" => Ok(Self::Detail),
             _ => Err("Could not parse a mode"),
         }
     }
@@ -88,6 +90,22 @@ fn main() -> Result<(), Box<dyn Error>> {
                     print!("{}", tokens.get(i).surface());
                 }
                 println!();
+            }
+            OutputMode::Detail => {
+                for i in 0..tokens.len() {
+                    let t = tokens.get(i);
+                    println!(
+                        "{}\t{}\tlex_type={:?}\tleft_id={}\tright_id={}\tword_cost={}\ttotal_cost={}",
+                        t.surface(),
+                        t.feature(),
+                        t.lex_type(),
+                        t.left_id(),
+                        t.right_id(),
+                        t.word_cost(),
+                        t.total_cost(),
+                    );
+                }
+                println!("EOS");
             }
         }
     }
