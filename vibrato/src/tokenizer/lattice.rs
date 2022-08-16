@@ -83,7 +83,8 @@ impl Lattice {
     }
 
     pub fn insert_eos(&mut self, start_node: u16, connector: &Connector) {
-        let (min_idx, min_cost) = self.search_min_node(start_node, 0, connector);
+        let (min_idx, min_cost) =
+            self.search_min_node(start_node, BOS_EOS_CONNECTION_ID, connector);
         self.eos = Some(Node {
             word_id: u32::MAX,
             lex_type: LexType::default(),
@@ -129,7 +130,8 @@ impl Lattice {
             debug_assert!(left_node.is_connected_to_bos());
             let conn_cost = i32::from(connector.cost(left_node.right_id, left_id));
             let new_cost = left_node.min_cost + conn_cost;
-            // Use <= to produce the same tokenization as MeCab
+            // Depending on the order of tie-breaking, the result can be different from MeCab.
+            // Using <= (not <) will produce results identical to MeCab in most case (empirically).
             if new_cost <= min_cost {
                 min_idx = i as u16;
                 min_cost = new_cost;
