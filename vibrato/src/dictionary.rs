@@ -91,7 +91,7 @@ impl Dictionary {
         &self.0.unk_handler
     }
 
-    /// Gets the reference to the word parameter.
+    /// Gets the word parameter.
     #[inline(always)]
     pub(crate) fn word_param(&self, word_idx: WordIdx) -> WordParam {
         match word_idx.lex_type {
