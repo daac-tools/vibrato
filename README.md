@@ -134,7 +134,7 @@ EOS
 ### Notes
 
 There are corner cases where tokenization results in different outcomes due to cost tiebreakers.
-However, this is not an essential problem.
+However, this would be not an essential problem.
 
 ## User dictionary
 
