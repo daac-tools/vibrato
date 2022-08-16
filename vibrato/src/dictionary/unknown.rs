@@ -132,6 +132,14 @@ impl UnkHandler {
         f
     }
 
+    #[inline(always)]
+    pub fn word_param(&self, word_idx: WordIdx) -> WordParam {
+        debug_assert_eq!(word_idx.lex_type, LexType::Unknown);
+        let e = &self.entries[usize::from_u32(word_idx.word_id)];
+        WordParam::new(e.left_id, e.right_id, e.word_cost)
+    }
+
+    #[inline(always)]
     pub fn word_feature(&self, word_idx: WordIdx) -> &str {
         debug_assert_eq!(word_idx.lex_type, LexType::Unknown);
         &self.entries[usize::from_u32(word_idx.word_id)].feature

@@ -16,6 +16,7 @@ use crate::errors::Result;
 use character::CharProperty;
 use connector::Connector;
 use lexicon::Lexicon;
+pub(crate) use lexicon::WordParam;
 use mapper::ConnIdMapper;
 use unknown::UnkHandler;
 use word_idx::WordIdx;
@@ -88,6 +89,16 @@ impl Dictionary {
     #[inline(always)]
     pub(crate) const fn unk_handler(&self) -> &UnkHandler {
         &self.0.unk_handler
+    }
+
+    /// Gets the word parameter.
+    #[inline(always)]
+    pub(crate) fn word_param(&self, word_idx: WordIdx) -> WordParam {
+        match word_idx.lex_type {
+            LexType::System => self.system_lexicon().word_param(word_idx),
+            LexType::User => self.user_lexicon().unwrap().word_param(word_idx),
+            LexType::Unknown => self.unk_handler().word_param(word_idx),
+        }
     }
 
     /// Gets the reference to the feature string.

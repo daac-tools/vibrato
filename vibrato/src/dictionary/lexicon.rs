@@ -50,6 +50,12 @@ impl Lexicon {
     }
 
     #[inline(always)]
+    pub fn word_param(&self, word_idx: WordIdx) -> WordParam {
+        debug_assert_eq!(word_idx.lex_type, self.lex_type);
+        self.params.get(usize::from_u32(word_idx.word_id))
+    }
+
+    #[inline(always)]
     pub fn word_feature(&self, word_idx: WordIdx) -> &str {
         debug_assert_eq!(word_idx.lex_type, self.lex_type);
         self.features.get(usize::from_u32(word_idx.word_id))
