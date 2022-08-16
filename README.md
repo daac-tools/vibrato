@@ -131,6 +131,11 @@ EOS
 `-S` indicates if spaces are ignored.
 `-M` indicates the maximum grouping length for unknown words.
 
+### Notes
+
+There are corner cases where tokenization results in different outcomes due to cost tiebreakers.
+However, this is not an essential problem.
+
 ## User dictionary
 
 You can use your user dictionary along with the system dictionary.
