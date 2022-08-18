@@ -35,13 +35,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     #[cfg(feature = "unchecked")]
     let dict = unsafe { Dictionary::read_unchecked(reader)? };
 
-    let mut tokenizer = Tokenizer::new(&dict);
-    if args.ignore_space {
-        tokenizer = tokenizer.ignore_space(true).unwrap();
-    }
-    if let Some(max_grouping_len) = args.max_grouping_len {
-        tokenizer = tokenizer.max_grouping_len(max_grouping_len);
-    }
+    let tokenizer = Tokenizer::new(dict)
+        .ignore_space(args.ignore_space)?
+        .max_grouping_len(args.max_grouping_len.unwrap_or(0));
+    let mut state = tokenizer.new_state();
 
     let lines: Vec<_> = std::io::stdin()
         .lock()
@@ -54,8 +51,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         for _ in 0..RUNS {
             t.start();
             for line in &lines {
-                let tokens = tokenizer.tokenize(line).unwrap();
-                n_words += tokens.len();
+                state.reset_sentence(line).unwrap();
+                tokenizer.tokenize(&mut state);
+                n_words += state.num_tokens();
             }
             t.stop();
         }
