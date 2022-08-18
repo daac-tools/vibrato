@@ -29,17 +29,17 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     eprintln!("Training connection id mappings...");
     let tokenizer = Tokenizer::new(dict);
-    let mut state = tokenizer.new_state();
-    state.init_connid_counter();
+    let mut worker = tokenizer.new_worker();
+    worker.init_connid_counter();
 
     #[allow(clippy::significant_drop_in_scrutinee)]
     for line in std::io::stdin().lock().lines() {
         let line = line?;
-        state.reset_sentence(line)?;
-        tokenizer.tokenize(&mut state);
-        state.update_connid_counts();
+        worker.reset_sentence(line)?;
+        worker.tokenize();
+        worker.update_connid_counts();
     }
-    let (lid_probs, rid_probs) = state.compute_connid_probs();
+    let (lid_probs, rid_probs) = worker.compute_connid_probs();
 
     eprintln!("Writting connection id mappings...");
     {

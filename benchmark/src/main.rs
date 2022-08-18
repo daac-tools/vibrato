@@ -38,7 +38,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let tokenizer = Tokenizer::new(dict)
         .ignore_space(args.ignore_space)?
         .max_grouping_len(args.max_grouping_len.unwrap_or(0));
-    let mut state = tokenizer.new_state();
+    let mut worker = tokenizer.new_worker();
 
     let lines: Vec<_> = std::io::stdin()
         .lock()
@@ -51,9 +51,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         for _ in 0..RUNS {
             t.start();
             for line in &lines {
-                state.reset_sentence(line).unwrap();
-                tokenizer.tokenize(&mut state);
-                n_words += state.num_tokens();
+                worker.reset_sentence(line).unwrap();
+                worker.tokenize();
+                n_words += worker.num_tokens();
             }
             t.stop();
         }

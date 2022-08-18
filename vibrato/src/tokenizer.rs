@@ -3,7 +3,9 @@ pub(crate) mod lattice;
 
 use crate::dictionary::Dictionary;
 use crate::errors::{Result, VibratoError};
-use crate::state::State;
+use crate::sentence::Sentence;
+use crate::worker::Worker;
+use lattice::Lattice;
 
 use crate::common::MAX_SENTENCE_LENGTH;
 
@@ -71,32 +73,27 @@ impl Tokenizer {
         self
     }
 
-    /// Creates a new state.
-    pub fn new_state(&self) -> State {
-        State::new(&self.dict)
+    /// Gets the reference to the dictionary.
+    pub const fn dictionary(&self) -> &Dictionary {
+        &self.dict
     }
 
-    /// Tokenizes the input sentence set in `state`,
-    /// returning the result through `state`.
-    pub fn tokenize(&self, state: &mut State) {
-        if state.sent.chars().is_empty() {
-            return;
-        }
-        self.build_lattice(state);
-        state.lattice.append_top_nodes(&mut state.top_nodes);
+    /// Creates a new worker.
+    pub fn new_worker(&self) -> Worker {
+        Worker::new(self)
     }
 
-    fn build_lattice(&self, state: &mut State) {
-        let input_chars = state.sent.chars();
-        let input_len = state.sent.len_char();
+    pub(crate) fn build_lattice(&self, sent: &Sentence, lattice: &mut Lattice) {
+        let input_chars = sent.chars();
+        let input_len = sent.len_char();
 
-        state.lattice.reset(input_len);
+        lattice.reset(input_len);
 
         let mut start_node = 0;
         let mut start_word = 0;
 
         while start_word < input_len {
-            if !state.lattice.has_previous_node(start_node) {
+            if !lattice.has_previous_node(start_node) {
                 start_word += 1;
                 start_node = start_word;
                 continue;
@@ -104,12 +101,12 @@ impl Tokenizer {
 
             // on mecab compatible mode
             if let Some(space_cateset) = self.space_cateset {
-                let is_space = (state.sent.char_info(start_node).cate_idset() & space_cateset) != 0;
+                let is_space = (sent.char_info(start_node).cate_idset() & space_cateset) != 0;
                 start_word += if !is_space {
                     0
                 } else {
                     // Skips space characters.
-                    state.sent.groupable(start_node)
+                    sent.groupable(start_node)
                 };
             }
 
@@ -126,7 +123,7 @@ impl Tokenizer {
             if let Some(user_lexicon) = self.dict.user_lexicon() {
                 for m in user_lexicon.common_prefix_iterator(suffix) {
                     debug_assert!(start_word + m.end_char <= input_len);
-                    state.lattice.insert_node(
+                    lattice.insert_node(
                         start_node,
                         start_word,
                         start_word + m.end_char,
@@ -140,7 +137,7 @@ impl Tokenizer {
 
             for m in self.dict.system_lexicon().common_prefix_iterator(suffix) {
                 debug_assert!(start_word + m.end_char <= input_len);
-                state.lattice.insert_node(
+                lattice.insert_node(
                     start_node,
                     start_word,
                     start_word + m.end_char,
@@ -152,12 +149,12 @@ impl Tokenizer {
             }
 
             self.dict.unk_handler().gen_unk_words(
-                &state.sent,
+                sent,
                 start_word,
                 has_matched,
                 self.max_grouping_len,
                 |w| {
-                    state.lattice.insert_node(
+                    lattice.insert_node(
                         start_node,
                         w.start_char(),
                         w.end_char(),
@@ -172,7 +169,7 @@ impl Tokenizer {
             start_node = start_word;
         }
 
-        state.lattice.insert_eos(start_node, self.dict.connector());
+        lattice.insert_eos(start_node, self.dict.connector());
     }
 }
 
@@ -200,14 +197,13 @@ mod tests {
         .unwrap();
 
         let tokenizer = Tokenizer::new(dict);
-        let mut state = tokenizer.new_state();
-
-        state.reset_sentence("自然言語処理").unwrap();
-        tokenizer.tokenize(&mut state);
-        assert_eq!(state.num_tokens(), 2);
+        let mut worker = tokenizer.new_worker();
+        worker.reset_sentence("自然言語処理").unwrap();
+        worker.tokenize();
+        assert_eq!(worker.num_tokens(), 2);
 
         {
-            let t = state.token(0);
+            let t = worker.token(0);
             assert_eq!(t.surface(), "自然");
             assert_eq!(t.range_char(), 0..2);
             assert_eq!(t.range_byte(), 0..6);
@@ -215,7 +211,7 @@ mod tests {
             assert_eq!(t.total_cost(), 1);
         }
         {
-            let t = state.token(1);
+            let t = worker.token(1);
             assert_eq!(t.surface(), "言語処理");
             assert_eq!(t.range_char(), 2..6);
             assert_eq!(t.range_byte(), 6..18);
@@ -244,14 +240,13 @@ mod tests {
         .unwrap();
 
         let tokenizer = Tokenizer::new(dict);
-        let mut state = tokenizer.new_state();
-
-        state.reset_sentence("自然日本語処理").unwrap();
-        tokenizer.tokenize(&mut state);
-        assert_eq!(state.num_tokens(), 2);
+        let mut worker = tokenizer.new_worker();
+        worker.reset_sentence("自然日本語処理").unwrap();
+        worker.tokenize();
+        assert_eq!(worker.num_tokens(), 2);
 
         {
-            let t = state.token(0);
+            let t = worker.token(0);
             assert_eq!(t.surface(), "自然");
             assert_eq!(t.range_char(), 0..2);
             assert_eq!(t.range_byte(), 0..6);
@@ -259,7 +254,7 @@ mod tests {
             assert_eq!(t.total_cost(), 1);
         }
         {
-            let t = state.token(1);
+            let t = worker.token(1);
             assert_eq!(t.surface(), "日本語処理");
             assert_eq!(t.range_char(), 2..7);
             assert_eq!(t.range_byte(), 6..21);
@@ -288,14 +283,13 @@ mod tests {
         .unwrap();
 
         let tokenizer = Tokenizer::new(dict);
-        let mut state = tokenizer.new_state();
-
-        state.reset_sentence("不自然言語処理").unwrap();
-        tokenizer.tokenize(&mut state);
-        assert_eq!(state.num_tokens(), 2);
+        let mut worker = tokenizer.new_worker();
+        worker.reset_sentence("不自然言語処理").unwrap();
+        worker.tokenize();
+        assert_eq!(worker.num_tokens(), 2);
 
         {
-            let t = state.token(0);
+            let t = worker.token(0);
             assert_eq!(t.surface(), "不自然");
             assert_eq!(t.range_char(), 0..3);
             assert_eq!(t.range_byte(), 0..9);
@@ -303,7 +297,7 @@ mod tests {
             assert_eq!(t.total_cost(), 100);
         }
         {
-            let t = state.token(1);
+            let t = worker.token(1);
             assert_eq!(t.surface(), "言語処理");
             assert_eq!(t.range_char(), 3..7);
             assert_eq!(t.range_byte(), 9..21);
@@ -332,10 +326,9 @@ mod tests {
         .unwrap();
 
         let tokenizer = Tokenizer::new(dict);
-        let mut state = tokenizer.new_state();
-
-        state.reset_sentence("").unwrap();
-        tokenizer.tokenize(&mut state);
-        assert_eq!(state.num_tokens(), 0);
+        let mut worker = tokenizer.new_worker();
+        worker.reset_sentence("").unwrap();
+        worker.tokenize();
+        assert_eq!(worker.num_tokens(), 0);
     }
 }

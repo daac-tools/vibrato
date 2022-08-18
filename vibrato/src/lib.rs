@@ -22,19 +22,19 @@
 )]
 //!
 //! let tokenizer = vibrato::Tokenizer::new(dict);
-//! let mut state = tokenizer.new_state();
+//! let mut worker = tokenizer.new_worker();
 //!
-//! state.reset_sentence("京都東京都").unwrap();
-//! tokenizer.tokenize(&mut state);
-//! assert_eq!(state.num_tokens(), 2);
+//! worker.reset_sentence("京都東京都").unwrap();
+//! worker.tokenize();
+//! assert_eq!(worker.num_tokens(), 2);
 //!
-//! let t0 = state.token(0);
+//! let t0 = worker.token(0);
 //! assert_eq!(t0.surface(), "京都");
 //! assert_eq!(t0.range_char(), 0..2);
 //! assert_eq!(t0.range_byte(), 0..6);
 //! assert_eq!(t0.feature(), "京都,名詞,固有名詞,地名,一般,*,*,キョウト,京都,*,A,*,*,*,1/5");
 //!
-//! let t1 = state.token(1);
+//! let t1 = worker.token(1);
 //! assert_eq!(t1.surface(), "東京都");
 //! assert_eq!(t1.range_char(), 2..5);
 //! assert_eq!(t1.range_byte(), 6..15);
@@ -49,10 +49,10 @@ pub mod common;
 pub mod dictionary;
 pub mod errors;
 mod sentence;
-pub mod state;
 pub mod token;
 pub mod tokenizer;
 mod utils;
+pub mod worker;
 
 #[cfg(test)]
 mod tests;

@@ -1,28 +1,28 @@
-//! Maintainer of an input sentence and tokenized results.
+//! Provider of a routine for tokenization.
 use crate::dictionary::mapper::{ConnIdCounter, ConnIdProbs};
-use crate::dictionary::Dictionary;
 use crate::errors::Result;
 use crate::sentence::Sentence;
 use crate::token::{Token, TokenIter};
 use crate::tokenizer::lattice::{Lattice, Node};
+use crate::tokenizer::Tokenizer;
 
-/// Maintainer of an input sentence and tokenized results.
+/// Provider of a routine for tokenization.
 ///
-/// It also holds the internal data structures used in tokenization,
+/// It holds the internal data structures used in tokenization,
 /// which can be reused to avoid unnecessary memory reallocation.
-pub struct State<'a> {
-    pub(crate) dict: &'a Dictionary,
+pub struct Worker<'a> {
+    pub(crate) tokenizer: &'a Tokenizer,
     pub(crate) sent: Sentence,
     pub(crate) lattice: Lattice,
     pub(crate) top_nodes: Vec<(u16, Node)>,
     pub(crate) counter: Option<ConnIdCounter>,
 }
 
-impl<'a> State<'a> {
+impl<'a> Worker<'a> {
     /// Creates a new instance.
-    pub(crate) fn new(dict: &'a Dictionary) -> Self {
+    pub(crate) fn new(tokenizer: &'a Tokenizer) -> Self {
         Self {
-            dict,
+            tokenizer,
             sent: Sentence::new(),
             lattice: Lattice::default(),
             top_nodes: vec![],
@@ -46,9 +46,19 @@ impl<'a> State<'a> {
         let input = input.as_ref();
         if !input.is_empty() {
             self.sent.set_sentence(input);
-            self.sent.compile(self.dict.char_prop())?;
+            self.sent.compile(self.tokenizer.dictionary().char_prop())?;
         }
         Ok(())
+    }
+
+    /// Tokenizes the input sentence set in `state`,
+    /// returning the result through `state`.
+    pub fn tokenize(&mut self) {
+        if self.sent.chars().is_empty() {
+            return;
+        }
+        self.tokenizer.build_lattice(&self.sent, &mut self.lattice);
+        self.lattice.append_top_nodes(&mut self.top_nodes);
     }
 
     /// Gets the number of resultant tokens.
@@ -72,7 +82,7 @@ impl<'a> State<'a> {
 
     /// Initializes a counter to train occurrence probabilities of connection ids.
     pub fn init_connid_counter(&mut self) {
-        let connector = self.dict.connector();
+        let connector = self.tokenizer.dictionary().connector();
         self.counter = Some(ConnIdCounter::new(
             connector.num_left(),
             connector.num_right(),

@@ -63,35 +63,35 @@ fn main() -> Result<(), Box<dyn Error>> {
     let tokenizer = Tokenizer::new(dict)
         .ignore_space(args.ignore_space)?
         .max_grouping_len(args.max_grouping_len.unwrap_or(0));
-    let mut state = tokenizer.new_state();
+    let mut worker = tokenizer.new_worker();
 
     eprintln!("Ready to tokenize");
 
     #[allow(clippy::significant_drop_in_scrutinee)]
     for line in std::io::stdin().lock().lines() {
         let line = line?;
-        state.reset_sentence(line)?;
-        tokenizer.tokenize(&mut state);
+        worker.reset_sentence(line)?;
+        worker.tokenize();
         match args.output_mode {
             OutputMode::Mecab => {
-                for i in 0..state.num_tokens() {
-                    let t = state.token(i);
+                for i in 0..worker.num_tokens() {
+                    let t = worker.token(i);
                     println!("{}\t{}", t.surface(), t.feature());
                 }
                 println!("EOS");
             }
             OutputMode::Wakati => {
-                for i in 0..state.num_tokens() {
+                for i in 0..worker.num_tokens() {
                     if i != 0 {
                         print!(" ");
                     }
-                    print!("{}", state.token(i).surface());
+                    print!("{}", worker.token(i).surface());
                 }
                 println!();
             }
             OutputMode::Detail => {
-                for i in 0..state.num_tokens() {
-                    let t = state.token(i);
+                for i in 0..worker.num_tokens() {
+                    let t = worker.token(i);
                     println!(
                         "{}\t{}\tlex_type={:?}\tleft_id={}\tright_id={}\tword_cost={}\ttotal_cost={}",
                         t.surface(),

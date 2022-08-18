@@ -2,81 +2,88 @@
 use std::ops::Range;
 
 use crate::dictionary::LexType;
-use crate::state::State;
+use crate::worker::Worker;
 
 /// Resultant token.
 pub struct Token<'a> {
-    state: &'a State<'a>,
+    worker: &'a Worker<'a>,
     index: usize,
 }
 
 impl<'a> Token<'a> {
     #[inline(always)]
-    pub(crate) const fn new(state: &'a State, index: usize) -> Self {
-        Self { state, index }
+    pub(crate) const fn new(worker: &'a Worker, index: usize) -> Self {
+        Self { worker, index }
     }
 
     /// Gets the position range of the token in characters.
     #[inline(always)]
     pub fn range_char(&self) -> Range<usize> {
-        let (end_word, node) = &self.state.top_nodes[self.index];
+        let (end_word, node) = &self.worker.top_nodes[self.index];
         usize::from(node.start_word)..usize::from(*end_word)
     }
 
     /// Gets the position range of the token in bytes.
     #[inline(always)]
     pub fn range_byte(&self) -> Range<usize> {
-        let sent = &self.state.sent;
-        let (end_word, node) = &self.state.top_nodes[self.index];
+        let sent = &self.worker.sent;
+        let (end_word, node) = &self.worker.top_nodes[self.index];
         sent.byte_position(node.start_word)..sent.byte_position(*end_word)
     }
 
     /// Gets the surface string of the token.
     #[inline(always)]
     pub fn surface(&self) -> &str {
-        let sent = &self.state.sent;
+        let sent = &self.worker.sent;
         &sent.raw()[self.range_byte()]
     }
 
     /// Gets the feature string of the token.
     #[inline(always)]
     pub fn feature(&self) -> &str {
-        let (_, node) = &self.state.top_nodes[self.index];
-        self.state.dict.word_feature(node.word_idx())
+        let (_, node) = &self.worker.top_nodes[self.index];
+        self.worker
+            .tokenizer
+            .dictionary()
+            .word_feature(node.word_idx())
     }
 
     /// Gets the lexicon type where the token is from.
     #[inline(always)]
     pub fn lex_type(&self) -> LexType {
-        let (_, node) = &self.state.top_nodes[self.index];
+        let (_, node) = &self.worker.top_nodes[self.index];
         node.word_idx().lex_type
     }
 
     /// Gets the left id of the token's node.
     #[inline(always)]
     pub fn left_id(&self) -> u16 {
-        let (_, node) = &self.state.top_nodes[self.index];
+        let (_, node) = &self.worker.top_nodes[self.index];
         node.left_id
     }
 
     /// Gets the right id of the token's node.
     #[inline(always)]
     pub fn right_id(&self) -> u16 {
-        let (_, node) = &self.state.top_nodes[self.index];
+        let (_, node) = &self.worker.top_nodes[self.index];
         node.right_id
     }
 
     /// Gets the word cost of the token's node.
     #[inline(always)]
     pub fn word_cost(&self) -> i16 {
-        let (_, node) = &self.state.top_nodes[self.index];
-        self.state.dict.word_param(node.word_idx()).word_cost
+        let (_, node) = &self.worker.top_nodes[self.index];
+        self.worker
+            .tokenizer
+            .dictionary()
+            .word_param(node.word_idx())
+            .word_cost
     }
 
     /// Gets the total cost from BOS to the token's node.
     #[inline(always)]
     pub fn total_cost(&self) -> i32 {
-        let (_, node) = &self.state.top_nodes[self.index];
+        let (_, node) = &self.worker.top_nodes[self.index];
         node.min_cost
     }
 }
@@ -99,14 +106,14 @@ impl<'a> std::fmt::Debug for Token<'a> {
 
 /// Iterator of tokens.
 pub struct TokenIter<'a> {
-    state: &'a State<'a>,
+    worker: &'a Worker<'a>,
     i: usize,
 }
 
 impl<'a> TokenIter<'a> {
     #[inline(always)]
-    pub(crate) const fn new(state: &'a State, i: usize) -> Self {
-        Self { state, i }
+    pub(crate) const fn new(worker: &'a Worker, i: usize) -> Self {
+        Self { worker, i }
     }
 }
 
@@ -115,8 +122,8 @@ impl<'a> Iterator for TokenIter<'a> {
 
     #[inline(always)]
     fn next(&mut self) -> Option<Self::Item> {
-        if self.i < self.state.num_tokens() {
-            let t = self.state.token(self.i);
+        if self.i < self.worker.num_tokens() {
+            let t = self.worker.token(self.i);
             self.i += 1;
             Some(t)
         } else {
@@ -150,15 +157,14 @@ mod tests {
         .unwrap();
 
         let tokenizer = Tokenizer::new(dict);
-        let mut state = tokenizer.new_state();
+        let mut worker = tokenizer.new_worker();
+        worker.reset_sentence("自然言語処理").unwrap();
+        worker.tokenize();
+        assert_eq!(worker.num_tokens(), 2);
 
-        state.reset_sentence("自然言語処理").unwrap();
-        tokenizer.tokenize(&mut state);
-        assert_eq!(state.num_tokens(), 2);
-
-        let mut it = state.token_iter();
-        for i in 0..state.num_tokens() {
-            let lhs = state.token(i);
+        let mut it = worker.token_iter();
+        for i in 0..worker.num_tokens() {
+            let lhs = worker.token(i);
             let rhs = it.next().unwrap();
             assert_eq!(lhs.surface(), rhs.surface());
         }
