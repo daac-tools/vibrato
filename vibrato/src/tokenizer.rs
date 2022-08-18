@@ -124,7 +124,7 @@ impl Tokenizer {
                 if let Some(user_lexicon) = self.dict.user_lexicon() {
                     for m in user_lexicon.common_prefix_iterator(suffix) {
                         debug_assert!(start_word + m.end_char <= input_len);
-                        self.lattice.insert_node(
+                        lattice.insert_node(
                             start_node,
                             start_word,
                             start_word + m.end_char,
@@ -226,8 +226,7 @@ impl Tokenizer {
             lattice.insert_eos(start_node, self.dict.connector());
         } else {
             unsafe {
-                lattice
-                    .insert_eos_unchecked(start_node, self.dict.connector());
+                lattice.insert_eos_unchecked(start_node, self.dict.connector());
             }
         }
     }
