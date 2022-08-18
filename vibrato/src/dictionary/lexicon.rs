@@ -135,7 +135,7 @@ mod tests {
             lex_type: LexType::System,
         };
         let input: Vec<_> = "東京都".chars().collect();
-        let mut it = lexicon.common_prefix_iterator_checked(&input);
+        let mut it = lexicon.common_prefix_iterator(&input);
         assert_eq!(
             it.next().unwrap(),
             LexMatch {

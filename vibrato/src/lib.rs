@@ -13,7 +13,7 @@
 //! use vibrato::{Dictionary, Tokenizer};
 //!
 //! let file = File::open("src/tests/resources/system.dic").unwrap();
-//! let dict = Dictionary::read(BufReader::new(file)).unwrap();"
+//! let dict = Dictionary::read(BufReader::new(file)).unwrap();
 //!
 //! let mut tokenizer = vibrato::Tokenizer::new(&dict);
 //! let tokens = tokenizer.tokenize("京都東京都").unwrap();
