@@ -81,6 +81,22 @@ impl<'a> Token<'a> {
     }
 }
 
+impl<'a> std::fmt::Debug for Token<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Token")
+            .field("surface", &self.surface())
+            .field("range_char", &self.range_char())
+            .field("range_byte", &self.range_byte())
+            .field("feature", &self.feature())
+            .field("lex_type", &self.lex_type())
+            .field("left_id", &self.left_id())
+            .field("right_id", &self.right_id())
+            .field("word_cost", &self.word_cost())
+            .field("total_cost", &self.total_cost())
+            .finish()
+    }
+}
+
 /// Iterator of tokens.
 pub struct TokenIter<'a> {
     state: &'a State<'a>,
