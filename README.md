@@ -82,15 +82,6 @@ $ echo '本とカレーの街神保町へようこそ。' | cargo run --release 
 本 と カレー の 街 神保 町 へ ようこそ 。
 ```
 
-## Faster tokenization
-
-If you can guarantee that `system.dic` is exported from this library,
-you can specify `--features=unchecked` for faster tokenization.
-
-```
-$ echo '本とカレーの街神保町へようこそ。' | cargo run --release -p tokenize --features=unchecked -- -i resources_ipadic-mecab-2_7_0/system.dic -O wakati
-```
-
 ## MeCab-compatible options
 
 Vibrato is a reimplementation of the MeCab algorithm,
@@ -172,6 +163,9 @@ EOS
 ## Benchmark
 
 You can measure the tokenization speed for sentences in `test.txt`.
+
+If you can guarantee that `system.dic` is exported from this library,
+you can specify `--features=unchecked` for faster tokenization.
 
 ```
 $ cargo run --release -p benchmark --features=unchecked -- -i resources_ipadic-mecab-2_7_0/system.dic < test.txt

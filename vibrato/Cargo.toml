@@ -17,8 +17,3 @@ categories = ["text-processing"]
 bincode = "2.0.0-rc.1"  # MIT
 csv = "1.1"
 crawdad = "0.3.0"
-
-[features]
-default = []
-
-unchecked = []

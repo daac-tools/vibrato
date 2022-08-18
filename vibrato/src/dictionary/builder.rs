@@ -54,14 +54,17 @@ impl Dictionary {
             ));
         }
 
-        Ok(Self(DictionaryInner {
-            system_lexicon,
-            user_lexicon: None,
-            connector,
-            mapper: None,
-            char_prop,
-            unk_handler,
-        }))
+        Ok(Self {
+            data: DictionaryInner {
+                system_lexicon,
+                user_lexicon: None,
+                connector,
+                mapper: None,
+                char_prop,
+                unk_handler,
+            },
+            need_check: false,
+        })
     }
 
     /// Resets the user dictionary from a reader.
@@ -85,7 +88,7 @@ impl Dictionary {
     {
         if let Some(user_lexicon_rdr) = user_lexicon_rdr {
             let mut user_lexicon = Lexicon::from_reader(user_lexicon_rdr, LexType::User)?;
-            if let Some(mapper) = self.0.mapper.as_ref() {
+            if let Some(mapper) = self.data.mapper.as_ref() {
                 user_lexicon.do_mapping(mapper);
             }
             if !user_lexicon.verify(self.connector()) {
@@ -94,9 +97,9 @@ impl Dictionary {
                     "user_lexicon_rdr includes invalid connection ids.",
                 ));
             }
-            self.0.user_lexicon = Some(user_lexicon);
+            self.data.user_lexicon = Some(user_lexicon);
         } else {
-            self.0.user_lexicon = None;
+            self.data.user_lexicon = None;
         }
         Ok(self)
     }
@@ -121,13 +124,13 @@ impl Dictionary {
         R: IntoIterator<Item = u16>,
     {
         let mapper = ConnIdMapper::from_iter(lmap, rmap)?;
-        self.0.system_lexicon.do_mapping(&mapper);
-        if let Some(user_lexicon) = self.0.user_lexicon.as_mut() {
+        self.data.system_lexicon.do_mapping(&mapper);
+        if let Some(user_lexicon) = self.data.user_lexicon.as_mut() {
             user_lexicon.do_mapping(&mapper);
         }
-        self.0.connector.do_mapping(&mapper);
-        self.0.unk_handler.do_mapping(&mapper);
-        self.0.mapper = Some(mapper);
+        self.data.connector.do_mapping(&mapper);
+        self.data.unk_handler.do_mapping(&mapper);
+        self.data.mapper = Some(mapper);
         Ok(self)
     }
 }

@@ -51,44 +51,47 @@ struct DictionaryInner {
 }
 
 /// Dictionary for tokenization.
-pub struct Dictionary(DictionaryInner);
+pub struct Dictionary {
+    data: DictionaryInner,
+    pub(crate) need_check: bool,
+}
 
 impl Dictionary {
     /// Gets the reference to the system lexicon.
     #[inline(always)]
     pub(crate) const fn system_lexicon(&self) -> &Lexicon {
-        &self.0.system_lexicon
+        &self.data.system_lexicon
     }
 
     /// Gets the reference to the user lexicon.
     #[inline(always)]
     pub(crate) const fn user_lexicon(&self) -> Option<&Lexicon> {
-        self.0.user_lexicon.as_ref()
+        self.data.user_lexicon.as_ref()
     }
 
     /// Gets the reference to the connection matrix.
     #[inline(always)]
     pub(crate) const fn connector(&self) -> &Connector {
-        &self.0.connector
+        &self.data.connector
     }
 
     /// Gets the reference to the mapper for connection ids.
     #[allow(dead_code)]
     #[inline(always)]
     pub(crate) const fn mapper(&self) -> Option<&ConnIdMapper> {
-        self.0.mapper.as_ref()
+        self.data.mapper.as_ref()
     }
 
     /// Gets the reference to the character property.
     #[inline(always)]
     pub(crate) const fn char_prop(&self) -> &CharProperty {
-        &self.0.char_prop
+        &self.data.char_prop
     }
 
     /// Gets the reference to the handler of unknown words.
     #[inline(always)]
     pub(crate) const fn unk_handler(&self) -> &UnkHandler {
-        &self.0.unk_handler
+        &self.data.unk_handler
     }
 
     /// Gets the word parameter.
@@ -121,7 +124,7 @@ impl Dictionary {
         W: Write,
     {
         let num_bytes =
-            bincode::encode_into_std_write(&self.0, &mut wtr, common::bincode_config())?;
+            bincode::encode_into_std_write(&self.data, &mut wtr, common::bincode_config())?;
         Ok(num_bytes)
     }
 
@@ -130,13 +133,15 @@ impl Dictionary {
     /// # Errors
     ///
     /// When bincode generates an error, it will be returned as is.
-    #[cfg(not(feature = "unchecked"))]
     pub fn read<R>(mut rdr: R) -> Result<Self>
     where
         R: Read,
     {
         let data = bincode::decode_from_std_read(&mut rdr, common::bincode_config())?;
-        Ok(Self(data))
+        Ok(Self {
+            data,
+            need_check: true,
+        })
     }
 
     /// Creates a dictionary from a reader.
@@ -149,12 +154,14 @@ impl Dictionary {
     /// # Errors
     ///
     /// When bincode generates an error, it will be returned as is.
-    #[cfg(feature = "unchecked")]
     pub unsafe fn read_unchecked<R>(mut rdr: R) -> Result<Self>
     where
         R: Read,
     {
         let data = bincode::decode_from_std_read(&mut rdr, common::bincode_config())?;
-        Ok(Self(data))
+        Ok(Self {
+            data,
+            need_check: false,
+        })
     }
 }

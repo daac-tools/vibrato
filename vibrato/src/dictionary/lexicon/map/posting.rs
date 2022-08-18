@@ -17,15 +17,14 @@ impl Postings {
     #[inline(always)]
     pub fn ids(&'_ self, i: usize) -> impl Iterator<Item = u32> + '_ {
         let len = usize::from_u32(self.data[i]);
-        #[cfg(feature = "unchecked")]
-        unsafe {
-            // The tokenization time can be shortened by 10%.
-            self.data.get_unchecked(i + 1..i + 1 + len).iter().cloned()
-        }
-        #[cfg(not(feature = "unchecked"))]
-        {
-            self.data[i + 1..i + 1 + len].iter().cloned()
-        }
+        self.data[i + 1..i + 1 + len].iter().cloned()
+    }
+
+    #[inline(always)]
+    pub unsafe fn ids_unchecked(&'_ self, i: usize) -> impl Iterator<Item = u32> + '_ {
+        let len = usize::from_u32(self.data[i]);
+        // The tokenization time can be shortened by 10%.
+        self.data.get_unchecked(i + 1..i + 1 + len).iter().cloned()
     }
 }
 
