@@ -1,5 +1,3 @@
-use std::ops::Deref;
-
 use crate::dictionary::Dictionary;
 use crate::Tokenizer;
 
@@ -19,13 +17,15 @@ fn test_tokenize_tokyo() {
     )
     .unwrap();
 
-    let mut tokenizer = Tokenizer::new(&dict);
-    let tokens = tokenizer.tokenize("東京都").unwrap();
+    let tokenizer = Tokenizer::new(dict);
+    let mut worker = tokenizer.new_worker();
+    worker.reset_sentence("東京都").unwrap();
+    worker.tokenize();
+    assert_eq!(worker.num_tokens(), 1);
 
-    assert_eq!(tokens.len(), 1);
     {
-        let t = tokens.get(0);
-        assert_eq!(t.surface().deref(), "東京都");
+        let t = worker.token(0);
+        assert_eq!(t.surface(), "東京都");
         assert_eq!(t.range_char(), 0..3);
         assert_eq!(t.range_byte(), 0..9);
         assert_eq!(
@@ -38,7 +38,7 @@ fn test_tokenize_tokyo() {
     //  [BOS] -- [東京都] -- [EOS]
     //     r=0  l=6   r=8  l=0
     //      c=-79
-    assert_eq!(tokens.get(0).total_cost(), -79 + 5320);
+    assert_eq!(worker.token(0).total_cost(), -79 + 5320);
 }
 
 #[test]
@@ -51,13 +51,15 @@ fn test_tokenize_kyotokyo() {
     )
     .unwrap();
 
-    let mut tokenizer = Tokenizer::new(&dict);
-    let tokens = tokenizer.tokenize("京都東京都京都").unwrap();
+    let tokenizer = Tokenizer::new(dict);
+    let mut worker = tokenizer.new_worker();
+    worker.reset_sentence("京都東京都京都").unwrap();
+    worker.tokenize();
+    assert_eq!(worker.num_tokens(), 3);
 
-    assert_eq!(tokens.len(), 3);
     {
-        let t = tokens.get(0);
-        assert_eq!(t.surface().deref(), "京都");
+        let t = worker.token(0);
+        assert_eq!(t.surface(), "京都");
         assert_eq!(t.range_char(), 0..2);
         assert_eq!(t.range_byte(), 0..6);
         assert_eq!(
@@ -66,8 +68,8 @@ fn test_tokenize_kyotokyo() {
         );
     }
     {
-        let t = tokens.get(1);
-        assert_eq!(t.surface().deref(), "東京都");
+        let t = worker.token(1);
+        assert_eq!(t.surface(), "東京都");
         assert_eq!(t.range_char(), 2..5);
         assert_eq!(t.range_byte(), 6..15);
         assert_eq!(
@@ -76,8 +78,8 @@ fn test_tokenize_kyotokyo() {
         );
     }
     {
-        let t = tokens.get(2);
-        assert_eq!(t.surface().deref(), "京都");
+        let t = worker.token(2);
+        assert_eq!(t.surface(), "京都");
         assert_eq!(t.range_char(), 5..7);
         assert_eq!(t.range_byte(), 15..21);
         assert_eq!(
@@ -90,14 +92,14 @@ fn test_tokenize_kyotokyo() {
     //  [BOS] -- [京都] -- [東京都] -- [京都] -- [EOS]
     //     r=0  l=6  r=6  l=6  r=8  l=6  r=6  l=0
     //      c=-79     c=569     c=-352
-    assert_eq!(tokens.get(0).total_cost(), -79 + 5293);
+    assert_eq!(worker.token(0).total_cost(), -79 + 5293);
     assert_eq!(
-        tokens.get(1).total_cost(),
-        tokens.get(0).total_cost() + 569 + 5320
+        worker.token(1).total_cost(),
+        worker.token(0).total_cost() + 569 + 5320
     );
     assert_eq!(
-        tokens.get(2).total_cost(),
-        tokens.get(1).total_cost() - 352 + 5293
+        worker.token(2).total_cost(),
+        worker.token(1).total_cost() - 352 + 5293
     );
 }
 
@@ -113,20 +115,22 @@ fn test_tokenize_kyotokyo_with_user() {
     .user_lexicon_from_reader(Some(USER_CSV.as_bytes()))
     .unwrap();
 
-    let mut tokenizer = Tokenizer::new(&dict);
-    let tokens = tokenizer.tokenize("京都東京都京都").unwrap();
+    let tokenizer = Tokenizer::new(dict);
+    let mut worker = tokenizer.new_worker();
+    worker.reset_sentence("京都東京都京都").unwrap();
+    worker.tokenize();
+    assert_eq!(worker.num_tokens(), 2);
 
-    assert_eq!(tokens.len(), 2);
     {
-        let t = tokens.get(0);
-        assert_eq!(t.surface().deref(), "京都東京都");
+        let t = worker.token(0);
+        assert_eq!(t.surface(), "京都東京都");
         assert_eq!(t.range_char(), 0..5);
         assert_eq!(t.range_byte(), 0..15);
         assert_eq!(t.feature(), "カスタム名詞");
     }
     {
-        let t = tokens.get(1);
-        assert_eq!(t.surface().deref(), "京都");
+        let t = worker.token(1);
+        assert_eq!(t.surface(), "京都");
         assert_eq!(t.range_char(), 5..7);
         assert_eq!(t.range_byte(), 15..21);
         assert_eq!(
@@ -139,10 +143,10 @@ fn test_tokenize_kyotokyo_with_user() {
     //  [BOS] -- [京都東京都] -- [京都] -- [EOS]
     //     r=0  l=6      r=8  l=6  r=6  l=0
     //      c=-79         c=-352
-    assert_eq!(tokens.get(0).total_cost(), -79 - 1000);
+    assert_eq!(worker.token(0).total_cost(), -79 - 1000);
     assert_eq!(
-        tokens.get(1).total_cost(),
-        tokens.get(0).total_cost() - 352 + 5293
+        worker.token(1).total_cost(),
+        worker.token(0).total_cost() - 352 + 5293
     );
 }
 
@@ -156,13 +160,15 @@ fn test_tokenize_tokyoto_with_space() {
     )
     .unwrap();
 
-    let mut tokenizer = Tokenizer::new(&dict);
-    let tokens = tokenizer.tokenize("東京 都").unwrap();
+    let tokenizer = Tokenizer::new(dict);
+    let mut worker = tokenizer.new_worker();
+    worker.reset_sentence("東京 都").unwrap();
+    worker.tokenize();
+    assert_eq!(worker.num_tokens(), 3);
 
-    assert_eq!(tokens.len(), 3);
     {
-        let t = tokens.get(0);
-        assert_eq!(t.surface().deref(), "東京");
+        let t = worker.token(0);
+        assert_eq!(t.surface(), "東京");
         assert_eq!(t.range_char(), 0..2);
         assert_eq!(t.range_byte(), 0..6);
         assert_eq!(
@@ -171,15 +177,15 @@ fn test_tokenize_tokyoto_with_space() {
         );
     }
     {
-        let t = tokens.get(1);
-        assert_eq!(t.surface().deref(), " ");
+        let t = worker.token(1);
+        assert_eq!(t.surface(), " ");
         assert_eq!(t.range_char(), 2..3);
         assert_eq!(t.range_byte(), 6..7);
         assert_eq!(t.feature(), " ,空白,*,*,*,*,*, , ,*,A,*,*,*,*");
     }
     {
-        let t = tokens.get(2);
-        assert_eq!(t.surface().deref(), "都");
+        let t = worker.token(2);
+        assert_eq!(t.surface(), "都");
         assert_eq!(t.range_char(), 3..4);
         assert_eq!(t.range_byte(), 7..10);
         assert_eq!(t.feature(), "都,名詞,普通名詞,一般,*,*,*,ト,都,*,A,*,*,*,*");
@@ -189,14 +195,14 @@ fn test_tokenize_tokyoto_with_space() {
     //  [BOS] -- [東京] -- [ ] -- [都] -- [EOS]
     //     r=0  l=6 r=6 l=8 r=8 l=8 r=8 l=0
     //      c=-79    c=-390  c=1134  c=-522
-    assert_eq!(tokens.get(0).total_cost(), -79 + 2816);
+    assert_eq!(worker.token(0).total_cost(), -79 + 2816);
     assert_eq!(
-        tokens.get(1).total_cost(),
-        tokens.get(0).total_cost() - 390 - 20000
+        worker.token(1).total_cost(),
+        worker.token(0).total_cost() - 390 - 20000
     );
     assert_eq!(
-        tokens.get(2).total_cost(),
-        tokens.get(1).total_cost() + 1134 + 2914
+        worker.token(2).total_cost(),
+        worker.token(1).total_cost() + 1134 + 2914
     );
 }
 
@@ -210,13 +216,15 @@ fn test_tokenize_tokyoto_with_space_ignored() {
     )
     .unwrap();
 
-    let mut tokenizer = Tokenizer::new(&dict).ignore_space(true).unwrap();
-    let tokens = tokenizer.tokenize("東京 都").unwrap();
+    let tokenizer = Tokenizer::new(dict).ignore_space(true).unwrap();
+    let mut worker = tokenizer.new_worker();
+    worker.reset_sentence("東京 都").unwrap();
+    worker.tokenize();
+    assert_eq!(worker.num_tokens(), 2);
 
-    assert_eq!(tokens.len(), 2);
     {
-        let t = tokens.get(0);
-        assert_eq!(t.surface().deref(), "東京");
+        let t = worker.token(0);
+        assert_eq!(t.surface(), "東京");
         assert_eq!(t.range_char(), 0..2);
         assert_eq!(t.range_byte(), 0..6);
         assert_eq!(
@@ -225,8 +233,8 @@ fn test_tokenize_tokyoto_with_space_ignored() {
         );
     }
     {
-        let t = tokens.get(1);
-        assert_eq!(t.surface().deref(), "都");
+        let t = worker.token(1);
+        assert_eq!(t.surface(), "都");
         assert_eq!(t.range_char(), 3..4);
         assert_eq!(t.range_byte(), 7..10);
         assert_eq!(t.feature(), "都,名詞,普通名詞,一般,*,*,*,ト,都,*,A,*,*,*,*");
@@ -236,10 +244,10 @@ fn test_tokenize_tokyoto_with_space_ignored() {
     //  [BOS] -- [東京] -- [都] -- [EOS]
     //     r=0  l=6 r=6  l=8 r=8 l=0
     //      c=-79    c=-390  c=-522
-    assert_eq!(tokens.get(0).total_cost(), -79 + 2816);
+    assert_eq!(worker.token(0).total_cost(), -79 + 2816);
     assert_eq!(
-        tokens.get(1).total_cost(),
-        tokens.get(0).total_cost() - 390 + 2914
+        worker.token(1).total_cost(),
+        worker.token(0).total_cost() - 390 + 2914
     );
 }
 
@@ -253,13 +261,15 @@ fn test_tokenize_tokyoto_with_spaces_ignored() {
     )
     .unwrap();
 
-    let mut tokenizer = Tokenizer::new(&dict).ignore_space(true).unwrap();
-    let tokens = tokenizer.tokenize("東京   都").unwrap();
+    let tokenizer = Tokenizer::new(dict).ignore_space(true).unwrap();
+    let mut worker = tokenizer.new_worker();
+    worker.reset_sentence("東京   都").unwrap();
+    worker.tokenize();
+    assert_eq!(worker.num_tokens(), 2);
 
-    assert_eq!(tokens.len(), 2);
     {
-        let t = tokens.get(0);
-        assert_eq!(t.surface().deref(), "東京");
+        let t = worker.token(0);
+        assert_eq!(t.surface(), "東京");
         assert_eq!(t.range_char(), 0..2);
         assert_eq!(t.range_byte(), 0..6);
         assert_eq!(
@@ -268,8 +278,8 @@ fn test_tokenize_tokyoto_with_spaces_ignored() {
         );
     }
     {
-        let t = tokens.get(1);
-        assert_eq!(t.surface().deref(), "都");
+        let t = worker.token(1);
+        assert_eq!(t.surface(), "都");
         assert_eq!(t.range_char(), 5..6);
         assert_eq!(t.range_byte(), 9..12);
         assert_eq!(t.feature(), "都,名詞,普通名詞,一般,*,*,*,ト,都,*,A,*,*,*,*");
@@ -279,10 +289,10 @@ fn test_tokenize_tokyoto_with_spaces_ignored() {
     //  [BOS] -- [東京] -- [都] -- [EOS]
     //     r=0  l=6 r=6  l=8 r=8 l=0
     //      c=-79    c=-390  c=-522
-    assert_eq!(tokens.get(0).total_cost(), -79 + 2816);
+    assert_eq!(worker.token(0).total_cost(), -79 + 2816);
     assert_eq!(
-        tokens.get(1).total_cost(),
-        tokens.get(0).total_cost() - 390 + 2914
+        worker.token(1).total_cost(),
+        worker.token(0).total_cost() - 390 + 2914
     );
 }
 
@@ -296,13 +306,15 @@ fn test_tokenize_tokyoto_startswith_spaces_ignored() {
     )
     .unwrap();
 
-    let mut tokenizer = Tokenizer::new(&dict).ignore_space(true).unwrap();
-    let tokens = tokenizer.tokenize("   東京都").unwrap();
+    let tokenizer = Tokenizer::new(dict).ignore_space(true).unwrap();
+    let mut worker = tokenizer.new_worker();
+    worker.reset_sentence("   東京都").unwrap();
+    worker.tokenize();
+    assert_eq!(worker.num_tokens(), 1);
 
-    assert_eq!(tokens.len(), 1);
     {
-        let t = tokens.get(0);
-        assert_eq!(t.surface().deref(), "東京都");
+        let t = worker.token(0);
+        assert_eq!(t.surface(), "東京都");
         assert_eq!(t.range_char(), 3..6);
         assert_eq!(t.range_byte(), 3..12);
         assert_eq!(
@@ -315,7 +327,7 @@ fn test_tokenize_tokyoto_startswith_spaces_ignored() {
     //  [BOS] -- [東京都] -- [EOS]
     //     r=0  l=6   r=8  l=0
     //      c=-79
-    assert_eq!(tokens.get(0).total_cost(), -79 + 5320);
+    assert_eq!(worker.token(0).total_cost(), -79 + 5320);
 }
 
 #[test]
@@ -328,13 +340,15 @@ fn test_tokenize_tokyoto_endswith_spaces_ignored() {
     )
     .unwrap();
 
-    let mut tokenizer = Tokenizer::new(&dict).ignore_space(true).unwrap();
-    let tokens = tokenizer.tokenize("東京都   ").unwrap();
+    let tokenizer = Tokenizer::new(dict).ignore_space(true).unwrap();
+    let mut worker = tokenizer.new_worker();
+    worker.reset_sentence("東京都   ").unwrap();
+    worker.tokenize();
+    assert_eq!(worker.num_tokens(), 1);
 
-    assert_eq!(tokens.len(), 1);
     {
-        let t = tokens.get(0);
-        assert_eq!(t.surface().deref(), "東京都");
+        let t = worker.token(0);
+        assert_eq!(t.surface(), "東京都");
         assert_eq!(t.range_char(), 0..3);
         assert_eq!(t.range_byte(), 0..9);
         assert_eq!(
@@ -347,7 +361,7 @@ fn test_tokenize_tokyoto_endswith_spaces_ignored() {
     //  [BOS] -- [東京都] -- [EOS]
     //     r=0  l=6   r=8  l=0
     //      c=-79
-    assert_eq!(tokens.get(0).total_cost(), -79 + 5320);
+    assert_eq!(worker.token(0).total_cost(), -79 + 5320);
 }
 
 #[test]
@@ -360,13 +374,15 @@ fn test_tokenize_kampersanda() {
     )
     .unwrap();
 
-    let mut tokenizer = Tokenizer::new(&dict);
-    let tokens = tokenizer.tokenize("kampersanda").unwrap();
+    let tokenizer = Tokenizer::new(dict);
+    let mut worker = tokenizer.new_worker();
+    worker.reset_sentence("kampersanda").unwrap();
+    worker.tokenize();
+    assert_eq!(worker.num_tokens(), 1);
 
-    assert_eq!(tokens.len(), 1);
     {
-        let t = tokens.get(0);
-        assert_eq!(t.surface().deref(), "kampersanda");
+        let t = worker.token(0);
+        assert_eq!(t.surface(), "kampersanda");
         assert_eq!(t.range_char(), 0..11);
         assert_eq!(t.range_byte(), 0..11);
         assert_eq!(t.feature(), "名詞,普通名詞,一般,*,*,*");
@@ -376,7 +392,7 @@ fn test_tokenize_kampersanda() {
     //  [BOS] -- [kampersanda] -- [EOS]
     //     r=0  l=7         r=7  l=0
     //      c=887
-    assert_eq!(tokens.get(0).total_cost(), 887 + 11633);
+    assert_eq!(worker.token(0).total_cost(), 887 + 11633);
 }
 
 #[test]
@@ -391,13 +407,15 @@ fn test_tokenize_kampersanda_with_user() {
     .user_lexicon_from_reader(Some(USER_CSV.as_bytes()))
     .unwrap();
 
-    let mut tokenizer = Tokenizer::new(&dict);
-    let tokens = tokenizer.tokenize("kampersanda").unwrap();
+    let tokenizer = Tokenizer::new(dict);
+    let mut worker = tokenizer.new_worker();
+    worker.reset_sentence("kampersanda").unwrap();
+    worker.tokenize();
+    assert_eq!(worker.num_tokens(), 1);
 
-    assert_eq!(tokens.len(), 1);
     {
-        let t = tokens.get(0);
-        assert_eq!(t.surface().deref(), "kampersanda");
+        let t = worker.token(0);
+        assert_eq!(t.surface(), "kampersanda");
         assert_eq!(t.range_char(), 0..11);
         assert_eq!(t.range_byte(), 0..11);
         assert_eq!(t.feature(), "カスタム名詞");
@@ -407,7 +425,7 @@ fn test_tokenize_kampersanda_with_user() {
     //  [BOS] -- [kampersanda] -- [EOS]
     //     r=0  l=7         r=7  l=0
     //      c=887
-    assert_eq!(tokens.get(0).total_cost(), 887 - 2000);
+    assert_eq!(worker.token(0).total_cost(), 887 - 2000);
 }
 
 #[test]
@@ -420,23 +438,25 @@ fn test_tokenize_kampersanda_with_max_grouping() {
     )
     .unwrap();
 
-    let mut tokenizer = Tokenizer::new(&dict)
+    let tokenizer = Tokenizer::new(dict)
         .ignore_space(true)
         .unwrap()
         .max_grouping_len(9);
-    let tokens = tokenizer.tokenize("kampersanda").unwrap();
+    let mut worker = tokenizer.new_worker();
+    worker.reset_sentence("kampersanda").unwrap();
+    worker.tokenize();
+    assert_eq!(worker.num_tokens(), 2);
 
-    assert_eq!(tokens.len(), 2);
     {
-        let t = tokens.get(0);
-        assert_eq!(t.surface().deref(), "k");
+        let t = worker.token(0);
+        assert_eq!(t.surface(), "k");
         assert_eq!(t.range_char(), 0..1);
         assert_eq!(t.range_byte(), 0..1);
         assert_eq!(t.feature(), "名詞,普通名詞,一般,*,*,*");
     }
     {
-        let t = tokens.get(1);
-        assert_eq!(t.surface().deref(), "ampersanda");
+        let t = worker.token(1);
+        assert_eq!(t.surface(), "ampersanda");
         assert_eq!(t.range_char(), 1..11);
         assert_eq!(t.range_byte(), 1..11);
         assert_eq!(t.feature(), "名詞,普通名詞,一般,*,*,*");
@@ -446,10 +466,10 @@ fn test_tokenize_kampersanda_with_max_grouping() {
     //  [BOS] -- [k] -- [ampersanda] -- [EOS]
     //     r=0 l=7 r=7 l=7        r=7  l=0
     //      c=887   c=2341
-    assert_eq!(tokens.get(0).total_cost(), 887 + 11633);
+    assert_eq!(worker.token(0).total_cost(), 887 + 11633);
     assert_eq!(
-        tokens.get(1).total_cost(),
-        tokens.get(0).total_cost() + 2341 + 11633
+        worker.token(1).total_cost(),
+        worker.token(0).total_cost() + 2341 + 11633
     );
 }
 
@@ -463,10 +483,11 @@ fn test_tokenize_tokyoken() {
     )
     .unwrap();
 
-    let mut tokenizer = Tokenizer::new(&dict);
-    let tokens = tokenizer.tokenize("東京県に行く").unwrap();
-
-    assert_eq!(tokens.len(), 4);
+    let tokenizer = Tokenizer::new(dict);
+    let mut worker = tokenizer.new_worker();
+    worker.reset_sentence("東京県に行く").unwrap();
+    worker.tokenize();
+    assert_eq!(worker.num_tokens(), 4);
 }
 
 /// This test is to check if the category order in char.def is preserved.
@@ -480,13 +501,15 @@ fn test_tokenize_kanjinumeric() {
     )
     .unwrap();
 
-    let mut tokenizer = Tokenizer::new(&dict);
-    let tokens = tokenizer.tokenize("一橋大学大学院").unwrap();
+    let tokenizer = Tokenizer::new(dict);
+    let mut worker = tokenizer.new_worker();
+    worker.reset_sentence("一橋大学大学院").unwrap();
+    worker.tokenize();
+    assert_eq!(worker.num_tokens(), 1);
 
-    assert_eq!(tokens.len(), 1);
     {
-        let t = tokens.get(0);
-        assert_eq!(t.surface().deref(), "一橋大学大学院");
+        let t = worker.token(0);
+        assert_eq!(t.surface(), "一橋大学大学院");
         assert_eq!(t.range_char(), 0..7);
         assert_eq!(t.range_byte(), 0..21);
         assert_eq!(t.feature(), "名詞,数,*,*,*,*,*");
@@ -503,8 +526,39 @@ fn test_tokenize_empty() {
     )
     .unwrap();
 
-    let mut tokenizer = Tokenizer::new(&dict);
-    let tokens = tokenizer.tokenize("").unwrap();
+    let tokenizer = Tokenizer::new(dict);
+    let mut worker = tokenizer.new_worker();
+    worker.reset_sentence("").unwrap();
+    worker.tokenize();
+    assert_eq!(worker.num_tokens(), 0);
+}
 
-    assert_eq!(tokens.len(), 0);
+#[test]
+fn test_tokenize_repeat() {
+    let dict = Dictionary::from_readers(
+        LEX_CSV.as_bytes(),
+        MATRIX_DEF.as_bytes(),
+        CHAR_DEF.as_bytes(),
+        UNK_DEF.as_bytes(),
+    )
+    .unwrap();
+
+    let tokenizer = Tokenizer::new(dict);
+    let mut worker = tokenizer.new_worker();
+
+    worker.reset_sentence("東京に行く").unwrap();
+    worker.tokenize();
+    assert_eq!(worker.num_tokens(), 3);
+
+    worker.reset_sentence("一橋大学大学院").unwrap();
+    worker.tokenize();
+    assert_eq!(worker.num_tokens(), 1);
+
+    worker.reset_sentence("").unwrap();
+    worker.tokenize();
+    assert_eq!(worker.num_tokens(), 0);
+
+    worker.reset_sentence("kampersanda").unwrap();
+    worker.tokenize();
+    assert_eq!(worker.num_tokens(), 1);
 }

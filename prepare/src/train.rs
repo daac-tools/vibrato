@@ -25,16 +25,18 @@ fn main() -> Result<(), Box<dyn Error>> {
     let dict = Dictionary::read(reader)?;
 
     eprintln!("Training connection id mappings...");
-    let mut tokenizer = Tokenizer::new(&dict);
-    let mut counter = tokenizer.new_connid_counter();
+    let tokenizer = Tokenizer::new(dict);
+    let mut worker = tokenizer.new_worker();
+    worker.init_connid_counter();
 
     #[allow(clippy::significant_drop_in_scrutinee)]
     for line in std::io::stdin().lock().lines() {
         let line = line?;
-        tokenizer.tokenize(line)?;
-        tokenizer.add_connid_counts(&mut counter);
+        worker.reset_sentence(line)?;
+        worker.tokenize();
+        worker.update_connid_counts();
     }
-    let (lid_probs, rid_probs) = counter.compute_probs();
+    let (lid_probs, rid_probs) = worker.compute_connid_probs();
 
     eprintln!("Writting connection id mappings...");
     {

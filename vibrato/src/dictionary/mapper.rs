@@ -31,7 +31,7 @@ impl ConnIdMapper {
     }
 }
 
-/// Trained probabilities of connection ids.
+/// Trained occurrence probabilities of connection ids.
 pub type ConnIdProbs = Vec<(usize, f64)>;
 
 /// Counter to train mappings of connection ids.
@@ -41,7 +41,7 @@ pub struct ConnIdCounter {
 
 impl ConnIdCounter {
     /// Creates a new counter for the matrix of `num_left \times num_right`.
-    pub(crate) fn new(num_left: usize, num_right: usize) -> Self {
+    pub fn new(num_left: usize, num_right: usize) -> Self {
         Self {
             // The initial value 1 is for avoiding zero frequency.
             lid_to_rid_count: vec![vec![1; num_right]; num_left],
@@ -49,7 +49,7 @@ impl ConnIdCounter {
     }
 
     #[inline(always)]
-    pub(crate) fn add(&mut self, left_id: u16, right_id: u16, num: usize) {
+    pub fn add(&mut self, left_id: u16, right_id: u16, num: usize) {
         self.lid_to_rid_count[usize::from(left_id)][usize::from(right_id)] += num;
     }
 
@@ -94,6 +94,7 @@ impl ConnIdCounter {
         }
 
         // Pop Id = 0
+        assert_eq!(crate::common::BOS_EOS_CONNECTION_ID, 0);
         lid_probs.drain(..1);
         rid_probs.drain(..1);
 

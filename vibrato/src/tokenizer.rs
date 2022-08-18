@@ -1,43 +1,31 @@
 //! Viterbi-based tokenizer.
-mod lattice;
+pub(crate) mod lattice;
 
-use std::cell::RefCell;
-use std::rc::Rc;
-
-use crate::dictionary::mapper::ConnIdCounter;
 use crate::dictionary::Dictionary;
 use crate::errors::{Result, VibratoError};
 use crate::sentence::Sentence;
-use crate::token::TokenList;
+use crate::worker::Worker;
 use lattice::Lattice;
-
-pub(crate) use lattice::Node;
 
 use crate::common::MAX_SENTENCE_LENGTH;
 
 /// Tokenizer.
-pub struct Tokenizer<'a> {
-    dict: &'a Dictionary,
-    sent: Rc<RefCell<Sentence>>,
-    lattice: Lattice,
-    tokens: TokenList<'a>,
+pub struct Tokenizer {
+    dict: Dictionary,
     // For the MeCab compatibility
     space_cateset: Option<u32>,
     max_grouping_len: Option<u16>,
 }
 
-impl<'a> Tokenizer<'a> {
+impl Tokenizer {
     /// Creates a new instance.
     ///
     /// # Arguments
     ///
     ///  - `dict`: Dictionary to be used.
-    pub fn new(dict: &'a Dictionary) -> Self {
+    pub const fn new(dict: Dictionary) -> Self {
         Self {
             dict,
-            sent: Rc::new(RefCell::new(Sentence::new())),
-            lattice: Lattice::default(),
-            tokens: TokenList::new(dict),
             space_cateset: None,
             max_grouping_len: None,
         }
@@ -85,46 +73,27 @@ impl<'a> Tokenizer<'a> {
         self
     }
 
-    /// Tokenizes an input text.
-    ///
-    /// # Errors
-    ///
-    /// When the input text includes characters more than [`MAX_SENTENCE_LENGTH`],
-    /// an error will be returned.
-    pub fn tokenize<S>(&mut self, input: S) -> Result<&TokenList>
-    where
-        S: AsRef<str>,
-    {
-        self.tokens.sent = Rc::default();
-        self.tokens.nodes.clear();
-
-        let input = input.as_ref();
-        if input.is_empty() {
-            return Ok(&self.tokens);
-        }
-
-        self.sent.borrow_mut().set_sentence(input);
-        self.sent.borrow_mut().compile(self.dict.char_prop())?;
-        self.build_lattice();
-
-        self.tokens.sent = self.sent.clone();
-        self.lattice.append_top_nodes(&mut self.tokens.nodes);
-
-        Ok(&self.tokens)
+    /// Gets the reference to the dictionary.
+    pub const fn dictionary(&self) -> &Dictionary {
+        &self.dict
     }
 
-    fn build_lattice(&mut self) {
-        let sent = self.sent.borrow();
+    /// Creates a new worker.
+    pub fn new_worker(&self) -> Worker {
+        Worker::new(self)
+    }
+
+    pub(crate) fn build_lattice(&self, sent: &Sentence, lattice: &mut Lattice) {
         let input_chars = sent.chars();
         let input_len = sent.len_char();
 
-        self.lattice.reset(input_len);
+        lattice.reset(input_len);
 
         let mut start_node = 0;
         let mut start_word = 0;
 
         while start_word < input_len {
-            if !self.lattice.has_previous_node(start_node) {
+            if !lattice.has_previous_node(start_node) {
                 start_word += 1;
                 start_node = start_word;
                 continue;
@@ -155,7 +124,7 @@ impl<'a> Tokenizer<'a> {
                 if let Some(user_lexicon) = self.dict.user_lexicon() {
                     for m in user_lexicon.common_prefix_iterator(suffix) {
                         debug_assert!(start_word + m.end_char <= input_len);
-                        self.lattice.insert_node(
+                        lattice.insert_node(
                             start_node,
                             start_word,
                             start_word + m.end_char,
@@ -169,7 +138,7 @@ impl<'a> Tokenizer<'a> {
 
                 for m in self.dict.system_lexicon().common_prefix_iterator(suffix) {
                     debug_assert!(start_word + m.end_char <= input_len);
-                    self.lattice.insert_node(
+                    lattice.insert_node(
                         start_node,
                         start_word,
                         start_word + m.end_char,
@@ -181,12 +150,12 @@ impl<'a> Tokenizer<'a> {
                 }
 
                 self.dict.unk_handler().gen_unk_words(
-                    &sent,
+                    sent,
                     start_word,
                     has_matched,
                     self.max_grouping_len,
                     |w| {
-                        self.lattice.insert_node(
+                        lattice.insert_node(
                             start_node,
                             w.start_char(),
                             w.end_char(),
@@ -201,7 +170,7 @@ impl<'a> Tokenizer<'a> {
                     if let Some(user_lexicon) = self.dict.user_lexicon() {
                         for m in user_lexicon.common_prefix_iterator_unchecked(suffix) {
                             debug_assert!(start_word + m.end_char <= input_len);
-                            self.lattice.insert_node_unchecked(
+                            lattice.insert_node_unchecked(
                                 start_node,
                                 start_word,
                                 start_word + m.end_char,
@@ -219,7 +188,7 @@ impl<'a> Tokenizer<'a> {
                         .common_prefix_iterator_unchecked(suffix)
                     {
                         debug_assert!(start_word + m.end_char <= input_len);
-                        self.lattice.insert_node_unchecked(
+                        lattice.insert_node_unchecked(
                             start_node,
                             start_word,
                             start_word + m.end_char,
@@ -231,12 +200,12 @@ impl<'a> Tokenizer<'a> {
                     }
 
                     self.dict.unk_handler().gen_unk_words(
-                        &sent,
+                        sent,
                         start_word,
                         has_matched,
                         self.max_grouping_len,
                         |w| {
-                            self.lattice.insert_node_unchecked(
+                            lattice.insert_node_unchecked(
                                 start_node,
                                 w.start_char(),
                                 w.end_char(),
@@ -254,31 +223,17 @@ impl<'a> Tokenizer<'a> {
         }
 
         if self.dict.need_check {
-            self.lattice.insert_eos(start_node, self.dict.connector());
+            lattice.insert_eos(start_node, self.dict.connector());
         } else {
             unsafe {
-                self.lattice
-                    .insert_eos_unchecked(start_node, self.dict.connector());
+                lattice.insert_eos_unchecked(start_node, self.dict.connector());
             }
         }
-    }
-
-    /// Creates a counter for frequencies of connection ids to train mappings.
-    pub fn new_connid_counter(&self) -> ConnIdCounter {
-        let connector = self.dict.connector();
-        ConnIdCounter::new(connector.num_left(), connector.num_right())
-    }
-
-    /// Adds frequencies of connection ids at the last tokenization.
-    pub fn add_connid_counts(&self, counter: &mut ConnIdCounter) {
-        self.lattice.add_connid_counts(counter);
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::ops::Deref;
-
     use super::*;
 
     #[test]
@@ -300,21 +255,23 @@ mod tests {
         )
         .unwrap();
 
-        let mut tokenizer = Tokenizer::new(&dict);
-        let tokens = tokenizer.tokenize("自然言語処理").unwrap();
+        let tokenizer = Tokenizer::new(dict);
+        let mut worker = tokenizer.new_worker();
+        worker.reset_sentence("自然言語処理").unwrap();
+        worker.tokenize();
+        assert_eq!(worker.num_tokens(), 2);
 
-        assert_eq!(tokens.len(), 2);
         {
-            let t = tokens.get(0);
-            assert_eq!(t.surface().deref(), "自然");
+            let t = worker.token(0);
+            assert_eq!(t.surface(), "自然");
             assert_eq!(t.range_char(), 0..2);
             assert_eq!(t.range_byte(), 0..6);
             assert_eq!(t.feature(), "sizen");
             assert_eq!(t.total_cost(), 1);
         }
         {
-            let t = tokens.get(1);
-            assert_eq!(t.surface().deref(), "言語処理");
+            let t = worker.token(1);
+            assert_eq!(t.surface(), "言語処理");
             assert_eq!(t.range_char(), 2..6);
             assert_eq!(t.range_byte(), 6..18);
             assert_eq!(t.feature(), "gengoshori");
@@ -341,21 +298,23 @@ mod tests {
         )
         .unwrap();
 
-        let mut tokenizer = Tokenizer::new(&dict);
-        let tokens = tokenizer.tokenize("自然日本語処理").unwrap();
+        let tokenizer = Tokenizer::new(dict);
+        let mut worker = tokenizer.new_worker();
+        worker.reset_sentence("自然日本語処理").unwrap();
+        worker.tokenize();
+        assert_eq!(worker.num_tokens(), 2);
 
-        assert_eq!(tokens.len(), 2);
         {
-            let t = tokens.get(0);
-            assert_eq!(t.surface().deref(), "自然");
+            let t = worker.token(0);
+            assert_eq!(t.surface(), "自然");
             assert_eq!(t.range_char(), 0..2);
             assert_eq!(t.range_byte(), 0..6);
             assert_eq!(t.feature(), "sizen");
             assert_eq!(t.total_cost(), 1);
         }
         {
-            let t = tokens.get(1);
-            assert_eq!(t.surface().deref(), "日本語処理");
+            let t = worker.token(1);
+            assert_eq!(t.surface(), "日本語処理");
             assert_eq!(t.range_char(), 2..7);
             assert_eq!(t.range_byte(), 6..21);
             assert_eq!(t.feature(), "*");
@@ -382,21 +341,23 @@ mod tests {
         )
         .unwrap();
 
-        let mut tokenizer = Tokenizer::new(&dict);
-        let tokens = tokenizer.tokenize("不自然言語処理").unwrap();
+        let tokenizer = Tokenizer::new(dict);
+        let mut worker = tokenizer.new_worker();
+        worker.reset_sentence("不自然言語処理").unwrap();
+        worker.tokenize();
+        assert_eq!(worker.num_tokens(), 2);
 
-        assert_eq!(tokens.len(), 2);
         {
-            let t = tokens.get(0);
-            assert_eq!(t.surface().deref(), "不自然");
+            let t = worker.token(0);
+            assert_eq!(t.surface(), "不自然");
             assert_eq!(t.range_char(), 0..3);
             assert_eq!(t.range_byte(), 0..9);
             assert_eq!(t.feature(), "*");
             assert_eq!(t.total_cost(), 100);
         }
         {
-            let t = tokens.get(1);
-            assert_eq!(t.surface().deref(), "言語処理");
+            let t = worker.token(1);
+            assert_eq!(t.surface(), "言語処理");
             assert_eq!(t.range_char(), 3..7);
             assert_eq!(t.range_byte(), 9..21);
             assert_eq!(t.feature(), "gengoshori");
@@ -423,9 +384,10 @@ mod tests {
         )
         .unwrap();
 
-        let mut tokenizer = Tokenizer::new(&dict);
-        let tokens = tokenizer.tokenize("").unwrap();
-
-        assert_eq!(tokens.len(), 0);
+        let tokenizer = Tokenizer::new(dict);
+        let mut worker = tokenizer.new_worker();
+        worker.reset_sentence("").unwrap();
+        worker.tokenize();
+        assert_eq!(worker.num_tokens(), 0);
     }
 }

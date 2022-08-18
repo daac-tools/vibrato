@@ -57,40 +57,38 @@ fn main() -> Result<(), Box<dyn Error>> {
         dict = dict.user_lexicon_from_reader(Some(File::open(userlex_csv_filename)?))?;
     }
 
-    let mut tokenizer = Tokenizer::new(&dict);
-    if args.ignore_space {
-        tokenizer = tokenizer.ignore_space(true).unwrap();
-    }
-    if let Some(max_grouping_len) = args.max_grouping_len {
-        tokenizer = tokenizer.max_grouping_len(max_grouping_len);
-    }
+    let tokenizer = Tokenizer::new(dict)
+        .ignore_space(args.ignore_space)?
+        .max_grouping_len(args.max_grouping_len.unwrap_or(0));
+    let mut worker = tokenizer.new_worker();
 
     eprintln!("Ready to tokenize");
 
     #[allow(clippy::significant_drop_in_scrutinee)]
     for line in std::io::stdin().lock().lines() {
         let line = line?;
-        let tokens = tokenizer.tokenize(line)?;
+        worker.reset_sentence(line)?;
+        worker.tokenize();
         match args.output_mode {
             OutputMode::Mecab => {
-                for i in 0..tokens.len() {
-                    let t = tokens.get(i);
+                for i in 0..worker.num_tokens() {
+                    let t = worker.token(i);
                     println!("{}\t{}", t.surface(), t.feature());
                 }
                 println!("EOS");
             }
             OutputMode::Wakati => {
-                for i in 0..tokens.len() {
+                for i in 0..worker.num_tokens() {
                     if i != 0 {
                         print!(" ");
                     }
-                    print!("{}", tokens.get(i).surface());
+                    print!("{}", worker.token(i).surface());
                 }
                 println!();
             }
             OutputMode::Detail => {
-                for i in 0..tokens.len() {
-                    let t = tokens.get(i);
+                for i in 0..worker.num_tokens() {
+                    let t = worker.token(i);
                     println!(
                         "{}\t{}\tlex_type={:?}\tleft_id={}\tright_id={}\tword_cost={}\ttotal_cost={}",
                         t.surface(),

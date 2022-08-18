@@ -1,135 +1,120 @@
 //! Container of resultant tokens.
-use std::cell::{Ref, RefCell};
 use std::ops::Range;
-use std::rc::Rc;
 
-use crate::dictionary::{Dictionary, LexType};
-use crate::sentence::Sentence;
-use crate::tokenizer::Node;
+use crate::dictionary::LexType;
+use crate::worker::Worker;
 
-/// List of tokens.
-pub struct TokenList<'a> {
-    pub(crate) dict: &'a Dictionary,
-    pub(crate) sent: Rc<RefCell<Sentence>>,
-    pub(crate) nodes: Vec<(u16, Node)>,
-}
-
-impl<'a> TokenList<'a> {
-    pub(crate) fn new(dict: &'a Dictionary) -> Self {
-        Self {
-            dict,
-            sent: Rc::default(),
-            nodes: vec![],
-        }
-    }
-
-    /// Gets the number of tokens.
-    #[inline(always)]
-    pub fn len(&self) -> usize {
-        self.nodes.len()
-    }
-
-    /// Checks if the list is empty.
-    #[inline(always)]
-    pub fn is_empty(&self) -> bool {
-        self.nodes.len() == 0
-    }
-
-    /// Creates an iterator of tokens.
-    #[inline(always)]
-    pub const fn iter(&'a self) -> TokenIter<'a> {
-        TokenIter { list: self, i: 0 }
-    }
-
-    /// Gets the `i`-th token.
-    #[inline(always)]
-    pub fn get(&self, i: usize) -> Token {
-        let index = self.index(i);
-        Token { list: self, index }
-    }
-
-    #[inline(always)]
-    fn index(&self, i: usize) -> usize {
-        self.nodes.len() - i - 1
-    }
-}
-
-/// Token.
+/// Resultant token.
 pub struct Token<'a> {
-    list: &'a TokenList<'a>,
+    worker: &'a Worker<'a>,
     index: usize,
 }
 
 impl<'a> Token<'a> {
+    #[inline(always)]
+    pub(crate) const fn new(worker: &'a Worker, index: usize) -> Self {
+        Self { worker, index }
+    }
+
     /// Gets the position range of the token in characters.
     #[inline(always)]
     pub fn range_char(&self) -> Range<usize> {
-        let (end_word, node) = &self.list.nodes[self.index];
+        let (end_word, node) = &self.worker.top_nodes[self.index];
         usize::from(node.start_word)..usize::from(*end_word)
     }
 
     /// Gets the position range of the token in bytes.
     #[inline(always)]
     pub fn range_byte(&self) -> Range<usize> {
-        let sent = self.list.sent.borrow();
-        let (end_word, node) = &self.list.nodes[self.index];
+        let sent = &self.worker.sent;
+        let (end_word, node) = &self.worker.top_nodes[self.index];
         sent.byte_position(node.start_word)..sent.byte_position(*end_word)
     }
 
     /// Gets the surface string of the token.
     #[inline(always)]
-    pub fn surface(&self) -> Ref<str> {
-        let sent = self.list.sent.borrow();
-        Ref::map(sent, |s| &s.raw()[self.range_byte()])
+    pub fn surface(&self) -> &str {
+        let sent = &self.worker.sent;
+        &sent.raw()[self.range_byte()]
     }
 
     /// Gets the feature string of the token.
     #[inline(always)]
     pub fn feature(&self) -> &str {
-        let (_, node) = &self.list.nodes[self.index];
-        self.list.dict.word_feature(node.word_idx())
+        let (_, node) = &self.worker.top_nodes[self.index];
+        self.worker
+            .tokenizer
+            .dictionary()
+            .word_feature(node.word_idx())
     }
 
     /// Gets the lexicon type where the token is from.
     #[inline(always)]
     pub fn lex_type(&self) -> LexType {
-        let (_, node) = &self.list.nodes[self.index];
+        let (_, node) = &self.worker.top_nodes[self.index];
         node.word_idx().lex_type
     }
 
     /// Gets the left id of the token's node.
     #[inline(always)]
     pub fn left_id(&self) -> u16 {
-        let (_, node) = &self.list.nodes[self.index];
+        let (_, node) = &self.worker.top_nodes[self.index];
         node.left_id
     }
 
     /// Gets the right id of the token's node.
     #[inline(always)]
     pub fn right_id(&self) -> u16 {
-        let (_, node) = &self.list.nodes[self.index];
+        let (_, node) = &self.worker.top_nodes[self.index];
         node.right_id
     }
 
     /// Gets the word cost of the token's node.
     #[inline(always)]
     pub fn word_cost(&self) -> i16 {
-        let (_, node) = &self.list.nodes[self.index];
-        self.list.dict.word_param(node.word_idx()).word_cost
+        let (_, node) = &self.worker.top_nodes[self.index];
+        self.worker
+            .tokenizer
+            .dictionary()
+            .word_param(node.word_idx())
+            .word_cost
     }
 
     /// Gets the total cost from BOS to the token's node.
     #[inline(always)]
     pub fn total_cost(&self) -> i32 {
-        let (_, node) = &self.list.nodes[self.index];
+        let (_, node) = &self.worker.top_nodes[self.index];
         node.min_cost
+    }
+}
+
+impl<'a> std::fmt::Debug for Token<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Token")
+            .field("surface", &self.surface())
+            .field("range_char", &self.range_char())
+            .field("range_byte", &self.range_byte())
+            .field("feature", &self.feature())
+            .field("lex_type", &self.lex_type())
+            .field("left_id", &self.left_id())
+            .field("right_id", &self.right_id())
+            .field("word_cost", &self.word_cost())
+            .field("total_cost", &self.total_cost())
+            .finish()
     }
 }
 
 /// Iterator of tokens.
 pub struct TokenIter<'a> {
-    list: &'a TokenList<'a>,
+    worker: &'a Worker<'a>,
     i: usize,
+}
+
+impl<'a> TokenIter<'a> {
+    #[inline(always)]
+    pub(crate) const fn new(worker: &'a Worker, i: usize) -> Self {
+        Self { worker, i }
+    }
 }
 
 impl<'a> Iterator for TokenIter<'a> {
@@ -137,8 +122,8 @@ impl<'a> Iterator for TokenIter<'a> {
 
     #[inline(always)]
     fn next(&mut self) -> Option<Self::Item> {
-        if self.i < self.list.len() {
-            let t = self.list.get(self.i);
+        if self.i < self.worker.num_tokens() {
+            let t = self.worker.token(self.i);
             self.i += 1;
             Some(t)
         } else {
@@ -149,8 +134,6 @@ impl<'a> Iterator for TokenIter<'a> {
 
 #[cfg(test)]
 mod tests {
-    use std::ops::Deref;
-
     use crate::dictionary::*;
     use crate::tokenizer::*;
 
@@ -173,15 +156,17 @@ mod tests {
         )
         .unwrap();
 
-        let mut tokenizer = Tokenizer::new(&dict);
-        let tokens = tokenizer.tokenize("自然言語処理").unwrap();
-        assert_eq!(tokens.len(), 2);
+        let tokenizer = Tokenizer::new(dict);
+        let mut worker = tokenizer.new_worker();
+        worker.reset_sentence("自然言語処理").unwrap();
+        worker.tokenize();
+        assert_eq!(worker.num_tokens(), 2);
 
-        let mut it = tokens.iter();
-        for i in 0..tokens.len() {
-            let lhs = tokens.get(i);
+        let mut it = worker.token_iter();
+        for i in 0..worker.num_tokens() {
+            let lhs = worker.token(i);
             let rhs = it.next().unwrap();
-            assert_eq!(lhs.surface().deref(), rhs.surface().deref());
+            assert_eq!(lhs.surface(), rhs.surface());
         }
         assert!(it.next().is_none());
     }
