@@ -42,6 +42,22 @@ impl Lexicon {
             })
     }
 
+    #[inline(always)]
+    pub unsafe fn common_prefix_iterator_unchecked<'a>(
+        &'a self,
+        input: &'a [char],
+    ) -> impl Iterator<Item = LexMatch> + 'a {
+        self.map
+            .common_prefix_iterator_unchecked(input)
+            .map(move |(word_id, end_char)| {
+                LexMatch::new(
+                    WordIdx::new(self.lex_type, word_id),
+                    self.params.get(usize::from_u32(word_id)),
+                    end_char,
+                )
+            })
+    }
+
     /// Do NOT make this function public to maintain consistency in
     /// the connection-id mapping among members of `Dictionary`.
     /// The consistency is managed in `Dictionary`.
@@ -119,7 +135,7 @@ mod tests {
             lex_type: LexType::System,
         };
         let input: Vec<_> = "東京都".chars().collect();
-        let mut it = lexicon.common_prefix_iterator(&input);
+        let mut it = lexicon.common_prefix_iterator_checked(&input);
         assert_eq!(
             it.next().unwrap(),
             LexMatch {

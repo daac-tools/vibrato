@@ -13,14 +13,7 @@
 //! use vibrato::{Dictionary, Tokenizer};
 //!
 //! let file = File::open("src/tests/resources/system.dic").unwrap();
-#![cfg_attr(
-    feature = "unchecked",
-    doc = "let dict = unsafe { Dictionary::read_unchecked(BufReader::new(file)).unwrap() };"
-)]
-#![cfg_attr(
-    not(feature = "unchecked"),
-    doc = "let dict = Dictionary::read(BufReader::new(file)).unwrap();"
-)]
+//! let dict = Dictionary::read(BufReader::new(file)).unwrap();"
 //!
 //! let mut tokenizer = vibrato::Tokenizer::new(&dict);
 //! let tokens = tokenizer.tokenize("京都東京都").unwrap();

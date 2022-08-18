@@ -7,7 +7,6 @@ edition = "2021"
 
 [features]
 default = []
-unchecked = ["vibrato/unchecked"]
 
 [dependencies]
 vibrato = { path = "../vibrato" }

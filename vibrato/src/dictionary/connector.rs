@@ -34,15 +34,15 @@ impl Connector {
     #[inline(always)]
     pub fn cost(&self, right_id: u16, left_id: u16) -> i16 {
         let index = self.index(right_id, left_id);
-        #[cfg(feature = "unchecked")]
-        unsafe {
-            // The tokenization time can be shortened by 5--10%.
-            *self.data.get_unchecked(index)
-        }
-        #[cfg(not(feature = "unchecked"))]
-        {
-            self.data[index]
-        }
+        self.data[index]
+    }
+
+    /// Gets the value of the connection matrix
+    #[inline(always)]
+    pub unsafe fn cost_unchecked(&self, right_id: u16, left_id: u16) -> i16 {
+        let index = self.index(right_id, left_id);
+        // The tokenization time can be shortened by 5--10%.
+        *self.data.get_unchecked(index)
     }
 
     /// Returns maximum number of left connection ID
