@@ -51,10 +51,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     eprintln!("Loading the dictionary...");
     let reader = BufReader::new(File::open(args.sysdic_filename)?);
-    #[cfg(not(feature = "unchecked"))]
     let mut dict = Dictionary::read(reader)?;
-    #[cfg(feature = "unchecked")]
-    let mut dict = unsafe { Dictionary::read_unchecked(reader)? };
 
     if let Some(userlex_csv_filename) = args.userlex_csv_filename {
         dict = dict.user_lexicon_from_reader(Some(File::open(userlex_csv_filename)?))?;

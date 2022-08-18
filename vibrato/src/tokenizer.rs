@@ -151,8 +151,23 @@ impl<'a> Tokenizer<'a> {
             // Safety: `start_word < input_len` is already checked.
             let suffix = unsafe { input_chars.get_unchecked(usize::from(start_word)..) };
 
-            if let Some(user_lexicon) = self.dict.user_lexicon() {
-                for m in user_lexicon.common_prefix_iterator(suffix) {
+            if self.dict.need_check {
+                if let Some(user_lexicon) = self.dict.user_lexicon() {
+                    for m in user_lexicon.common_prefix_iterator(suffix) {
+                        debug_assert!(start_word + m.end_char <= input_len);
+                        self.lattice.insert_node(
+                            start_node,
+                            start_word,
+                            start_word + m.end_char,
+                            m.word_idx,
+                            m.word_param,
+                            self.dict.connector(),
+                        );
+                        has_matched = true;
+                    }
+                }
+
+                for m in self.dict.system_lexicon().common_prefix_iterator(suffix) {
                     debug_assert!(start_word + m.end_char <= input_len);
                     self.lattice.insert_node(
                         start_node,
@@ -164,43 +179,88 @@ impl<'a> Tokenizer<'a> {
                     );
                     has_matched = true;
                 }
-            }
 
-            for m in self.dict.system_lexicon().common_prefix_iterator(suffix) {
-                debug_assert!(start_word + m.end_char <= input_len);
-                self.lattice.insert_node(
-                    start_node,
+                self.dict.unk_handler().gen_unk_words(
+                    &sent,
                     start_word,
-                    start_word + m.end_char,
-                    m.word_idx,
-                    m.word_param,
-                    self.dict.connector(),
+                    has_matched,
+                    self.max_grouping_len,
+                    |w| {
+                        self.lattice.insert_node(
+                            start_node,
+                            w.start_char(),
+                            w.end_char(),
+                            w.word_idx(),
+                            w.word_param(),
+                            self.dict.connector(),
+                        );
+                    },
                 );
-                has_matched = true;
-            }
+            } else {
+                unsafe {
+                    if let Some(user_lexicon) = self.dict.user_lexicon() {
+                        for m in user_lexicon.common_prefix_iterator_unchecked(suffix) {
+                            debug_assert!(start_word + m.end_char <= input_len);
+                            self.lattice.insert_node_unchecked(
+                                start_node,
+                                start_word,
+                                start_word + m.end_char,
+                                m.word_idx,
+                                m.word_param,
+                                self.dict.connector(),
+                            );
+                            has_matched = true;
+                        }
+                    }
 
-            self.dict.unk_handler().gen_unk_words(
-                &sent,
-                start_word,
-                has_matched,
-                self.max_grouping_len,
-                |w| {
-                    self.lattice.insert_node(
-                        start_node,
-                        w.start_char(),
-                        w.end_char(),
-                        w.word_idx(),
-                        w.word_param(),
-                        self.dict.connector(),
+                    for m in self
+                        .dict
+                        .system_lexicon()
+                        .common_prefix_iterator_unchecked(suffix)
+                    {
+                        debug_assert!(start_word + m.end_char <= input_len);
+                        self.lattice.insert_node_unchecked(
+                            start_node,
+                            start_word,
+                            start_word + m.end_char,
+                            m.word_idx,
+                            m.word_param,
+                            self.dict.connector(),
+                        );
+                        has_matched = true;
+                    }
+
+                    self.dict.unk_handler().gen_unk_words(
+                        &sent,
+                        start_word,
+                        has_matched,
+                        self.max_grouping_len,
+                        |w| {
+                            self.lattice.insert_node_unchecked(
+                                start_node,
+                                w.start_char(),
+                                w.end_char(),
+                                w.word_idx(),
+                                w.word_param(),
+                                self.dict.connector(),
+                            );
+                        },
                     );
-                },
-            );
+                }
+            }
 
             start_word += 1;
             start_node = start_word;
         }
 
-        self.lattice.insert_eos(start_node, self.dict.connector());
+        if self.dict.need_check {
+            self.lattice.insert_eos(start_node, self.dict.connector());
+        } else {
+            unsafe {
+                self.lattice
+                    .insert_eos_unchecked(start_node, self.dict.connector());
+            }
+        }
     }
 
     /// Creates a counter for frequencies of connection ids to train mappings.
