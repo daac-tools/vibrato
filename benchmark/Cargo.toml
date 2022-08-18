@@ -8,6 +8,8 @@ edition = "2021"
 [features]
 default = []
 
+unchecked = []
+
 [dependencies]
 vibrato = { path = "../vibrato" }
 bincode = "2.0.0-rc.1"  # MIT
