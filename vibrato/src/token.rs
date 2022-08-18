@@ -2,7 +2,7 @@
 use std::ops::Range;
 
 use crate::dictionary::LexType;
-use crate::worker::Worker;
+use crate::tokenizer::worker::Worker;
 
 /// Resultant token.
 pub struct Token<'a> {
