@@ -1,11 +1,12 @@
 //! Viterbi-based tokenizer.
 pub(crate) mod lattice;
+pub mod worker;
 
 use crate::dictionary::Dictionary;
 use crate::errors::{Result, VibratoError};
 use crate::sentence::Sentence;
-use crate::worker::Worker;
-use lattice::Lattice;
+use crate::tokenizer::lattice::Lattice;
+use crate::tokenizer::worker::Worker;
 
 use crate::common::MAX_SENTENCE_LENGTH;
 

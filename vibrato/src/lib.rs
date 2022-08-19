@@ -45,7 +45,6 @@ mod sentence;
 pub mod token;
 pub mod tokenizer;
 mod utils;
-pub mod worker;
 
 #[cfg(test)]
 mod tests;

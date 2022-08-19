@@ -2,7 +2,7 @@ mod builder;
 
 use bincode::{Decode, Encode};
 
-use super::mapper::ConnIdMapper;
+use crate::dictionary::mapper::ConnIdMapper;
 
 /// Matrix of connection costs.
 #[derive(Decode, Encode)]
