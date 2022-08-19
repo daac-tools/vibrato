@@ -5,8 +5,8 @@ pub mod worker;
 use crate::dictionary::Dictionary;
 use crate::errors::{Result, VibratoError};
 use crate::sentence::Sentence;
-use lattice::Lattice;
-use worker::Worker;
+use crate::tokenizer::lattice::Lattice;
+use crate::tokenizer::worker::Worker;
 
 use crate::common::MAX_SENTENCE_LENGTH;
 

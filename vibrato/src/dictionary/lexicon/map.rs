@@ -5,10 +5,10 @@ use std::collections::BTreeMap;
 
 use bincode::{Decode, Encode};
 
+use crate::dictionary::lexicon::map::posting::{Postings, PostingsBuilder};
+use crate::dictionary::lexicon::map::trie::Trie;
 use crate::errors::Result;
 use crate::utils::FromU32;
-use posting::{Postings, PostingsBuilder};
-use trie::Trie;
 
 #[derive(Decode, Encode)]
 pub struct WordMap {

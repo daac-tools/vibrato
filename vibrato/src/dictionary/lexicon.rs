@@ -6,15 +6,15 @@ mod param;
 use bincode::{Decode, Encode};
 
 use crate::dictionary::connector::Connector;
+use crate::dictionary::lexicon::feature::WordFeatures;
+use crate::dictionary::lexicon::map::WordMap;
+use crate::dictionary::lexicon::param::WordParams;
 use crate::dictionary::mapper::ConnIdMapper;
 use crate::dictionary::word_idx::WordIdx;
 use crate::dictionary::LexType;
 use crate::utils::FromU32;
-use feature::WordFeatures;
-use map::WordMap;
-use param::WordParams;
 
-pub use param::WordParam;
+pub use crate::dictionary::lexicon::param::WordParam;
 
 /// Lexicon of words.
 #[derive(Decode, Encode)]

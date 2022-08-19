@@ -12,14 +12,15 @@ use std::io::{Read, Write};
 use bincode::{Decode, Encode};
 
 use crate::common;
+use crate::dictionary::character::CharProperty;
+use crate::dictionary::connector::Connector;
+use crate::dictionary::lexicon::Lexicon;
+use crate::dictionary::mapper::ConnIdMapper;
+use crate::dictionary::unknown::UnkHandler;
+use crate::dictionary::word_idx::WordIdx;
 use crate::errors::Result;
-use character::CharProperty;
-use connector::Connector;
-use lexicon::Lexicon;
-pub(crate) use lexicon::WordParam;
-use mapper::ConnIdMapper;
-use unknown::UnkHandler;
-use word_idx::WordIdx;
+
+pub(crate) use crate::dictionary::lexicon::WordParam;
 
 /// Type of a lexicon that contains the word.
 #[derive(Clone, Copy, Eq, PartialEq, Debug, Decode, Encode)]
