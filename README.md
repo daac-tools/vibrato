@@ -12,6 +12,12 @@ Especially for language resources with a large matrix
 (e.g., [`unidic-cwj-3.1.0`](https://clrd.ninjal.ac.jp/unidic/back_number.html#unidic_cwj) with a matrix of 459 MiB),
 Vibrato will run faster thanks to cache-efficient id mappings.
 
+For example, the following figure shows an experimental result of
+tokenization time with MeCab and its reimplementations.
+The detailed experimental settings and other results are available on [Wiki]().
+
+![](./figures/comparison.svg)
+
 ### MeCab compatibility
 
 Vibrato supports options for outputting tokenized results identical to MeCab, such as ignoring whitespace.
