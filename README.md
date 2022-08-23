@@ -14,7 +14,7 @@ Vibrato will run faster thanks to cache-efficient id mappings.
 
 For example, the following figure shows an experimental result of
 tokenization time with MeCab and its reimplementations.
-The detailed experimental settings and other results are available on [Wiki]().
+The detailed experimental settings and other results are available on [Wiki](https://github.com/daac-tools/vibrato/wiki/Speed-Comparison).
 
 ![](./figures/comparison.svg)
 
