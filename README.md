@@ -1,5 +1,9 @@
 # 🎤 vibrato: VIterbi-Based acceleRAted TOkenizer
 
+[![Crates.io](https://img.shields.io/crates/v/vibrato)](https://crates.io/crates/vibrato)
+[![Documentation](https://docs.rs/vibrato/badge.svg)](https://docs.rs/vibrato)
+![Build Status](https://github.com/daac-tools/vibrato/actions/workflows/rust.yml/badge.svg)
+
 Vibrato is a fast implementation of tokenization (or morphological analysis) based on the Viterbi algorithm.
 
 ## Features
