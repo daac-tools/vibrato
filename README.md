@@ -194,8 +194,8 @@ at your option.
 
 ## Acknowledgment
 
-The initial version of this software was developed by LegalForce, Inc.
-But, it is not an officially supported LegalForce product.
+The initial version of this software was developed by LegalForce, Inc.,
+but not an officially supported LegalForce product.
 
 ## Contribution
 
