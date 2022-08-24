@@ -192,6 +192,11 @@ Licensed under either of
 
 at your option.
 
+## Acknowledgements
+
+The initial version of this software was developed by LegalForce, Inc.
+But, it is not an officially supported LegalForce product.
+
 ## Contribution
 
 Unless you explicitly state otherwise, any contribution intentionally submitted
