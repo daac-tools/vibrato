@@ -11,9 +11,7 @@ readme = "README.md"
 keywords = ["japanese", "analyzer", "tokenizer", "morphological"]
 categories = ["text-processing"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 bincode = "2.0.0-rc.1"  # MIT
-csv = "1.1"
-crawdad = "0.3.0"
+crawdad = "0.3.0"  # MIT or Apache-2.0
+csv = "1.1"  # Unlicense or MIT
