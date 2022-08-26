@@ -15,3 +15,5 @@ categories = ["text-processing"]
 bincode = "2.0.0-rc.1"  # MIT
 crawdad = "0.3.0"  # MIT or Apache-2.0
 csv = "1.1"  # Unlicense or MIT
+hashbrown = "0.12"  # Unlicense or MIT
+regex = "1"  # Unlicense or MIT
