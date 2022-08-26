@@ -135,6 +135,9 @@ impl FeatureExtractor {
         }
     }
 
+    /// Inserts feature patterns matched to the input templates in the hash map,
+    /// while incrementally assigning new feature ids.
+    /// Returns a sequence of ids of found features.
     #[allow(unused)]
     fn extract_feature_ids<S>(
         features: &[S],
