@@ -112,7 +112,6 @@ impl FeatureRewriter {
     {
         let mut stack = vec![(0, 0)];
         'a: while let Some((node_idx, edge_idx)) = stack.pop() {
-            //dbg!(node_idx, edge_idx);
             if features.len() <= stack.len() {
                 if let Some(rewrite_rule) = &self.nodes[node_idx].rewrite_rule {
                     let mut result = vec![];
