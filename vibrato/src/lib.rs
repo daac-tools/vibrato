@@ -41,12 +41,15 @@ compile_error!("`target_pointer_width` must be 32 or 64");
 pub mod common;
 pub mod dictionary;
 pub mod errors;
+mod feature_extractor;
 mod feature_rewriter;
 mod sentence;
 pub mod token;
 pub mod tokenizer;
 mod utils;
 
+#[cfg(test)]
+mod test_utils;
 #[cfg(test)]
 mod tests;
 
