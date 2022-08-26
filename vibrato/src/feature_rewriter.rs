@@ -82,11 +82,10 @@ impl FeatureRewriterBuilder {
         let mut parsed_rewrite = vec![];
         for p in rewrite {
             let p = p.as_ref();
-            parsed_rewrite.push(if let Some(cap) = self.ref_pattern.captures(p) {
-                Rewrite::Reference(cap.get(1).unwrap().as_str().parse().unwrap())
-            } else {
-                Rewrite::Text(p.to_string())
-            });
+            parsed_rewrite.push(self.ref_pattern.captures(p).map_or_else(
+                || Rewrite::Text(p.to_string()),
+                |cap| Rewrite::Reference(cap.get(1).unwrap().as_str().parse().unwrap()),
+            ));
         }
         self.nodes[cursor].rewrite_rule.replace(parsed_rewrite);
         Ok(())
