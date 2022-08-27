@@ -46,6 +46,7 @@ mod feature_rewriter;
 mod sentence;
 pub mod token;
 pub mod tokenizer;
+mod trainer_config;
 mod utils;
 
 #[cfg(test)]
