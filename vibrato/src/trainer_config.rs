@@ -138,6 +138,7 @@ impl TrainerConfig {
         R: Read,
         C: Read,
     {
+        // TODO(vbkaisetsu): This function also needs to support loading `dicrc`.
         let feature_extractor = Self::parse_feature_config(feature_templates_rdr)?;
         let (unigram_rewriter, left_rewriter, right_rewriter) =
             Self::parse_rewrite_config(rewrite_rules_rdr)?;
