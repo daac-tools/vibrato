@@ -42,6 +42,7 @@ pub mod common;
 pub mod dictionary;
 pub mod errors;
 mod feature_extractor;
+mod feature_rewriter;
 mod sentence;
 pub mod token;
 pub mod tokenizer;
