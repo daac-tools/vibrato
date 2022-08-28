@@ -5,7 +5,7 @@ use crate::errors::{Result, VibratoError};
 use crate::feature_extractor::FeatureExtractor;
 use crate::feature_rewriter::{FeatureRewriter, FeatureRewriterBuilder};
 
-/// Configuration for trainer.
+/// Configuration for a trainer.
 #[allow(unused)]
 pub struct TrainerConfig {
     feature_extractor: FeatureExtractor,
@@ -116,13 +116,13 @@ impl TrainerConfig {
         ))
     }
 
-    /// Creates a training configuration from readers.
+    /// Loads a training configuration from readers.
     ///
     /// # Arguments
     ///
-    /// * `feature_templates_rdr` - `feature.def` file.
-    /// * `rewrite_rules_rdr` - `rewrite.def` file.
-    /// * `char_prop_rdr` - `char.def` file.
+    /// * `feature_templates_rdr` - A reader of the feature definition file `feature.def`.
+    /// * `rewrite_rules_rdr` - A reader of the rewrite definition file `rewrite.def`.
+    /// * `char_prop_rdr` - A reader of the character definition file `char.def`.
     ///
     /// # Errors
     ///
