@@ -126,7 +126,7 @@ impl TrainerConfig {
     ///
     /// # Errors
     ///
-    /// An error variant returns if the file format is invalid.
+    /// [`VibratoError`] is returned when an input format is invalid.
     #[allow(unused)]
     pub fn from_readers<F, R, C>(
         feature_templates_rdr: F,
