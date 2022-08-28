@@ -26,6 +26,8 @@ struct Node {
     rewrite_rule: Option<Vec<Rewrite>>,
 }
 
+/// Constructor of a prefix trie that stores rewrite patterns as nodes and
+/// rewrite rules as associated values.
 pub struct FeatureRewriterBuilder {
     nodes: Vec<Node>,
     ref_pattern: Regex,
@@ -92,6 +94,7 @@ impl FeatureRewriterBuilder {
     }
 }
 
+/// Rewriter that maintains rewrite patterns and rules in a prefix trie.
 pub struct FeatureRewriter {
     nodes: Vec<Node>,
 }
@@ -105,6 +108,8 @@ impl From<FeatureRewriterBuilder> for FeatureRewriter {
 }
 
 impl FeatureRewriter {
+    /// Returns the rewritten features if matched.
+    /// If multiple patterns are matched, the earlier registered one is applied.
     #[allow(unused)]
     pub fn rewrite<S>(&self, features: &[S]) -> Option<Vec<String>>
     where
