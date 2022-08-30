@@ -7,9 +7,6 @@ use crate::errors::{Result, VibratoError};
 
 impl Lexicon {
     /// Builds a new instance from a lexicon file in the CSV format.
-    ///
-    /// Note that the reader is buffered automatically, so you should not
-    /// wrap `rdr` in a buffered reader like `io::BufReader`.
     pub fn from_reader<R>(rdr: R, lex_type: LexType) -> Result<Self>
     where
         R: Read,

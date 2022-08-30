@@ -19,11 +19,6 @@ impl Dictionary {
     /// # Errors
     ///
     /// [`VibratoError`] is returned when an input format is invalid.
-    ///
-    /// # Notes
-    ///
-    /// The readers are buffered automatically, so you should not
-    /// wrap them in a buffered reader like [`std::io::BufReader`].
     pub fn from_readers<S, C, P, U>(
         system_lexicon_rdr: S,
         connector_rdr: C,
@@ -77,11 +72,6 @@ impl Dictionary {
     /// # Errors
     ///
     /// [`VibratoError`] is returned when an input format is invalid.
-    ///
-    /// # Notes
-    ///
-    /// The reader is buffered automatically, so you should not
-    /// wrap it in a buffered reader like [`std::io::BufReader`].
     pub fn user_lexicon_from_reader<R>(mut self, user_lexicon_rdr: Option<R>) -> Result<Self>
     where
         R: Read,
