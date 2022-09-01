@@ -126,7 +126,7 @@ impl Dictionary {
     ///
     /// [`VibratoError`] is returned when an input format is invalid.
     #[allow(unused)]
-    pub fn from_reader<R>(rdr: R) -> Result<Dictionary>
+    pub fn from_reader<R>(rdr: R) -> Result<Self>
     where
         R: Read,
     {
