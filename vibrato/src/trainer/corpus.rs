@@ -56,6 +56,14 @@ pub struct Corpus {
 
 impl Corpus {
     /// Loads a corpus from the given sink.
+    ///
+    /// # Arguments
+    ///
+    /// * `rdr` - A reader of the corpus.
+    ///
+    /// # Errors
+    ///
+    /// [`VibratoError`] is returned when an input format is invalid.
     #[allow(unused)]
     pub fn from_reader<R>(rdr: R) -> Result<Self>
     where
@@ -85,7 +93,7 @@ impl Corpus {
                 _ => {
                     return Err(VibratoError::invalid_format(
                         "rdr",
-                        "Each line must be a pair of a surface and features or EOS",
+                        "Each line must be a pair of a surface and features or `EOS`",
                     ))
                 }
             }
@@ -109,6 +117,14 @@ pub struct Dictionary {
 
 impl Dictionary {
     /// Loads a dictionary from the given sink.
+    ///
+    /// # Arguments
+    ///
+    /// * `rdr` - A reader of the dictionary.
+    ///
+    /// # Errors
+    ///
+    /// [`VibratoError`] is returned when an input format is invalid.
     #[allow(unused)]
     pub fn from_reader<R>(rdr: R) -> Result<Dictionary>
     where
