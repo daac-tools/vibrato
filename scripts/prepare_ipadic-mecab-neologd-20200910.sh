@@ -10,6 +10,7 @@ which sort
 which openssl
 which mecab
 which mecab-config
+which xz
 
 # Edit these if you want to download another version.
 ymd="20200910"
