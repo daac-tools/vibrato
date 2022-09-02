@@ -1,6 +1,6 @@
 use std::io::{BufRead, BufReader, Read};
 
-use regex::Regex;
+use csv_core::ReadFieldResult;
 
 use crate::errors::{Result, VibratoError};
 
@@ -29,8 +29,26 @@ impl Word {
 
     /// Returns a vector of feature strings.
     #[allow(unused)]
-    pub fn features_vec(&self) -> Vec<&str> {
-        self.features.split(',').collect()
+    pub fn features_vec(&self) -> Vec<String> {
+        let mut features = vec![];
+        let mut rdr = csv_core::Reader::new();
+        let mut bytes = self.features.as_bytes();
+        let mut output = [0; 1024];
+        loop {
+            let (result, nin, nout) = rdr.read_field(bytes, &mut output);
+            match result {
+                ReadFieldResult::InputEmpty => {
+                    features.push(String::from_utf8(output[..nout].to_vec()).unwrap());
+                    break;
+                }
+                ReadFieldResult::Field { record_end } => {
+                    features.push(String::from_utf8(output[..nout].to_vec()).unwrap());
+                }
+                _ => unreachable!(),
+            }
+            bytes = &bytes[nin..];
+        }
+        features
     }
 }
 
@@ -126,28 +144,73 @@ impl Dictionary {
     ///
     /// [`VibratoError`] is returned when an input format is invalid.
     #[allow(unused)]
-    pub fn from_reader<R>(rdr: R) -> Result<Self>
+    pub fn from_reader<R>(mut rdr: R) -> Result<Self>
     where
         R: Read,
     {
-        let buf = BufReader::new(rdr);
+        let mut buf = vec![];
+        rdr.read_to_end(&mut buf)?;
 
         let mut words = vec![];
-        let surf_feature_pattern = Regex::new(r"^([^,]*),[^,]+,[^,]+,[^,]+,(.*)$").unwrap();
-        for (i, line) in buf.lines().enumerate() {
-            let line = line?;
-            if let Some(m) = surf_feature_pattern.captures(&line) {
-                let surface = m.get(1).unwrap().as_str().to_string();
-                let features = m.get(2).unwrap().as_str().to_string();
-                words.push(Word { surface, features });
-            } else {
-                return Err(VibratoError::invalid_format(
-                    "rdr",
-                    "Invalid dictionary format",
-                ));
-            }
-        }
 
+        let mut rdr = csv_core::Reader::new();
+        let mut features_bytes = buf.as_slice();
+        let mut bytes = buf.as_slice();
+        let mut field_cnt: usize = 0;
+        let mut features_len = 0;
+        let mut surface = String::new();
+        let mut output = [0; 1024];
+        loop {
+            let (result, nin, nout) = rdr.read_field(bytes, &mut output);
+            dbg!(String::from_utf8(bytes.to_vec()).unwrap());
+            dbg!(&result);
+            match result {
+                ReadFieldResult::InputEmpty => {
+                    return Err(VibratoError::invalid_format(
+                        "rdr",
+                        "invalid dictionary format",
+                    ))
+                }
+                ReadFieldResult::OutputFull => {
+                    return Err(VibratoError::invalid_format(
+                        "rdr",
+                        "field length too large",
+                    ))
+                }
+                ReadFieldResult::Field { record_end } => {
+                    match field_cnt {
+                        0 => {
+                            surface = String::from_utf8(output[..nout].to_vec()).unwrap();
+                        }
+                        1 | 2 => {}
+                        3 => {
+                            features_bytes = &bytes[nin..];
+                            features_len = 0;
+                        }
+                        _ => {
+                            features_len += nin;
+                        }
+                    }
+                    if record_end {
+                        if field_cnt <= 3 {
+                            return Err(VibratoError::invalid_format(
+                                "rdr",
+                                "invalid dictionary format",
+                            ));
+                        }
+                        let features =
+                            String::from_utf8(features_bytes[..features_len - 1].to_vec()).unwrap();
+                        words.push(Word { surface, features });
+                        surface = String::new();
+                        field_cnt = 0;
+                    } else {
+                        field_cnt += 1;
+                    }
+                }
+                ReadFieldResult::End => break,
+            }
+            bytes = &bytes[nin..];
+        }
         Ok(Self { words })
     }
 
@@ -216,6 +279,21 @@ EOS
     }
 
     #[test]
+    fn test_features_vec_with_quote() {
+        let corpus_data = "\
+1,2-ジクロロエタン\t名詞,\"1,2-ジクロロエタン\"
+EOS
+";
+
+        let corpus = Corpus::from_reader(corpus_data.as_bytes()).unwrap();
+
+        assert_eq!(
+            &["名詞", "1,2-ジクロロエタン"],
+            corpus.sentences()[0].tokens()[0].features_vec().as_slice()
+        );
+    }
+
+    #[test]
     fn test_load_dictionary() {
         let dictionary_data = "\
 トスカーナ,1,2,3,名詞,トスカーナ
@@ -233,5 +311,22 @@ EOS
         assert_eq!("名詞,チホー", dict.words()[1].features());
         assert_eq!("に", dict.words()[2].surface());
         assert_eq!("助詞,ニ", dict.words()[2].features());
+    }
+
+    #[test]
+    fn test_load_dictionary_with_quote() {
+        let dictionary_data = "\
+\"1,2-ジクロロエタン\",1,2,3,名詞,\"1,2-ジクロロエタン\"
+\"\"\"\",4,5,6,名詞,*
+";
+
+        let dict = Dictionary::from_reader(dictionary_data.as_bytes()).unwrap();
+
+        assert_eq!(2, dict.words().len());
+
+        assert_eq!("1,2-ジクロロエタン", dict.words()[0].surface());
+        assert_eq!("名詞,\"1,2-ジクロロエタン\"", dict.words()[0].features());
+        assert_eq!("\"", dict.words()[1].surface());
+        assert_eq!("名詞,*", dict.words()[1].features());
     }
 }
