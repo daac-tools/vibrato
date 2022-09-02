@@ -151,7 +151,7 @@ impl FeatureExtractor {
         let mut result = vec![];
         'a: for template in templates {
             for &required_idx in &template.required_indices {
-                if features[required_idx].as_ref() == "*" {
+                if features.get(required_idx).map_or("*", |f| f.as_ref()) == "*" {
                     result.push(None);
                     continue 'a;
                 }
@@ -162,7 +162,7 @@ impl FeatureExtractor {
                 feature_string.push_str(&template.raw_template[start..range.start]);
                 match feature {
                     FeatureType::Index(idx) => {
-                        feature_string.push_str(features[*idx].as_ref());
+                        feature_string.push_str(features.get(*idx).map_or("*", |f| f.as_ref()));
                     }
                     FeatureType::CharacterType => {
                         feature_string.push_str(&category_id.to_string());
@@ -414,6 +414,22 @@ mod test {
                 "pos-pron:名詞,ネコ".to_string() => NonZeroU32::new(4).unwrap(),
             ],
             extractor.right_feature_ids
+        );
+    }
+
+    #[test]
+    fn test_fill_aster() {
+        let mut extractor = prepare_extractor();
+
+        extractor.extract_unigram_feature_ids(&["。"], 4);
+
+        assert_eq!(
+            hashmap![
+                "word:。".to_string() => NonZeroU32::new(1).unwrap(),
+                "word-pos:。,*".to_string() => NonZeroU32::new(2).unwrap(),
+                "word-type:。,4".to_string() => NonZeroU32::new(3).unwrap(),
+            ],
+            extractor.unigram_feature_ids
         );
     }
 }
