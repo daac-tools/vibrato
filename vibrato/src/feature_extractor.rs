@@ -1,4 +1,4 @@
-use std::ops::Range;
+use std::{num::NonZeroU32, ops::Range};
 
 use hashbrown::HashMap;
 use regex::Regex;
@@ -18,9 +18,9 @@ struct ParsedTemplate {
 
 #[derive(Debug)]
 pub struct FeatureExtractor {
-    unigram_feature_ids: HashMap<String, usize>,
-    left_feature_ids: HashMap<String, usize>,
-    right_feature_ids: HashMap<String, usize>,
+    unigram_feature_ids: HashMap<String, NonZeroU32>,
+    left_feature_ids: HashMap<String, NonZeroU32>,
+    right_feature_ids: HashMap<String, NonZeroU32>,
     unigram_templates: Vec<ParsedTemplate>,
     left_templates: Vec<ParsedTemplate>,
     right_templates: Vec<ParsedTemplate>,
@@ -142,9 +142,9 @@ impl FeatureExtractor {
     fn extract_feature_ids<S>(
         features: &[S],
         templates: &[ParsedTemplate],
-        feature_ids: &mut HashMap<String, usize>,
-        char_types: &str,
-    ) -> Vec<Option<usize>>
+        feature_ids: &mut HashMap<String, NonZeroU32>,
+        category_id: u32,
+    ) -> Vec<Option<NonZeroU32>>
     where
         S: AsRef<str>,
     {
@@ -165,13 +165,13 @@ impl FeatureExtractor {
                         feature_string.push_str(features[*idx].as_ref());
                     }
                     FeatureType::CharacterType => {
-                        feature_string.push_str(char_types);
+                        feature_string.push_str(&category_id.to_string());
                     }
                 }
                 start = range.end;
             }
             feature_string.push_str(&template.raw_template[start..]);
-            let new_id = feature_ids.len();
+            let new_id = NonZeroU32::new(u32::try_from(feature_ids.len() + 1).unwrap()).unwrap();
             let feature_id = *feature_ids.entry(feature_string).or_insert(new_id);
             result.push(Some(feature_id));
         }
@@ -179,7 +179,11 @@ impl FeatureExtractor {
     }
 
     #[allow(unused)]
-    pub fn extract_unigram_feature_ids<S>(&mut self, features: &[S], char_types: &str) -> Vec<usize>
+    pub fn extract_unigram_feature_ids<S>(
+        &mut self,
+        features: &[S],
+        category_id: u32,
+    ) -> Vec<NonZeroU32>
     where
         S: AsRef<str>,
     {
@@ -187,7 +191,7 @@ impl FeatureExtractor {
             features,
             &self.unigram_templates,
             &mut self.unigram_feature_ids,
-            char_types,
+            category_id,
         )
         .into_iter()
         .flatten()
@@ -195,7 +199,7 @@ impl FeatureExtractor {
     }
 
     #[allow(unused)]
-    pub fn extract_left_feature_ids<S>(&mut self, features: &[S]) -> Vec<Option<usize>>
+    pub fn extract_left_feature_ids<S>(&mut self, features: &[S]) -> Vec<Option<NonZeroU32>>
     where
         S: AsRef<str>,
     {
@@ -203,12 +207,12 @@ impl FeatureExtractor {
             features,
             &self.left_templates,
             &mut self.left_feature_ids,
-            "",
+            0,
         )
     }
 
     #[allow(unused)]
-    pub fn extract_right_feature_ids<S>(&mut self, features: &[S]) -> Vec<Option<usize>>
+    pub fn extract_right_feature_ids<S>(&mut self, features: &[S]) -> Vec<Option<NonZeroU32>>
     where
         S: AsRef<str>,
     {
@@ -216,7 +220,7 @@ impl FeatureExtractor {
             features,
             &self.right_templates,
             &mut self.right_feature_ids,
-            "",
+            0,
         )
     }
 }
@@ -248,22 +252,40 @@ mod test {
     fn test_unigram_feature_extraction() {
         let mut extractor = prepare_extractor();
 
-        let feature_ids = extractor.extract_unigram_feature_ids(&["人", "名詞", "ヒト"], "KANJI");
-        assert_eq!(vec![0, 1, 2, 3, 4], feature_ids);
+        let feature_ids = extractor.extract_unigram_feature_ids(&["人", "名詞", "ヒト"], 3);
+        assert_eq!(
+            vec![
+                NonZeroU32::new(1).unwrap(),
+                NonZeroU32::new(2).unwrap(),
+                NonZeroU32::new(3).unwrap(),
+                NonZeroU32::new(4).unwrap(),
+                NonZeroU32::new(5).unwrap()
+            ],
+            feature_ids
+        );
 
-        let feature_ids = extractor.extract_unigram_feature_ids(&["人", "接尾辞", "ジン"], "KANJI");
-        assert_eq!(vec![0, 5, 6, 7, 4], feature_ids);
+        let feature_ids = extractor.extract_unigram_feature_ids(&["人", "接尾辞", "ジン"], 3);
+        assert_eq!(
+            vec![
+                NonZeroU32::new(1).unwrap(),
+                NonZeroU32::new(6).unwrap(),
+                NonZeroU32::new(7).unwrap(),
+                NonZeroU32::new(8).unwrap(),
+                NonZeroU32::new(5).unwrap()
+            ],
+            feature_ids
+        );
 
         assert_eq!(
             hashmap![
-                "word:人".to_string() => 0,
-                "word-pos:人,名詞".to_string() => 1,
-                "word-pron:人,ヒト".to_string() => 2,
-                "word-pos-pron:人,名詞,ヒト".to_string() => 3,
-                "word-type:人,KANJI".to_string() => 4,
-                "word-pos:人,接尾辞".to_string() => 5,
-                "word-pron:人,ジン".to_string() => 6,
-                "word-pos-pron:人,接尾辞,ジン".to_string() => 7,
+                "word:人".to_string() => NonZeroU32::new(1).unwrap(),
+                "word-pos:人,名詞".to_string() => NonZeroU32::new(2).unwrap(),
+                "word-pron:人,ヒト".to_string() => NonZeroU32::new(3).unwrap(),
+                "word-pos-pron:人,名詞,ヒト".to_string() => NonZeroU32::new(4).unwrap(),
+                "word-type:人,3".to_string() => NonZeroU32::new(5).unwrap(),
+                "word-pos:人,接尾辞".to_string() => NonZeroU32::new(6).unwrap(),
+                "word-pron:人,ジン".to_string() => NonZeroU32::new(7).unwrap(),
+                "word-pos-pron:人,接尾辞,ジン".to_string() => NonZeroU32::new(8).unwrap(),
             ],
             extractor.unigram_feature_ids
         );
@@ -273,20 +295,34 @@ mod test {
     fn test_unigram_feature_extraction_undefined() {
         let mut extractor = prepare_extractor();
 
-        let feature_ids = extractor.extract_unigram_feature_ids(&["。", "補助記号", "*"], "OTHER");
-        assert_eq!(vec![0, 1, 2], feature_ids);
+        let feature_ids = extractor.extract_unigram_feature_ids(&["。", "補助記号", "*"], 4);
+        assert_eq!(
+            vec![
+                NonZeroU32::new(1).unwrap(),
+                NonZeroU32::new(2).unwrap(),
+                NonZeroU32::new(3).unwrap()
+            ],
+            feature_ids
+        );
 
-        let feature_ids = extractor.extract_unigram_feature_ids(&["、", "補助記号", "*"], "OTHER");
-        assert_eq!(vec![3, 4, 5], feature_ids);
+        let feature_ids = extractor.extract_unigram_feature_ids(&["、", "補助記号", "*"], 4);
+        assert_eq!(
+            vec![
+                NonZeroU32::new(4).unwrap(),
+                NonZeroU32::new(5).unwrap(),
+                NonZeroU32::new(6).unwrap()
+            ],
+            feature_ids
+        );
 
         assert_eq!(
             hashmap![
-                "word:。".to_string() => 0,
-                "word-pos:。,補助記号".to_string() => 1,
-                "word-type:。,OTHER".to_string() => 2,
-                "word:、".to_string() => 3,
-                "word-pos:、,補助記号".to_string() => 4,
-                "word-type:、,OTHER".to_string() => 5,
+                "word:。".to_string() => NonZeroU32::new(1).unwrap(),
+                "word-pos:。,補助記号".to_string() => NonZeroU32::new(2).unwrap(),
+                "word-type:。,4".to_string() => NonZeroU32::new(3).unwrap(),
+                "word:、".to_string() => NonZeroU32::new(4).unwrap(),
+                "word-pos:、,補助記号".to_string() => NonZeroU32::new(5).unwrap(),
+                "word-type:、,4".to_string() => NonZeroU32::new(6).unwrap(),
             ],
             extractor.unigram_feature_ids
         );
@@ -298,31 +334,43 @@ mod test {
 
         let left_feature_ids = extractor.extract_left_feature_ids(&["火星", "名詞", "カセイ"]);
         let right_feature_ids = extractor.extract_right_feature_ids(&["人", "接尾辞", "ジン"]);
-        assert_eq!(vec![Some(0), Some(1), Some(2)], left_feature_ids);
-        assert_eq!(vec![Some(0), Some(1), Some(2)], right_feature_ids);
+        assert_eq!(
+            vec![NonZeroU32::new(1), NonZeroU32::new(2), NonZeroU32::new(3)],
+            left_feature_ids
+        );
+        assert_eq!(
+            vec![NonZeroU32::new(1), NonZeroU32::new(2), NonZeroU32::new(3)],
+            right_feature_ids
+        );
 
         let left_feature_ids = extractor.extract_left_feature_ids(&["火星", "名詞", "カセイ"]);
         let right_feature_ids = extractor.extract_right_feature_ids(&["猫", "名詞", "ネコ"]);
-        assert_eq!(vec![Some(0), Some(1), Some(2)], left_feature_ids);
-        assert_eq!(vec![Some(3), Some(4), Some(5)], right_feature_ids);
+        assert_eq!(
+            vec![NonZeroU32::new(1), NonZeroU32::new(2), NonZeroU32::new(3)],
+            left_feature_ids
+        );
+        assert_eq!(
+            vec![NonZeroU32::new(4), NonZeroU32::new(5), NonZeroU32::new(6)],
+            right_feature_ids
+        );
 
         assert_eq!(
             hashmap![
-                "pos:名詞".to_string() => 0,
-                "pron:カセイ".to_string() => 1,
-                "pos-pron:名詞,カセイ".to_string() => 2,
+                "pos:名詞".to_string() => NonZeroU32::new(1).unwrap(),
+                "pron:カセイ".to_string() => NonZeroU32::new(2).unwrap(),
+                "pos-pron:名詞,カセイ".to_string() => NonZeroU32::new(3).unwrap(),
             ],
             extractor.left_feature_ids
         );
 
         assert_eq!(
             hashmap![
-                "pos:接尾辞".to_string() => 0,
-                "pron:ジン".to_string() => 1,
-                "pos-pron:接尾辞,ジン".to_string() => 2,
-                "pos:名詞".to_string() => 3,
-                "pron:ネコ".to_string() => 4,
-                "pos-pron:名詞,ネコ".to_string() => 5,
+                "pos:接尾辞".to_string() => NonZeroU32::new(1).unwrap(),
+                "pron:ジン".to_string() => NonZeroU32::new(2).unwrap(),
+                "pos-pron:接尾辞,ジン".to_string() => NonZeroU32::new(3).unwrap(),
+                "pos:名詞".to_string() => NonZeroU32::new(4).unwrap(),
+                "pron:ネコ".to_string() => NonZeroU32::new(5).unwrap(),
+                "pos-pron:名詞,ネコ".to_string() => NonZeroU32::new(6).unwrap(),
             ],
             extractor.right_feature_ids
         );
@@ -334,30 +382,36 @@ mod test {
 
         let left_feature_ids = extractor.extract_left_feature_ids(&["です", "助動詞", "デス"]);
         let right_feature_ids = extractor.extract_right_feature_ids(&["。", "補助記号", "*"]);
-        assert_eq!(vec![Some(0), Some(1), Some(2)], left_feature_ids);
-        assert_eq!(vec![Some(0), None, None], right_feature_ids);
+        assert_eq!(
+            vec![NonZeroU32::new(1), NonZeroU32::new(2), NonZeroU32::new(3)],
+            left_feature_ids
+        );
+        assert_eq!(vec![NonZeroU32::new(1), None, None], right_feature_ids);
 
         let left_feature_ids = extractor.extract_left_feature_ids(&["「", "補助記号", "*"]);
         let right_feature_ids = extractor.extract_right_feature_ids(&["猫", "名詞", "ネコ"]);
-        assert_eq!(vec![Some(3), None, None], left_feature_ids);
-        assert_eq!(vec![Some(1), Some(2), Some(3)], right_feature_ids);
+        assert_eq!(vec![NonZeroU32::new(4), None, None], left_feature_ids);
+        assert_eq!(
+            vec![NonZeroU32::new(2), NonZeroU32::new(3), NonZeroU32::new(4)],
+            right_feature_ids
+        );
 
         assert_eq!(
             hashmap![
-                "pos:助動詞".to_string() => 0,
-                "pron:デス".to_string() => 1,
-                "pos-pron:助動詞,デス".to_string() => 2,
-                "pos:補助記号".to_string() => 3,
+                "pos:助動詞".to_string() => NonZeroU32::new(1).unwrap(),
+                "pron:デス".to_string() => NonZeroU32::new(2).unwrap(),
+                "pos-pron:助動詞,デス".to_string() => NonZeroU32::new(3).unwrap(),
+                "pos:補助記号".to_string() => NonZeroU32::new(4).unwrap(),
             ],
             extractor.left_feature_ids
         );
 
         assert_eq!(
             hashmap![
-                "pos:補助記号".to_string() => 0,
-                "pos:名詞".to_string() => 1,
-                "pron:ネコ".to_string() => 2,
-                "pos-pron:名詞,ネコ".to_string() => 3,
+                "pos:補助記号".to_string() => NonZeroU32::new(1).unwrap(),
+                "pos:名詞".to_string() => NonZeroU32::new(2).unwrap(),
+                "pron:ネコ".to_string() => NonZeroU32::new(3).unwrap(),
+                "pos-pron:名詞,ネコ".to_string() => NonZeroU32::new(4).unwrap(),
             ],
             extractor.right_feature_ids
         );
