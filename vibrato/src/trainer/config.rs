@@ -8,11 +8,11 @@ use crate::trainer::feature_rewriter::{FeatureRewriter, FeatureRewriterBuilder};
 /// Configuration for a trainer.
 #[allow(unused)]
 pub struct TrainerConfig {
-    feature_extractor: FeatureExtractor,
-    unigram_rewriter: FeatureRewriter,
-    left_rewriter: FeatureRewriter,
-    right_rewriter: FeatureRewriter,
-    char_property: CharProperty,
+    pub(crate) feature_extractor: FeatureExtractor,
+    pub(crate) unigram_rewriter: FeatureRewriter,
+    pub(crate) left_rewriter: FeatureRewriter,
+    pub(crate) right_rewriter: FeatureRewriter,
+    pub(crate) char_property: CharProperty,
 }
 
 impl TrainerConfig {
