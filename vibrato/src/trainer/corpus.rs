@@ -162,8 +162,6 @@ impl Dictionary {
         let mut output = [0; 1024];
         loop {
             let (result, nin, nout) = rdr.read_field(bytes, &mut output);
-            dbg!(String::from_utf8(bytes.to_vec()).unwrap());
-            dbg!(&result);
             match result {
                 ReadFieldResult::InputEmpty => {
                     return Err(VibratoError::invalid_format(
