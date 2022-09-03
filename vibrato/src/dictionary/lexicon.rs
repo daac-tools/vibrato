@@ -111,10 +111,10 @@ impl LexMatch {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub struct RawWordEntry {
+pub struct RawWordEntry<'a> {
     pub surface: String,
     pub param: WordParam,
-    pub feature: String,
+    pub feature: &'a str,
 }
 
 #[cfg(test)]

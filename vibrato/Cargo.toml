@@ -14,7 +14,6 @@ categories = ["text-processing"]
 [dependencies]
 bincode = "2.0.0-rc.1"  # MIT
 crawdad = "0.3.0"  # MIT or Apache-2.0
-csv = "1.1"  # Unlicense or MIT
 csv-core = "0.1.10"  # Unlicense or MIT
 hashbrown = "0.12"  # MIT or Apache-2.0
 regex = "1"  # MIT or Apache-2.0

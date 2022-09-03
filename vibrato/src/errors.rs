@@ -29,6 +29,9 @@ pub enum VibratoError {
 
     /// The error variant for [`std::io::Error`].
     StdIo(std::io::Error),
+
+    /// The error variant for [`std::str::Utf8Error`].
+    Utf8(std::str::Utf8Error),
 }
 
 impl VibratoError {
@@ -63,6 +66,7 @@ impl fmt::Display for VibratoError {
             Self::BincodeDecode(e) => e.fmt(f),
             Self::BincodeEncode(e) => e.fmt(f),
             Self::StdIo(e) => e.fmt(f),
+            Self::Utf8(e) => e.fmt(f),
         }
     }
 }
@@ -132,5 +136,11 @@ impl From<bincode::error::EncodeError> for VibratoError {
 impl From<std::io::Error> for VibratoError {
     fn from(error: std::io::Error) -> Self {
         Self::StdIo(error)
+    }
+}
+
+impl From<std::str::Utf8Error> for VibratoError {
+    fn from(error: std::str::Utf8Error) -> Self {
+        Self::Utf8(error)
     }
 }

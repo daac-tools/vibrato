@@ -1,24 +1,31 @@
 use std::io::Read;
 
 use crate::dictionary::character::CharProperty;
+use crate::dictionary::lexicon::Lexicon;
 use crate::dictionary::unknown::{UnkEntry, UnkHandler};
-use crate::errors::{Result, VibratoError};
+use crate::errors::Result;
 
 impl UnkHandler {
     /// Creates a new instance from `unk.def`.
-    pub fn from_reader<R>(rdr: R, char_prop: &CharProperty) -> Result<Self>
+    pub fn from_reader<R>(mut rdr: R, char_prop: &CharProperty) -> Result<Self>
     where
         R: Read,
     {
+        let mut buf = vec![];
+        rdr.read_to_end(&mut buf)?;
+
+        let parsed = Lexicon::parse_csv(&buf, "unk.def")?;
         let mut map = vec![vec![]; char_prop.num_categories()];
-        let mut reader = csv::ReaderBuilder::new()
-            .flexible(true)
-            .has_headers(false)
-            .from_reader(rdr); // automatically buffered
-        for rec in reader.records() {
-            let rec = rec.map_err(|e| VibratoError::invalid_format("unk.def", e.to_string()))?;
-            let e = Self::parse_unk_entry(&rec, char_prop)?;
-            map[usize::from(e.cate_id)].push(e);
+        for item in parsed {
+            let cate_id = u16::try_from(char_prop.cate_id(&item.surface).unwrap()).unwrap();
+            let e = UnkEntry {
+                cate_id,
+                left_id: item.param.left_id,
+                right_id: item.param.right_id,
+                word_cost: item.param.word_cost,
+                feature: item.feature.to_string(),
+            };
+            map[usize::from(cate_id)].push(e);
         }
 
         let mut offsets = vec![];
@@ -29,34 +36,6 @@ impl UnkHandler {
         }
         offsets.push(entries.len());
         Ok(Self { offsets, entries })
-    }
-
-    fn parse_unk_entry(rec: &csv::StringRecord, char_prop: &CharProperty) -> Result<UnkEntry> {
-        if rec.len() < 4 {
-            let msg = format!(
-                "A csv row of lexicon must have four items at least, {:?}",
-                rec
-            );
-            return Err(VibratoError::invalid_format("unk.def", msg));
-        }
-
-        let mut iter = rec.iter();
-        let category = iter.next().unwrap();
-        let left_id = iter.next().unwrap().parse()?;
-        let right_id = iter.next().unwrap().parse()?;
-        let word_cost = iter.next().unwrap().parse()?;
-        let feature = iter.collect::<Vec<_>>().join(",");
-
-        // TODO: Handling unfound error.
-        let cate_id = u16::try_from(char_prop.cate_id(category).unwrap()).unwrap();
-
-        Ok(UnkEntry {
-            cate_id,
-            left_id,
-            right_id,
-            word_cost,
-            feature,
-        })
     }
 }
 

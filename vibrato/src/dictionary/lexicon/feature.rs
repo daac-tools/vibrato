@@ -14,7 +14,7 @@ impl WordFeatures {
         Self {
             features: features
                 .into_iter()
-                .map(|s| s.as_ref().to_owned())
+                .map(|s| s.as_ref().to_string())
                 .collect(),
         }
     }
