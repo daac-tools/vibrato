@@ -36,15 +36,14 @@ impl Word {
         let mut output = [0; 1024];
         loop {
             let (result, nin, nout) = rdr.read_field(bytes, &mut output);
-            match result {
-                ReadFieldResult::InputEmpty => {
-                    features.push(String::from_utf8(output[..nout].to_vec()).unwrap());
-                    break;
-                }
-                ReadFieldResult::Field { record_end } => {
-                    features.push(String::from_utf8(output[..nout].to_vec()).unwrap());
-                }
+            let end = match result {
+                ReadFieldResult::InputEmpty => true,
+                ReadFieldResult::Field { .. } => false,
                 _ => unreachable!(),
+            };
+            features.push(String::from_utf8(output[..nout].to_vec()).unwrap());
+            if end {
+                break;
             }
             bytes = &bytes[nin..];
         }
@@ -159,21 +158,16 @@ impl Dictionary {
         let mut field_cnt: usize = 0;
         let mut features_len = 0;
         let mut surface = String::new();
-        let mut output = [0; 1024];
+        let mut output = [0; 4096];
         loop {
             let (result, nin, nout) = rdr.read_field(bytes, &mut output);
-            match result {
+            let record_end = match result {
                 ReadFieldResult::InputEmpty => {
-                    return Err(VibratoError::invalid_format(
-                        "rdr",
-                        "invalid dictionary format",
-                    ))
+                    features_len += nin + 1;
+                    true
                 }
                 ReadFieldResult::OutputFull => {
-                    return Err(VibratoError::invalid_format(
-                        "rdr",
-                        "field length too large",
-                    ))
+                    return Err(VibratoError::invalid_format("rdr", "field too large"))
                 }
                 ReadFieldResult::Field { record_end } => {
                     match field_cnt {
@@ -189,23 +183,27 @@ impl Dictionary {
                             features_len += nin;
                         }
                     }
-                    if record_end {
-                        if field_cnt <= 3 {
-                            return Err(VibratoError::invalid_format(
-                                "rdr",
-                                "invalid dictionary format",
-                            ));
-                        }
-                        let features =
-                            String::from_utf8(features_bytes[..features_len - 1].to_vec()).unwrap();
-                        words.push(Word { surface, features });
-                        surface = String::new();
-                        field_cnt = 0;
-                    } else {
-                        field_cnt += 1;
-                    }
+                    record_end
                 }
                 ReadFieldResult::End => break,
+            };
+            if record_end {
+                if field_cnt == 0 && nin == 0 {
+                    continue;
+                }
+                if field_cnt <= 3 {
+                    return Err(VibratoError::invalid_format(
+                        "rdr",
+                        "each record must have at least 5 fields",
+                    ));
+                }
+                let features =
+                    String::from_utf8(features_bytes[..features_len - 1].to_vec()).unwrap();
+                words.push(Word { surface, features });
+                surface = String::new();
+                field_cnt = 0;
+            } else {
+                field_cnt += 1;
             }
             bytes = &bytes[nin..];
         }
