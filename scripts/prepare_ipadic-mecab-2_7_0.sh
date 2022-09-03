@@ -2,11 +2,11 @@
 
 set -eux
 
-which wget
-which tar
-which iconv
-which sort
-which openssl
+type wget
+type tar
+type iconv
+type sort
+type openssl
 
 corpus_name="ipadic-mecab-2_7_0"
 resources_dir="resources_${corpus_name}"

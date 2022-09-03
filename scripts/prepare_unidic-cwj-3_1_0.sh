@@ -2,10 +2,10 @@
 
 set -eux
 
-which wget
-which unzip
-which sort
-which openssl
+type wget
+type unzip
+type sort
+type openssl
 
 corpus_name="unidic-cwj-3_1_0"
 resources_dir="resources_${corpus_name}"
