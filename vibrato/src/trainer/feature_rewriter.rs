@@ -84,10 +84,18 @@ impl FeatureRewriterBuilder {
         let mut parsed_rewrite = vec![];
         for p in rewrite {
             let p = p.as_ref();
-            parsed_rewrite.push(self.ref_pattern.captures(p).map_or_else(
-                || Rewrite::Text(p.to_string()),
-                |cap| Rewrite::Reference(cap.get(1).unwrap().as_str().parse().unwrap()),
-            ));
+            parsed_rewrite.push(if let Some(cap) = self.ref_pattern.captures(p) {
+                let idx = cap.get(1).unwrap().as_str().parse::<usize>().unwrap() - 1;
+                if idx >= pattern.len() {
+                    return Err(VibratoError::invalid_format(
+                        "rewrite",
+                        "refering invalid index",
+                    ));
+                }
+                Rewrite::Reference(idx)
+            } else {
+                Rewrite::Text(p.to_string())
+            });
         }
         self.nodes[cursor].rewrite_rule.replace(parsed_rewrite);
         Ok(())
@@ -122,7 +130,7 @@ impl FeatureRewriter {
                     let mut result = vec![];
                     for r in rewrite_rule {
                         result.push(match r {
-                            Rewrite::Reference(idx) => features[*idx - 1].as_ref().to_string(),
+                            Rewrite::Reference(idx) => features[*idx].as_ref().to_string(),
                             Rewrite::Text(s) => s.to_string(),
                         });
                     }
@@ -321,5 +329,16 @@ mod tests {
             ]),
             rewriter2.rewrite(&["火星", "助詞", "かな", "よ"]),
         );
+    }
+
+    #[test]
+    fn test_invalid_index() {
+        let mut builder = FeatureRewriterBuilder::new();
+        assert!(builder
+            .add_rule(
+                &["*", "(助詞|助動詞)", "*", "(よ|ヨ)"],
+                &["$1", "$2", "$5", "よ"],
+            )
+            .is_err());
     }
 }

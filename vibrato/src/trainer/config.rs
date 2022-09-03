@@ -158,6 +158,8 @@ impl TrainerConfig {
 mod tests {
     use super::*;
 
+    use std::num::NonZeroU32;
+
     #[test]
     fn test_parse_feature_config() {
         let config = "
@@ -173,55 +175,55 @@ mod tests {
 
         // unigram features
         assert_eq!(
-            vec![0, 1],
-            feature_extractor.extract_unigram_feature_ids(&["a", "b"], "c")
+            vec![NonZeroU32::new(1).unwrap(), NonZeroU32::new(2).unwrap()],
+            feature_extractor.extract_unigram_feature_ids(&["a", "b"], 2)
         );
         assert_eq!(
-            vec![2, 3],
-            feature_extractor.extract_unigram_feature_ids(&["b", "c"], "c")
+            vec![NonZeroU32::new(3).unwrap(), NonZeroU32::new(4).unwrap()],
+            feature_extractor.extract_unigram_feature_ids(&["b", "c"], 2)
         );
         assert_eq!(
-            vec![0, 1],
-            feature_extractor.extract_unigram_feature_ids(&["a", "c"], "c")
+            vec![NonZeroU32::new(1).unwrap(), NonZeroU32::new(2).unwrap()],
+            feature_extractor.extract_unigram_feature_ids(&["a", "c"], 2)
         );
         assert_eq!(
-            vec![2, 4],
-            feature_extractor.extract_unigram_feature_ids(&["b", "c"], "d")
+            vec![NonZeroU32::new(3).unwrap(), NonZeroU32::new(5).unwrap()],
+            feature_extractor.extract_unigram_feature_ids(&["b", "c"], 3)
         );
 
         // left features
         assert_eq!(
-            vec![Some(0), Some(1)],
+            vec![NonZeroU32::new(1), NonZeroU32::new(2)],
             feature_extractor.extract_left_feature_ids(&["a", "b"])
         );
         assert_eq!(
-            vec![Some(2), Some(3)],
+            vec![NonZeroU32::new(3), NonZeroU32::new(4)],
             feature_extractor.extract_left_feature_ids(&["b", "c"])
         );
         assert_eq!(
-            vec![Some(0), Some(4)],
+            vec![NonZeroU32::new(1), NonZeroU32::new(5)],
             feature_extractor.extract_left_feature_ids(&["a", "c"])
         );
         assert_eq!(
-            vec![Some(2), Some(3)],
+            vec![NonZeroU32::new(3), NonZeroU32::new(4)],
             feature_extractor.extract_left_feature_ids(&["b", "c"])
         );
 
         // right features
         assert_eq!(
-            vec![Some(0), Some(1)],
+            vec![NonZeroU32::new(1), NonZeroU32::new(2)],
             feature_extractor.extract_right_feature_ids(&["a", "b"])
         );
         assert_eq!(
-            vec![Some(2), Some(3)],
+            vec![NonZeroU32::new(3), NonZeroU32::new(4)],
             feature_extractor.extract_right_feature_ids(&["b", "c"])
         );
         assert_eq!(
-            vec![Some(2), Some(4)],
+            vec![NonZeroU32::new(3), NonZeroU32::new(5)],
             feature_extractor.extract_right_feature_ids(&["a", "c"])
         );
         assert_eq!(
-            vec![Some(2), Some(3)],
+            vec![NonZeroU32::new(3), NonZeroU32::new(4)],
             feature_extractor.extract_right_feature_ids(&["b", "c"])
         );
     }
