@@ -2,10 +2,10 @@
 
 set -eux
 
-which wget
-which unzip
-which sort
-which openssl
+type wget
+type unzip
+type sort
+type openssl
 
 corpus_name="unidic-mecab-2_1_2"
 resources_dir="resources_${corpus_name}"
