@@ -2,8 +2,8 @@ use std::io::{BufRead, BufReader, Read};
 
 use crate::dictionary::character::CharProperty;
 use crate::errors::{Result, VibratoError};
-use crate::feature_extractor::FeatureExtractor;
-use crate::feature_rewriter::{FeatureRewriter, FeatureRewriterBuilder};
+use crate::trainer::feature_extractor::FeatureExtractor;
+use crate::trainer::feature_rewriter::{FeatureRewriter, FeatureRewriterBuilder};
 
 /// Configuration for a trainer.
 #[allow(unused)]
