@@ -72,7 +72,7 @@ impl CharProperty {
         cate_map: &BTreeMap<String, u32>,
     ) -> Result<CharInfo>
     where
-        S: AsRef<str> + std::fmt::Debug,
+        S: AsRef<str>,
     {
         let mut base_cinfo = *cate_map
             .get(targets[0].as_ref())
