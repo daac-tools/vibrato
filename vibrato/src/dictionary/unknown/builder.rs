@@ -33,10 +33,7 @@ impl UnkHandler {
 
     fn parse_unk_entry(rec: &csv::StringRecord, char_prop: &CharProperty) -> Result<UnkEntry> {
         if rec.len() < 4 {
-            let msg = format!(
-                "A csv row of lexicon must have four items at least, {:?}",
-                rec
-            );
+            let msg = format!("A csv row of lexicon must have four items at least, {rec:?}");
             return Err(VibratoError::invalid_format("unk.def", msg));
         }
 
@@ -47,8 +44,11 @@ impl UnkHandler {
         let word_cost = iter.next().unwrap().parse()?;
         let feature = iter.collect::<Vec<_>>().join(",");
 
-        // TODO: Handling unfound error.
-        let cate_id = u16::try_from(char_prop.cate_id(category).unwrap()).unwrap();
+        let cate_id = u16::try_from(char_prop.cate_id(category).ok_or_else(|| {
+            let msg = format!("Undefined category: {category}");
+            VibratoError::invalid_format("unk.def", msg)
+        })?)
+        .unwrap();
 
         Ok(UnkEntry {
             cate_id,
@@ -107,20 +107,20 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
     fn test_few_cols() {
         let char_def = "DEFAULT 0 1 0";
         let unk_def = "DEFAULT,0,2";
         let prop = CharProperty::from_reader(char_def.as_bytes()).unwrap();
-        UnkHandler::from_reader(unk_def.as_bytes(), &prop).unwrap();
+        let result = UnkHandler::from_reader(unk_def.as_bytes(), &prop);
+        assert!(result.is_err());
     }
 
     #[test]
-    #[should_panic]
     fn test_invalid_cate() {
         let char_def = "DEFAULT 0 1 0";
         let unk_def = "INVALID,0,2,1,補助記号";
         let prop = CharProperty::from_reader(char_def.as_bytes()).unwrap();
-        UnkHandler::from_reader(unk_def.as_bytes(), &prop).unwrap();
+        let result = UnkHandler::from_reader(unk_def.as_bytes(), &prop);
+        assert!(result.is_err());
     }
 }

@@ -130,36 +130,36 @@ mod tests {
     use super::*;
 
     #[test]
-    #[should_panic]
     fn test_oor_lex() {
         let lexicon_csv = "自然,1,1,0";
         let matrix_def = "1 1\n0 0 0";
         let char_def = "DEFAULT 0 1 0";
         let unk_def = "DEFAULT,0,0,100,*";
 
-        Dictionary::from_readers(
+        let result = Dictionary::from_readers(
             lexicon_csv.as_bytes(),
             matrix_def.as_bytes(),
             char_def.as_bytes(),
             unk_def.as_bytes(),
-        )
-        .unwrap();
+        );
+
+        assert!(result.is_err());
     }
 
     #[test]
-    #[should_panic]
     fn test_oor_unk() {
         let lexicon_csv = "自然,0,0,0";
         let matrix_def = "1 1\n0 0 0";
         let char_def = "DEFAULT 0 1 0";
         let unk_def = "DEFAULT,1,1,100,*";
 
-        Dictionary::from_readers(
+        let result = Dictionary::from_readers(
             lexicon_csv.as_bytes(),
             matrix_def.as_bytes(),
             char_def.as_bytes(),
             unk_def.as_bytes(),
-        )
-        .unwrap();
+        );
+
+        assert!(result.is_err());
     }
 }

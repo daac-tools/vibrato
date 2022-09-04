@@ -45,11 +45,11 @@ impl CharProperty {
             }
         }
 
-        let init_cinfo = Self::encode_cate_info(&["DEFAULT"], &cate2info, &cate_map);
+        let init_cinfo = Self::encode_cate_info(&["DEFAULT"], &cate2info, &cate_map)?;
         let mut chr2inf = vec![init_cinfo; 1 << 16];
 
         for r in &char_ranges {
-            let cinfo = Self::encode_cate_info(&r.categories, &cate2info, &cate_map);
+            let cinfo = Self::encode_cate_info(&r.categories, &cate2info, &cate_map)?;
             for e in chr2inf.iter_mut().take(r.end).skip(r.start) {
                 *e = cinfo;
             }
@@ -70,12 +70,17 @@ impl CharProperty {
         targets: &[S],
         cate2info: &BTreeMap<u32, CharInfo>,
         cate_map: &BTreeMap<String, u32>,
-    ) -> CharInfo
+    ) -> Result<CharInfo>
     where
-        S: AsRef<str>,
+        S: AsRef<str> + std::fmt::Debug,
     {
-        let base_target_id = cate_map.get(targets[0].as_ref()).unwrap();
-        let mut base_cinfo = *cate2info.get(base_target_id).unwrap();
+        let mut base_cinfo = *cate_map
+            .get(targets[0].as_ref())
+            .and_then(|base_target_id| cate2info.get(base_target_id))
+            .ok_or_else(|| {
+                let msg = format!("Undefined category: {}", targets[0].as_ref());
+                VibratoError::invalid_format("char.def", msg)
+            })?;
         let mut cate_idset = base_cinfo.cate_idset();
         for target in targets {
             let target_id = cate_map.get(target.as_ref()).unwrap();
@@ -83,7 +88,7 @@ impl CharProperty {
             cate_idset |= 1 << cinfo.base_id();
         }
         base_cinfo.reset_cate_idset(cate_idset);
-        base_cinfo
+        Ok(base_cinfo)
     }
 
     fn parse_char_category(line: &str) -> Result<(String, bool, bool, u16)> {
@@ -93,8 +98,7 @@ impl CharProperty {
         let cols: Vec<_> = line.split_whitespace().collect();
         if cols.len() < 4 {
             let msg = format!(
-                "A character category must consists of four items separated by spaces, {}",
-                line
+                "A character category must consists of four items separated by spaces, {line}",
             );
             return Err(VibratoError::invalid_format("char.def", msg));
         }
@@ -119,7 +123,7 @@ impl CharProperty {
 
         let cols: Vec<_> = line.split_whitespace().collect();
         if cols.len() < 2 {
-            let msg = format!("A character range must have two items at least, {}", line);
+            let msg = format!("A character range must have two items at least, {line}");
             return Err(VibratoError::invalid_format("char.def", msg));
         }
 
@@ -131,14 +135,12 @@ impl CharProperty {
             start + 1
         };
         if start >= end {
-            let msg = format!(
-                "The start of a character range must be no more than the end, {}",
-                line
-            );
+            let msg =
+                format!("The start of a character range must be no more than the end, {line}");
             return Err(VibratoError::invalid_format("char.def", msg));
         }
         if start > 0xFFFF || end > 0x10000 {
-            let msg = format!("A character range must be no more 0xFFFF, {}", line);
+            let msg = format!("A character range must be no more 0xFFFF, {line}");
             return Err(VibratoError::invalid_format("char.def", msg));
         }
 
@@ -171,45 +173,52 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
     fn test_invalid_cate() {
-        let data = "INVALID 0 1 0";
-        CharProperty::from_reader(data.as_bytes()).unwrap();
+        let data = "DEFAULT 0 1 0\n0x0..0xFFFF INVALID";
+        let result = CharProperty::from_reader(data.as_bytes());
+        assert!(result.is_err());
     }
 
     #[test]
-    #[should_panic]
+    fn test_no_default_cate() {
+        let data = "USER_DEFINED 0 1 0";
+        let result = CharProperty::from_reader(data.as_bytes());
+        assert!(result.is_err());
+    }
+
+    #[test]
     fn test_invalid_invoke() {
         let data = "DEFAULT 2 1 0";
-        CharProperty::from_reader(data.as_bytes()).unwrap();
+        let result = CharProperty::from_reader(data.as_bytes());
+        assert!(result.is_err());
     }
 
     #[test]
-    #[should_panic]
     fn test_invalid_group() {
         let data = "DEFAULT 0 2 0";
-        CharProperty::from_reader(data.as_bytes()).unwrap();
+        let result = CharProperty::from_reader(data.as_bytes());
+        assert!(result.is_err());
     }
 
     #[test]
-    #[should_panic]
     fn test_invalid_length() {
         let data = "DEFAULT 0 2 -1";
-        CharProperty::from_reader(data.as_bytes()).unwrap();
+        let result = CharProperty::from_reader(data.as_bytes());
+        assert!(result.is_err());
     }
 
     #[test]
-    #[should_panic]
     fn test_few_cols() {
         let data = "DEFAULT 0 2";
-        CharProperty::from_reader(data.as_bytes()).unwrap();
+        let result = CharProperty::from_reader(data.as_bytes());
+        assert!(result.is_err());
     }
 
     #[test]
-    #[should_panic]
     fn test_char_range_1() {
         let data = "DEFAULT 0 1 0\n0x10000 DEFAULT";
-        CharProperty::from_reader(data.as_bytes()).unwrap();
+        let result = CharProperty::from_reader(data.as_bytes());
+        assert!(result.is_err());
     }
 
     #[test]
@@ -219,16 +228,16 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
     fn test_char_range_3() {
         let data = "DEFAULT 0 1 0\n0x0..0x10000 DEFAULT";
-        CharProperty::from_reader(data.as_bytes()).unwrap();
+        let result = CharProperty::from_reader(data.as_bytes());
+        assert!(result.is_err());
     }
 
     #[test]
-    #[should_panic]
     fn test_char_range_4() {
         let data = "DEFAULT 0 1 0\n0x0020..0x0019 DEFAULT";
-        CharProperty::from_reader(data.as_bytes()).unwrap();
+        let result = CharProperty::from_reader(data.as_bytes());
+        assert!(result.is_err());
     }
 }

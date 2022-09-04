@@ -41,10 +41,7 @@ impl Lexicon {
 
     fn parse_csv(rec: &csv::StringRecord) -> Result<RawWordEntry> {
         if rec.len() < 4 {
-            let msg = format!(
-                "A csv row of lexicon must have four items at least, {:?}",
-                rec
-            );
+            let msg = format!("A csv row of lexicon must have four items at least, {rec:?}");
             return Err(VibratoError::invalid_format("lex.csv", msg));
         }
 
@@ -90,30 +87,30 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
     fn test_few_cols() {
         let data = "自然,0,2";
-        Lexicon::from_reader(data.as_bytes(), LexType::System).unwrap();
+        let result = Lexicon::from_reader(data.as_bytes(), LexType::System);
+        assert!(result.is_err());
     }
 
     #[test]
-    #[should_panic]
     fn test_invalid_left_id() {
         let data = "自然,-2,2,1";
-        Lexicon::from_reader(data.as_bytes(), LexType::System).unwrap();
+        let result = Lexicon::from_reader(data.as_bytes(), LexType::System);
+        assert!(result.is_err());
     }
 
     #[test]
-    #[should_panic]
     fn test_invalid_right_id() {
         let data = "自然,2,-2,1";
-        Lexicon::from_reader(data.as_bytes(), LexType::System).unwrap();
+        let result = Lexicon::from_reader(data.as_bytes(), LexType::System);
+        assert!(result.is_err());
     }
 
     #[test]
-    #[should_panic]
     fn test_invalid_cost() {
         let data = "自然,2,1,コスト";
-        Lexicon::from_reader(data.as_bytes(), LexType::System).unwrap();
+        let result = Lexicon::from_reader(data.as_bytes(), LexType::System);
+        assert!(result.is_err());
     }
 }
