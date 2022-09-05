@@ -98,11 +98,18 @@ impl Lexicon {
                     return Err(VibratoError::invalid_format(name, msg));
                 }
                 let feature = std::str::from_utf8(&features_bytes[..features_len - 1])?;
-                entries.push(RawWordEntry {
-                    surface,
-                    param: WordParam::new(left_id, right_id, word_cost),
-                    feature,
-                });
+                if surface.is_empty() {
+                    eprintln!(
+                        "Skipped an empty surface, {:?}",
+                        std::str::from_utf8(&record_bytes[..record_end_pos])?,
+                    );
+                } else {
+                    entries.push(RawWordEntry {
+                        surface,
+                        param: WordParam::new(left_id, right_id, word_cost),
+                        feature,
+                    });
+                }
                 surface = String::new();
                 field_cnt = 0;
                 record_end_pos = 0;
@@ -139,6 +146,13 @@ mod tests {
         assert_eq!(lex.features.get(0), "sizen");
         assert_eq!(lex.features.get(1), "gengo,げんご");
         assert_eq!(lex.lex_type, LexType::User);
+    }
+
+    #[test]
+    fn test_empty_surface() {
+        let data = "自然,0,2,1,sizen\n,1,0,-4,gengo,げんご";
+        let result = Lexicon::parse_csv(data.as_bytes(), "test").unwrap();
+        assert_eq!(result.len(), 1);
     }
 
     #[test]
