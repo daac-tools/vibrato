@@ -2,6 +2,7 @@ use std::io::{BufRead, BufReader, Read};
 
 use csv_core::ReadFieldResult;
 
+use crate::dictionary::lexicon::Lexicon;
 use crate::errors::{Result, VibratoError};
 
 /// Representation of a pair of a surface and features.
@@ -11,7 +12,7 @@ pub struct Word {
 
     // Since a vector of strings consumes massive memory, a single string is stored and divided as
     // needed.
-    features: String,
+    feature: String,
 }
 
 impl Word {
@@ -24,7 +25,7 @@ impl Word {
     /// Returns a concatenated feature string.
     #[allow(unused)]
     pub fn features(&self) -> &str {
-        &self.features
+        &self.feature
     }
 
     /// Returns a vector of feature strings.
@@ -32,19 +33,18 @@ impl Word {
     pub fn features_vec(&self) -> Vec<String> {
         let mut features = vec![];
         let mut rdr = csv_core::Reader::new();
-        let mut bytes = self.features.as_bytes();
-        let mut output = [0; 1024];
+        let mut bytes = self.feature.as_bytes();
+        let mut output = [0; 4096];
         loop {
             let (result, nin, nout) = rdr.read_field(bytes, &mut output);
-            match result {
-                ReadFieldResult::InputEmpty => {
-                    features.push(String::from_utf8(output[..nout].to_vec()).unwrap());
-                    break;
-                }
-                ReadFieldResult::Field { record_end } => {
-                    features.push(String::from_utf8(output[..nout].to_vec()).unwrap());
-                }
+            let end = match result {
+                ReadFieldResult::InputEmpty => true,
+                ReadFieldResult::Field { .. } => false,
                 _ => unreachable!(),
+            };
+            features.push(std::str::from_utf8(&output[..nout]).unwrap().to_string());
+            if end {
+                break;
             }
             bytes = &bytes[nin..];
         }
@@ -95,13 +95,13 @@ impl Corpus {
             let line = line?;
             let mut spl = line.split('\t');
             let surface = spl.next();
-            let features = spl.next();
+            let feature = spl.next();
             let rest = spl.next();
-            match (surface, features, rest) {
-                (Some(surface), Some(features), None) => {
+            match (surface, feature, rest) {
+                (Some(surface), Some(feature), None) => {
                     tokens.push(Word {
                         surface: surface.to_string(),
-                        features: features.to_string(),
+                        feature: feature.to_string(),
                     });
                 }
                 (Some("EOS"), None, None) => {
@@ -153,62 +153,15 @@ impl Dictionary {
 
         let mut words = vec![];
 
-        let mut rdr = csv_core::Reader::new();
-        let mut features_bytes = buf.as_slice();
-        let mut bytes = buf.as_slice();
-        let mut field_cnt: usize = 0;
-        let mut features_len = 0;
-        let mut surface = String::new();
-        let mut output = [0; 1024];
-        loop {
-            let (result, nin, nout) = rdr.read_field(bytes, &mut output);
-            match result {
-                ReadFieldResult::InputEmpty => {
-                    return Err(VibratoError::invalid_format(
-                        "rdr",
-                        "invalid dictionary format",
-                    ))
-                }
-                ReadFieldResult::OutputFull => {
-                    return Err(VibratoError::invalid_format(
-                        "rdr",
-                        "field length too large",
-                    ))
-                }
-                ReadFieldResult::Field { record_end } => {
-                    match field_cnt {
-                        0 => {
-                            surface = String::from_utf8(output[..nout].to_vec()).unwrap();
-                        }
-                        1 | 2 => {}
-                        3 => {
-                            features_bytes = &bytes[nin..];
-                            features_len = 0;
-                        }
-                        _ => {
-                            features_len += nin;
-                        }
-                    }
-                    if record_end {
-                        if field_cnt <= 3 {
-                            return Err(VibratoError::invalid_format(
-                                "rdr",
-                                "invalid dictionary format",
-                            ));
-                        }
-                        let features =
-                            String::from_utf8(features_bytes[..features_len - 1].to_vec()).unwrap();
-                        words.push(Word { surface, features });
-                        surface = String::new();
-                        field_cnt = 0;
-                    } else {
-                        field_cnt += 1;
-                    }
-                }
-                ReadFieldResult::End => break,
-            }
-            bytes = &bytes[nin..];
+        let parsed = Lexicon::parse_csv(&buf, "corpus")?;
+
+        for item in parsed {
+            words.push(Word {
+                surface: item.surface,
+                feature: item.feature.to_string(),
+            });
         }
+
         Ok(Self { words })
     }
 
@@ -326,5 +279,16 @@ EOS
         assert_eq!("名詞,\"1,2-ジクロロエタン\"", dict.words()[0].features());
         assert_eq!("\"", dict.words()[1].surface());
         assert_eq!("名詞,*", dict.words()[1].features());
+    }
+
+    #[test]
+    fn test_load_dictionary_few_cols() {
+        let dictionary_data = "\
+\"1,2-ジクロロエタン\",1,2,3
+";
+
+        let dict = Dictionary::from_reader(dictionary_data.as_bytes());
+
+        assert!(dict.is_err());
     }
 }

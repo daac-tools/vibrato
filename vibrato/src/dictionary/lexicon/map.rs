@@ -24,7 +24,7 @@ impl WordMap {
     {
         let mut b = WordMapBuilder::new();
         for (i, w) in words.into_iter().enumerate() {
-            b.add_record(w.as_ref().to_owned(), u32::try_from(i)?);
+            b.add_record(w.as_ref().to_string(), u32::try_from(i)?);
         }
         b.build()
     }
