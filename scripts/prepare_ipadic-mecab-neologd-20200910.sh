@@ -2,12 +2,15 @@
 
 set -eux
 
-which git
-which wget
-which tar
-which iconv
-which sort
-which openssl
+type git
+type wget
+type tar
+type iconv
+type sort
+type openssl
+type mecab
+type mecab-config
+type xz
 
 # Edit these if you want to download another version.
 ymd="20200910"

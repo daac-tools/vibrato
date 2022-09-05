@@ -3,7 +3,7 @@ use std::io::Read;
 use crate::dictionary::character::CharProperty;
 use crate::dictionary::lexicon::Lexicon;
 use crate::dictionary::unknown::{UnkEntry, UnkHandler};
-use crate::errors::Result;
+use crate::errors::{Result, VibratoError};
 
 impl UnkHandler {
     /// Creates a new instance from `unk.def`.
@@ -17,7 +17,11 @@ impl UnkHandler {
         let parsed = Lexicon::parse_csv(&buf, "unk.def")?;
         let mut map = vec![vec![]; char_prop.num_categories()];
         for item in parsed {
-            let cate_id = u16::try_from(char_prop.cate_id(&item.surface).unwrap()).unwrap();
+            let cate_id = u16::try_from(char_prop.cate_id(&item.surface).ok_or_else(|| {
+                let msg = format!("Undefined category: {}", item.surface);
+                VibratoError::invalid_format("unk.def", msg)
+            })?)
+            .unwrap();
             let e = UnkEntry {
                 cate_id,
                 left_id: item.param.left_id,
@@ -86,20 +90,20 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
     fn test_few_cols() {
         let char_def = "DEFAULT 0 1 0";
         let unk_def = "DEFAULT,0,2";
         let prop = CharProperty::from_reader(char_def.as_bytes()).unwrap();
-        UnkHandler::from_reader(unk_def.as_bytes(), &prop).unwrap();
+        let result = UnkHandler::from_reader(unk_def.as_bytes(), &prop);
+        assert!(result.is_err());
     }
 
     #[test]
-    #[should_panic]
     fn test_invalid_cate() {
         let char_def = "DEFAULT 0 1 0";
         let unk_def = "INVALID,0,2,1,補助記号";
         let prop = CharProperty::from_reader(char_def.as_bytes()).unwrap();
-        UnkHandler::from_reader(unk_def.as_bytes(), &prop).unwrap();
+        let result = UnkHandler::from_reader(unk_def.as_bytes(), &prop);
+        assert!(result.is_err());
     }
 }

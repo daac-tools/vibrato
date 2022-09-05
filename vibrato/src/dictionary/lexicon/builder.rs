@@ -144,28 +144,28 @@ mod tests {
     #[test]
     fn test_few_cols() {
         let data = "自然,0,2";
-        let lex = Lexicon::from_reader(data.as_bytes(), LexType::System);
-        assert!(lex.is_err());
+        let result = Lexicon::from_reader(data.as_bytes(), LexType::System);
+        assert!(result.is_err());
     }
 
     #[test]
     fn test_invalid_left_id() {
         let data = "自然,-2,2,1,a";
-        let lex = Lexicon::from_reader(data.as_bytes(), LexType::System);
-        assert!(lex.is_err());
+        let result = Lexicon::from_reader(data.as_bytes(), LexType::System);
+        assert!(result.is_err());
     }
 
     #[test]
     fn test_invalid_right_id() {
         let data = "自然,2,-2,1,a";
-        let lex = Lexicon::from_reader(data.as_bytes(), LexType::System);
-        assert!(lex.is_err());
+        let result = Lexicon::from_reader(data.as_bytes(), LexType::System);
+        assert!(result.is_err());
     }
 
     #[test]
     fn test_invalid_cost() {
         let data = "自然,2,1,コスト,a";
-        let lex = Lexicon::from_reader(data.as_bytes(), LexType::System);
-        assert!(lex.is_err());
+        let result = Lexicon::from_reader(data.as_bytes(), LexType::System);
+        assert!(result.is_err());
     }
 }

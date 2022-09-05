@@ -34,10 +34,8 @@ impl Connector {
     fn parse_header(line: &str) -> Result<(usize, usize)> {
         let cols: Vec<_> = line.split(' ').collect();
         if cols.len() != 2 {
-            let msg = format!(
-                "The header must consists of two integers separated by spaces, {}",
-                line
-            );
+            let msg =
+                format!("The header must consists of two integers separated by spaces, {line}");
             Err(VibratoError::invalid_format("matrix.def", msg))
         } else {
             let num_right: u16 = cols[0].parse()?;
@@ -50,8 +48,7 @@ impl Connector {
         let cols: Vec<_> = line.split(' ').collect();
         if cols.len() != 3 {
             let msg = format!(
-                "A row other than the header must consists of three integers separated by spaces, {}",
-                line
+                "A row other than the header must consists of three integers separated by spaces, {line}"
             );
             Err(VibratoError::invalid_format("matrix.def", msg))
         } else {
@@ -97,75 +94,82 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
     fn test_less_header() {
         let data = "2
 0 0 0
 0 1 1
 1 0 -2
 1 1 -3";
-        Connector::from_reader(data.as_bytes()).unwrap();
+        let result = Connector::from_reader(data.as_bytes());
+
+        assert!(result.is_err());
     }
 
     #[test]
-    #[should_panic]
     fn test_more_header() {
         let data = "2 2 2
 0 0 0
 0 1 1
 1 0 -2
 1 1 -3";
-        Connector::from_reader(data.as_bytes()).unwrap();
+        let result = Connector::from_reader(data.as_bytes());
+
+        assert!(result.is_err());
     }
 
     #[test]
-    #[should_panic]
     fn test_less_body() {
         let data = "2 2
 0 0 0
 0 1 1
 1 -2
 1 1 -3";
-        Connector::from_reader(data.as_bytes()).unwrap();
+        let result = Connector::from_reader(data.as_bytes());
+
+        assert!(result.is_err());
     }
 
     #[test]
-    #[should_panic]
     fn test_more_body() {
         let data = "2 2
 0 0 0
 0 1 1
 1 0 1 -2
 1 1 -3";
-        Connector::from_reader(data.as_bytes()).unwrap();
+        let result = Connector::from_reader(data.as_bytes());
+
+        assert!(result.is_err());
     }
 
     #[test]
-    #[should_panic]
     fn test_larger_matrix() {
         let data = "65536 65536";
-        Connector::from_reader(data.as_bytes()).unwrap();
+        let result = Connector::from_reader(data.as_bytes());
+
+        assert!(result.is_err());
     }
 
     #[test]
-    #[should_panic]
     fn test_larger_left_id() {
         let data = "2 2
 0 0 0
 0 1 1
 1 2 -2
 1 1 -3";
-        Connector::from_reader(data.as_bytes()).unwrap();
+        let result = Connector::from_reader(data.as_bytes());
+
+        assert!(result.is_err());
     }
 
     #[test]
-    #[should_panic]
     fn test_larger_right_id() {
         let data = "2 2
 0 0 0
 0 1 1
 2 0 -2
 1 1 -3";
-        Connector::from_reader(data.as_bytes()).unwrap();
+        let result = Connector::from_reader(data.as_bytes());
+
+        assert!(result.is_err());
     }
 }
