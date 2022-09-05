@@ -21,7 +21,7 @@ impl ConnIdMapper {
         let mut old_ids = vec![BOS_EOS_CONNECTION_ID];
         for old_id in map {
             if old_id == BOS_EOS_CONNECTION_ID {
-                let msg = format!("Id {} is reserved.", BOS_EOS_CONNECTION_ID);
+                let msg = format!("Id {BOS_EOS_CONNECTION_ID} is reserved.");
                 return Err(VibratoError::invalid_argument("map", msg));
             }
             old_ids.push(old_id);
@@ -32,10 +32,10 @@ impl ConnIdMapper {
 
         for (new_id, &old_id) in old_ids.iter().enumerate().skip(1) {
             debug_assert_ne!(old_id, BOS_EOS_CONNECTION_ID);
-            if new_ids[usize::from(old_id)] != u16::MAX {
-                return Err(VibratoError::invalid_argument("map", "ids are duplicate."));
-            }
             if let Some(e) = new_ids.get_mut(usize::from(old_id)) {
+                if *e != u16::MAX {
+                    return Err(VibratoError::invalid_argument("map", "ids are duplicate."));
+                }
                 *e = u16::try_from(new_id)?;
             } else {
                 return Err(VibratoError::invalid_argument(
@@ -60,16 +60,16 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
     fn test_zero() {
         let map = vec![2, 3, 0, 1];
-        ConnIdMapper::parse(map.into_iter()).unwrap();
+        let result = ConnIdMapper::parse(map.into_iter());
+        assert!(result.is_err());
     }
 
     #[test]
-    #[should_panic]
     fn test_oor() {
         let map = vec![2, 3, 5, 1];
-        ConnIdMapper::parse(map.into_iter()).unwrap();
+        let result = ConnIdMapper::parse(map.into_iter());
+        assert!(result.is_err());
     }
 }
