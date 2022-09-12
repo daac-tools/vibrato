@@ -98,7 +98,7 @@ impl TrainerConfig {
                 line => {
                     if let Some(builder) = builder.as_mut() {
                         let (pattern, rewrite) = Self::parse_rewrite_rule(line)?;
-                        builder.add_rule(&pattern, &rewrite)?;
+                        builder.add_rule(&pattern, &rewrite);
                     } else {
                         return Err(VibratoError::invalid_format(
                             "rewrite.def",
