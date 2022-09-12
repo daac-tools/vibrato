@@ -1,8 +1,6 @@
 use hashbrown::HashSet;
 use regex::Regex;
 
-use crate::errors::{Result, VibratoError};
-
 #[derive(Eq, PartialEq)]
 enum Pattern {
     Any,
@@ -316,6 +314,39 @@ mod tests {
                 "火星".to_string()
             ]),
             rewriter2.rewrite(&["火星", "助詞", "かな", "よ"]),
+        );
+    }
+
+    #[test]
+    fn test_rewrite_match_mostfirst_long_short() {
+        let mut builder = FeatureRewriterBuilder::new();
+        builder.add_rule(
+            &["*", "*", "*", "*"],
+            &["$1", "$2", "$3", "$4"],
+        );
+        builder.add_rule(
+            &["*", "*"],
+            &["$1", "$2", "*", "*"],
+        );
+        let rewriter = FeatureRewriter::from(builder);
+
+        assert_eq!(
+            Some(vec![
+                "火星".to_string(),
+                "助詞".to_string(),
+                "かな".to_string(),
+                "よ".to_string(),
+            ]),
+            rewriter.rewrite(&["火星", "助詞", "かな", "よ"]),
+        );
+        assert_eq!(
+            Some(vec![
+                "火星".to_string(),
+                "助詞".to_string(),
+                "*".to_string(),
+                "*".to_string(),
+            ]),
+            rewriter.rewrite(&["火星", "助詞", "かな"]),
         );
     }
 
