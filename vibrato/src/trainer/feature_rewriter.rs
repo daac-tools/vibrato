@@ -82,12 +82,13 @@ impl FeatureRewriterBuilder {
         let mut parsed_rewrite = vec![];
         for p in rewrite {
             let p = p.as_ref();
-            parsed_rewrite.push(if let Some(cap) = self.ref_pattern.captures(p) {
-                let idx = cap.get(1).unwrap().as_str().parse::<usize>().unwrap() - 1;
-                Rewrite::Reference(idx)
-            } else {
-                Rewrite::Text(p.to_string())
-            });
+            parsed_rewrite.push(self.ref_pattern.captures(p).map_or_else(
+                || Rewrite::Text(p.to_string()),
+                |cap| {
+                    let idx = cap.get(1).unwrap().as_str().parse::<usize>().unwrap() - 1;
+                    Rewrite::Reference(idx)
+                },
+            ));
         }
         self.nodes[cursor]
             .actions
@@ -320,14 +321,8 @@ mod tests {
     #[test]
     fn test_rewrite_match_mostfirst_long_short() {
         let mut builder = FeatureRewriterBuilder::new();
-        builder.add_rule(
-            &["*", "*", "*", "*"],
-            &["$1", "$2", "$3", "$4"],
-        );
-        builder.add_rule(
-            &["*", "*"],
-            &["$1", "$2", "*", "*"],
-        );
+        builder.add_rule(&["*", "*", "*", "*"], &["$1", "$2", "$3", "$4"]);
+        builder.add_rule(&["*", "*"], &["$1", "$2", "*", "*"]);
         let rewriter = FeatureRewriter::from(builder);
 
         assert_eq!(
