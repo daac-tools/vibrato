@@ -74,14 +74,8 @@ impl ConnIdCounter {
         }
 
         // Compute Right-id probs
-        let mut rid_probs = Vec::with_capacity(num_right);
-        {
-            let acc = rid_count.iter().sum::<usize>() as f64;
-            for (rid, &cnt) in rid_count.iter().enumerate() {
-                let cnt = cnt as f64;
-                rid_probs.push((rid, cnt / acc));
-            }
-        }
+        let rid_sum = rid_count.iter().sum::<usize>() as f64;
+        let rid_probs: Vec<_> = rid_count.iter().enumerate().map(|(rid, &cnt)| (rid, cnt as f64 / rid_sum)).collect();
 
         // Pop Id = 0
         assert_eq!(crate::common::BOS_EOS_CONNECTION_ID, 0);
