@@ -45,6 +45,9 @@ impl FeatureRewriterBuilder {
     }
 
     #[allow(unused)]
+    /// Adds the rewrite rule associated with the pattern.
+    /// If the pattern is shorter than the rewrite rule,
+    /// the remainings are automatically padded with "*".
     pub fn add_rule<S>(&mut self, pattern: &[S], rewrite: &[S])
     where
         S: AsRef<str>,
