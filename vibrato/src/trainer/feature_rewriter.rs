@@ -1,8 +1,6 @@
 use hashbrown::HashSet;
 use regex::Regex;
 
-use crate::errors::{Result, VibratoError};
-
 #[derive(Eq, PartialEq)]
 enum Pattern {
     Any,
@@ -20,10 +18,14 @@ struct Edge {
     target: usize,
 }
 
+enum Action {
+    Transition(Edge),
+    Rewrite(Vec<Rewrite>),
+}
+
 #[derive(Default)]
 struct Node {
-    edges: Vec<Edge>,
-    rewrite_rule: Option<Vec<Rewrite>>,
+    actions: Vec<Action>,
 }
 
 /// Constructor of a prefix trie that stores rewrite patterns as nodes and
@@ -43,7 +45,10 @@ impl FeatureRewriterBuilder {
     }
 
     #[allow(unused)]
-    pub fn add_rule<S>(&mut self, pattern: &[S], rewrite: &[S]) -> Result<()>
+    /// Adds the rewrite rule associated with the pattern.
+    /// If the pattern is shorter than the rewrite rule,
+    /// the remainings are automatically padded with "*".
+    pub fn add_rule<S>(&mut self, pattern: &[S], rewrite: &[S])
     where
         S: AsRef<str>,
     {
@@ -61,44 +66,36 @@ impl FeatureRewriterBuilder {
             } else {
                 Pattern::Exact(p.to_string())
             };
-            for edge in &self.nodes[cursor].edges {
-                if parsed == edge.pattern {
-                    cursor = edge.target;
-                    continue 'a;
+            for action in &self.nodes[cursor].actions {
+                if let Action::Transition(edge) = action {
+                    if parsed == edge.pattern {
+                        cursor = edge.target;
+                        continue 'a;
+                    }
                 }
             }
             let target = self.nodes.len();
-            self.nodes[cursor].edges.push(Edge {
+            self.nodes[cursor].actions.push(Action::Transition(Edge {
                 pattern: parsed,
                 target,
-            });
+            }));
             self.nodes.push(Node::default());
             cursor = target;
-        }
-        if self.nodes[cursor].rewrite_rule.is_some() {
-            return Err(VibratoError::invalid_argument(
-                "pattern",
-                "duplicate patterns",
-            ));
         }
         let mut parsed_rewrite = vec![];
         for p in rewrite {
             let p = p.as_ref();
-            parsed_rewrite.push(if let Some(cap) = self.ref_pattern.captures(p) {
-                let idx = cap.get(1).unwrap().as_str().parse::<usize>().unwrap() - 1;
-                if idx >= pattern.len() {
-                    return Err(VibratoError::invalid_format(
-                        "rewrite",
-                        "refering invalid index",
-                    ));
-                }
-                Rewrite::Reference(idx)
-            } else {
-                Rewrite::Text(p.to_string())
-            });
+            parsed_rewrite.push(self.ref_pattern.captures(p).map_or_else(
+                || Rewrite::Text(p.to_string()),
+                |cap| {
+                    let idx = cap.get(1).unwrap().as_str().parse::<usize>().unwrap() - 1;
+                    Rewrite::Reference(idx)
+                },
+            ));
         }
-        self.nodes[cursor].rewrite_rule.replace(parsed_rewrite);
-        Ok(())
+        self.nodes[cursor]
+            .actions
+            .push(Action::Rewrite(parsed_rewrite));
     }
 }
 
@@ -125,29 +122,39 @@ impl FeatureRewriter {
     {
         let mut stack = vec![(0, 0)];
         'a: while let Some((node_idx, edge_idx)) = stack.pop() {
-            if features.len() <= stack.len() {
-                if let Some(rewrite_rule) = &self.nodes[node_idx].rewrite_rule {
-                    let mut result = vec![];
-                    for r in rewrite_rule {
-                        result.push(match r {
-                            Rewrite::Reference(idx) => features[*idx].as_ref().to_string(),
-                            Rewrite::Text(s) => s.to_string(),
-                        });
+            for (i, action) in self.nodes[node_idx]
+                .actions
+                .iter()
+                .enumerate()
+                .skip(edge_idx)
+            {
+                match action {
+                    Action::Transition(edge) => {
+                        if let Some(f) = features.get(stack.len()) {
+                            let f = f.as_ref();
+                            let is_match = match &edge.pattern {
+                                Pattern::Any => true,
+                                Pattern::Multiple(s) => s.contains(f),
+                                Pattern::Exact(s) => f == s,
+                            };
+                            if is_match {
+                                stack.push((node_idx, i));
+                                stack.push((edge.target, 0));
+                                continue 'a;
+                            }
+                        }
                     }
-                    return Some(result);
-                }
-            } else {
-                let f = features[stack.len()].as_ref();
-                for (i, edge) in self.nodes[node_idx].edges.iter().enumerate().skip(edge_idx) {
-                    let is_match = match &edge.pattern {
-                        Pattern::Any => true,
-                        Pattern::Multiple(s) => s.contains(f),
-                        Pattern::Exact(s) => f == s,
-                    };
-                    if is_match {
-                        stack.push((node_idx, i));
-                        stack.push((edge.target, 0));
-                        continue 'a;
+                    Action::Rewrite(rule) => {
+                        let mut result = vec![];
+                        for r in rule {
+                            result.push(match r {
+                                Rewrite::Reference(idx) => {
+                                    features.get(*idx).map_or("*", |s| s.as_ref()).to_string()
+                                }
+                                Rewrite::Text(s) => s.to_string(),
+                            });
+                        }
+                        return Some(result);
                     }
                 }
             }
@@ -166,21 +173,15 @@ mod tests {
     #[test]
     fn test_build() {
         let mut builder = FeatureRewriterBuilder::new();
-        builder
-            .add_rule(
-                &["*", "(助詞|助動詞)", "*", "(よ|ヨ)"],
-                &["$1", "$2", "$3", "よ"],
-            )
-            .unwrap();
-        builder
-            .add_rule(
-                &["*", "(助詞|助動詞)", "*", "(無い|ない)"],
-                &["$1", "$2", "$3", "ない"],
-            )
-            .unwrap();
-        builder
-            .add_rule(&["火星", "*", "*", "*"], &["$4", "$3", "$2", "$1"])
-            .unwrap();
+        builder.add_rule(
+            &["*", "(助詞|助動詞)", "*", "(よ|ヨ)"],
+            &["$1", "$2", "$3", "よ"],
+        );
+        builder.add_rule(
+            &["*", "(助詞|助動詞)", "*", "(無い|ない)"],
+            &["$1", "$2", "$3", "ない"],
+        );
+        builder.add_rule(&["火星", "*", "*", "*"], &["$4", "$3", "$2", "$1"]);
         let rewriter = FeatureRewriter::from(builder);
 
         assert_eq!(10, rewriter.nodes.len());
@@ -189,21 +190,15 @@ mod tests {
     #[test]
     fn test_rewrite_match() {
         let mut builder = FeatureRewriterBuilder::new();
-        builder
-            .add_rule(
-                &["*", "(助詞|助動詞)", "*", "(よ|ヨ)"],
-                &["$1", "$2", "$3", "よ"],
-            )
-            .unwrap();
-        builder
-            .add_rule(
-                &["*", "(助詞|助動詞)", "*", "(無い|ない)"],
-                &["$1", "$2", "$3", "ない"],
-            )
-            .unwrap();
-        builder
-            .add_rule(&["火星", "*", "*", "*"], &["$4", "$3", "$2", "$1"])
-            .unwrap();
+        builder.add_rule(
+            &["*", "(助詞|助動詞)", "*", "(よ|ヨ)"],
+            &["$1", "$2", "$3", "よ"],
+        );
+        builder.add_rule(
+            &["*", "(助詞|助動詞)", "*", "(無い|ない)"],
+            &["$1", "$2", "$3", "ない"],
+        );
+        builder.add_rule(&["火星", "*", "*", "*"], &["$4", "$3", "$2", "$1"]);
         let rewriter = FeatureRewriter::from(builder);
 
         assert_eq!(
@@ -245,51 +240,52 @@ mod tests {
     }
 
     #[test]
-    fn test_rewrite_fail() {
+    fn test_rewrite_match_short() {
         let mut builder = FeatureRewriterBuilder::new();
-        builder
-            .add_rule(
-                &["*", "(助詞|助動詞)", "*", "(よ|ヨ)"],
-                &["$1", "$2", "$3", "よ"],
-            )
-            .unwrap();
-        builder
-            .add_rule(
-                &["*", "(助詞|助動詞)", "*", "(無い|ない)"],
-                &["$1", "$2", "$3", "ない"],
-            )
-            .unwrap();
-        builder
-            .add_rule(&["火星", "*", "*", "*"], &["$4", "$3", "$2", "$1"])
-            .unwrap();
+        builder.add_rule(&["*", "*", "*"], &["$1", "$2", "$4", "$3"]);
         let rewriter = FeatureRewriter::from(builder);
 
-        assert_eq!(None, rewriter.rewrite(&["よ", "助詞", "かな", "yo"]),);
-        assert_eq!(None, rewriter.rewrite(&["火星", "名詞", "漢字"]),);
         assert_eq!(
-            None,
-            rewriter.rewrite(&["火星", "名詞", "漢字", "かせい", "A"]),
+            Some(vec![
+                "よ".to_string(),
+                "助詞".to_string(),
+                "かな".to_string(),
+                "よ".to_string()
+            ]),
+            rewriter.rewrite(&["よ", "助詞", "よ", "かな"]),
         );
+    }
+
+    #[test]
+    fn test_rewrite_fail() {
+        let mut builder = FeatureRewriterBuilder::new();
+        builder.add_rule(
+            &["*", "(助詞|助動詞)", "*", "(よ|ヨ)"],
+            &["$1", "$2", "$3", "よ"],
+        );
+        builder.add_rule(
+            &["*", "(助詞|助動詞)", "*", "(無い|ない)"],
+            &["$1", "$2", "$3", "ない"],
+        );
+        builder.add_rule(&["火星", "*", "*", "*"], &["$4", "$3", "$2", "$1"]);
+        let rewriter = FeatureRewriter::from(builder);
+
+        assert_eq!(None, rewriter.rewrite(&["よ", "助詞", "かな", "yo"]));
+        assert_eq!(None, rewriter.rewrite(&["火星", "名詞", "漢字"]));
     }
 
     #[test]
     fn test_rewrite_match_mostfirst() {
         let mut builder1 = FeatureRewriterBuilder::new();
-        builder1
-            .add_rule(
-                &["*", "(助詞|助動詞)", "*", "(よ|ヨ)"],
-                &["$1", "$2", "$3", "よ"],
-            )
-            .unwrap();
-        builder1
-            .add_rule(
-                &["*", "(助詞|助動詞)", "*", "(無い|ない)"],
-                &["$1", "$2", "$3", "ない"],
-            )
-            .unwrap();
-        builder1
-            .add_rule(&["火星", "*", "*", "*"], &["$4", "$3", "$2", "$1"])
-            .unwrap();
+        builder1.add_rule(
+            &["*", "(助詞|助動詞)", "*", "(よ|ヨ)"],
+            &["$1", "$2", "$3", "よ"],
+        );
+        builder1.add_rule(
+            &["*", "(助詞|助動詞)", "*", "(無い|ない)"],
+            &["$1", "$2", "$3", "ない"],
+        );
+        builder1.add_rule(&["火星", "*", "*", "*"], &["$4", "$3", "$2", "$1"]);
         let rewriter1 = FeatureRewriter::from(builder1);
 
         assert_eq!(
@@ -303,21 +299,15 @@ mod tests {
         );
 
         let mut builder2 = FeatureRewriterBuilder::new();
-        builder2
-            .add_rule(&["火星", "*", "*", "*"], &["$4", "$3", "$2", "$1"])
-            .unwrap();
-        builder2
-            .add_rule(
-                &["*", "(助詞|助動詞)", "*", "(よ|ヨ)"],
-                &["$1", "$2", "$3", "よ"],
-            )
-            .unwrap();
-        builder2
-            .add_rule(
-                &["*", "(助詞|助動詞)", "*", "(無い|ない)"],
-                &["$1", "$2", "$3", "ない"],
-            )
-            .unwrap();
+        builder2.add_rule(&["火星", "*", "*", "*"], &["$4", "$3", "$2", "$1"]);
+        builder2.add_rule(
+            &["*", "(助詞|助動詞)", "*", "(よ|ヨ)"],
+            &["$1", "$2", "$3", "よ"],
+        );
+        builder2.add_rule(
+            &["*", "(助詞|助動詞)", "*", "(無い|ない)"],
+            &["$1", "$2", "$3", "ない"],
+        );
         let rewriter2 = FeatureRewriter::from(builder2);
 
         assert_eq!(
@@ -332,13 +322,49 @@ mod tests {
     }
 
     #[test]
+    fn test_rewrite_match_mostfirst_long_short() {
+        let mut builder = FeatureRewriterBuilder::new();
+        builder.add_rule(&["*", "*", "*", "*"], &["$1", "$2", "$3", "$4"]);
+        builder.add_rule(&["*", "*"], &["$1", "$2", "*", "*"]);
+        let rewriter = FeatureRewriter::from(builder);
+
+        assert_eq!(
+            Some(vec![
+                "火星".to_string(),
+                "助詞".to_string(),
+                "かな".to_string(),
+                "よ".to_string(),
+            ]),
+            rewriter.rewrite(&["火星", "助詞", "かな", "よ"]),
+        );
+        assert_eq!(
+            Some(vec![
+                "火星".to_string(),
+                "助詞".to_string(),
+                "*".to_string(),
+                "*".to_string(),
+            ]),
+            rewriter.rewrite(&["火星", "助詞", "かな"]),
+        );
+    }
+
+    #[test]
     fn test_invalid_index() {
         let mut builder = FeatureRewriterBuilder::new();
-        assert!(builder
-            .add_rule(
-                &["*", "(助詞|助動詞)", "*", "(よ|ヨ)"],
-                &["$1", "$2", "$5", "よ"],
-            )
-            .is_err());
+        builder.add_rule(
+            &["*", "(助詞|助動詞)", "*", "(よ|ヨ)"],
+            &["$1", "$2", "$5", "よ"],
+        );
+        let rewriter = FeatureRewriter::from(builder);
+
+        assert_eq!(
+            Some(vec![
+                "火星".to_string(),
+                "助詞".to_string(),
+                "*".to_string(),
+                "よ".to_string()
+            ]),
+            rewriter.rewrite(&["火星", "助詞", "かな", "よ"]),
+        );
     }
 }
