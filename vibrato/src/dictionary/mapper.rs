@@ -104,13 +104,13 @@ mod tests {
     #[test]
     fn test_compute_probs() {
         let mut counter = ConnIdCounter::new(3, 3);
-        counter.add(0, 1, 1);
+        counter.add(0, 2, 1);
         counter.add(1, 0, 3);
-        counter.add(2, 1, 4);
-        counter.add(1, 1, 2);
+        counter.add(2, 2, 4);
+        counter.add(1, 2, 2);
 
         let (lprobs, rprobs) = counter.compute_probs();
         assert_eq!(lprobs, vec![(1, 5f64 / 10f64), (2, 4f64 / 10f64)]);
-        assert_eq!(rprobs, vec![(1, 7f64 / 10f64), (2, 0f64 / 10f64)]);
+        assert_eq!(rprobs, vec![(2, 7f64 / 10f64), (1, 0f64 / 10f64)]);
     }
 }
