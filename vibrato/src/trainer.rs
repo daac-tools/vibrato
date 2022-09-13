@@ -11,8 +11,9 @@ use rucrf::{Edge, FeatureProvider, FeatureSet, Lattice};
 use crate::errors::Result;
 use crate::dictionary::LexType;
 use crate::dictionary::{word_idx::WordIdx, Dictionary};
-use crate::trainer::config::TrainerConfig;
-use crate::trainer::corpus::{Corpus, Example};
+pub use crate::trainer::config::TrainerConfig;
+use crate::trainer::corpus::Example;
+pub use crate::trainer::corpus::Corpus;
 use crate::trainer::feature_extractor::FeatureExtractor;
 use crate::trainer::feature_rewriter::FeatureRewriter;
 
@@ -92,6 +93,9 @@ impl Trainer {
             provider.add_feature_set(feature_set);
         }
 
+        // virtual feature set
+        provider.add_feature_set(FeatureSet::new(&[], &[], &[]));
+
         Self {
             dict: config.dict,
             max_grouping_len: None,
@@ -127,7 +131,7 @@ impl Trainer {
             {
                 *label + 1
             } else {
-                eprintln!("add virtual label: {} {}", token.surface(), token.feature());
+                eprintln!("adding virtual edge: {} {}", token.surface(), token.feature());
                 u32::try_from(self.dict.system_lexicon().len() + self.dict.unk_handler().len() + 1)
                     .unwrap()
             };
@@ -153,12 +157,17 @@ impl Trainer {
             let suffix = &input_chars[usize::from(start_word)..];
 
             for m in self.dict.system_lexicon().common_prefix_iterator(suffix) {
+                has_matched = true;
                 let label_id = NonZeroU32::new(m.word_idx.word_id + 1).unwrap();
                 let pos = usize::from(start_word);
                 let target = pos + usize::from(m.end_char);
                 let edge = Edge::new(target, label_id);
+                if let Some(first_edge) = lattice.nodes()[pos].edges().first() {
+                    if edge == first_edge {
+                        continue;
+                    }
+                }
                 lattice.add_edge(pos, edge).unwrap();
-                has_matched = true;
             }
 
             self.dict.unk_handler().gen_unk_words(
@@ -170,7 +179,7 @@ impl Trainer {
                     let id_offset = u32::try_from(self.dict.system_lexicon().len()).unwrap();
                     let label_id = NonZeroU32::new(id_offset + w.word_idx().word_id + 1).unwrap();
                     let pos = usize::from(start_word);
-                    let target = pos + usize::from(w.end_char());
+                    let target = usize::from(w.end_char());
                     let edge = Edge::new(target, label_id);
                     lattice.add_edge(pos, edge).unwrap();
                 },

@@ -147,7 +147,7 @@ impl TrainerConfig {
         let (unigram_rewriter, left_rewriter, right_rewriter) =
             Self::parse_rewrite_config(rewrite_rules_rdr)?;
 
-        let dummy_conn = b"0 0\n".as_slice();
+        let dummy_conn = b"1 1\n0 0 0".as_slice();
         let dict =
             Dictionary::from_readers(lexicon_rdr, dummy_conn, char_prop_rdr, unk_handler_rdr)?;
 
