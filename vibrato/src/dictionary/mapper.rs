@@ -60,12 +60,9 @@ impl ConnIdCounter {
         let lid_count = &self.lid_count;
         let rid_count = &self.rid_count;
 
-        let num_left = lid_count.len();
-        let num_right = rid_count.len();
-
         // Compute Left-id probs
         let lid_sum = lid_count.iter().sum::<usize>() as f64;
-        let lid_probs: Vec<_> = lid_count
+        let mut lid_probs: Vec<_> = lid_count
             .iter()
             .enumerate()
             .map(|(lid, &cnt)| (lid, cnt as f64 / lid_sum))
@@ -73,7 +70,7 @@ impl ConnIdCounter {
 
         // Compute Right-id probs
         let rid_sum = rid_count.iter().sum::<usize>() as f64;
-        let rid_probs: Vec<_> = rid_count
+        let mut rid_probs: Vec<_> = rid_count
             .iter()
             .enumerate()
             .map(|(rid, &cnt)| (rid, cnt as f64 / rid_sum))
