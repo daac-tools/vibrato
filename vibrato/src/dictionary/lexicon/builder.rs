@@ -20,7 +20,11 @@ impl Lexicon {
 
         let map = WordMap::new(entries.iter().map(|e| &e.surface))?;
         let params = WordParams::new(entries.iter().map(|e| e.param));
-        let features = WordFeatures::new(entries.iter().map(|e| &e.feature));
+        let features = WordFeatures::new(
+            entries
+                .iter()
+                .map(|e| (e.feature, e.surface.chars().next().unwrap())),
+        );
 
         Ok(Self {
             map,

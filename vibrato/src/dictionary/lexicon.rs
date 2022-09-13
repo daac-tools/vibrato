@@ -77,6 +77,18 @@ impl Lexicon {
         self.features.get(usize::from_u32(word_idx.word_id))
     }
 
+    #[inline(always)]
+    pub fn word_firstchar(&self, word_idx: WordIdx) -> char {
+        debug_assert_eq!(word_idx.lex_type, self.lex_type);
+        self.features
+            .get_firstchar(usize::from_u32(word_idx.word_id))
+    }
+
+    #[inline(always)]
+    pub fn len(&self) -> usize {
+        self.features.len()
+    }
+
     /// Checks if left/right-ids are valid with connector.
     pub fn verify(&self, conn: &Connector) -> bool {
         for i in 0..self.params.len() {

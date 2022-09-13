@@ -1,6 +1,6 @@
 use std::io::{BufRead, BufReader, Read};
 
-use crate::dictionary::character::CharProperty;
+use crate::dictionary::Dictionary;
 use crate::errors::{Result, VibratoError};
 use crate::trainer::feature_extractor::FeatureExtractor;
 use crate::trainer::feature_rewriter::{FeatureRewriter, FeatureRewriterBuilder};
@@ -8,11 +8,11 @@ use crate::trainer::feature_rewriter::{FeatureRewriter, FeatureRewriterBuilder};
 /// Configuration for a trainer.
 #[allow(unused)]
 pub struct TrainerConfig {
-    feature_extractor: FeatureExtractor,
-    unigram_rewriter: FeatureRewriter,
-    left_rewriter: FeatureRewriter,
-    right_rewriter: FeatureRewriter,
-    char_property: CharProperty,
+    pub feature_extractor: FeatureExtractor,
+    pub unigram_rewriter: FeatureRewriter,
+    pub left_rewriter: FeatureRewriter,
+    pub right_rewriter: FeatureRewriter,
+    pub dict: Dictionary,
 }
 
 impl TrainerConfig {
@@ -128,28 +128,35 @@ impl TrainerConfig {
     ///
     /// [`VibratoError`] is returned when an input format is invalid.
     #[allow(unused)]
-    pub fn from_readers<F, R, C>(
+    pub fn from_readers<L, C, U, F, R>(
+        lexicon_rdr: L,
+        char_prop_rdr: C,
+        unk_handler_rdr: U,
         feature_templates_rdr: F,
         rewrite_rules_rdr: R,
-        char_prop_rdr: C,
     ) -> Result<Self>
     where
+        L: Read,
+        C: Read,
+        U: Read,
         F: Read,
         R: Read,
-        C: Read,
     {
         // TODO(vbkaisetsu): This function also needs to support loading `dicrc`.
         let feature_extractor = Self::parse_feature_config(feature_templates_rdr)?;
         let (unigram_rewriter, left_rewriter, right_rewriter) =
             Self::parse_rewrite_config(rewrite_rules_rdr)?;
-        let char_property = CharProperty::from_reader(char_prop_rdr)?;
+
+        let dummy_conn = b"0 0\n".as_slice();
+        let dict =
+            Dictionary::from_readers(lexicon_rdr, dummy_conn, char_prop_rdr, unk_handler_rdr)?;
 
         Ok(Self {
             feature_extractor,
             unigram_rewriter,
             left_rewriter,
             right_rewriter,
-            char_property,
+            dict,
         })
     }
 }
