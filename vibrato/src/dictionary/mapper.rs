@@ -36,60 +36,50 @@ pub type ConnIdProbs = Vec<(usize, f64)>;
 
 /// Counter to train mappings of connection ids.
 pub struct ConnIdCounter {
-    lid_to_rid_count: Vec<Vec<usize>>,
+    lid_count: Vec<usize>,
+    rid_count: Vec<usize>,
 }
 
 impl ConnIdCounter {
     /// Creates a new counter for the matrix of `num_left \times num_right`.
     pub fn new(num_left: usize, num_right: usize) -> Self {
         Self {
-            // The initial value 1 is for avoiding zero frequency.
-            lid_to_rid_count: vec![vec![1; num_right]; num_left],
+            lid_count: vec![0; num_left],
+            rid_count: vec![0; num_right],
         }
     }
 
     #[inline(always)]
     pub fn add(&mut self, left_id: u16, right_id: u16, num: usize) {
-        self.lid_to_rid_count[usize::from(left_id)][usize::from(right_id)] += num;
+        self.lid_count[usize::from(left_id)] += num;
+        self.rid_count[usize::from(right_id)] += num;
     }
 
     /// Computes the trained probabilities of connection ids.
     pub fn compute_probs(&self) -> (ConnIdProbs, ConnIdProbs) {
-        let lid_to_rid_count = &self.lid_to_rid_count;
+        let lid_count = &self.lid_count;
+        let rid_count = &self.rid_count;
 
-        let num_left = lid_to_rid_count.len();
-        let num_right = lid_to_rid_count[0].len();
+        let num_left = lid_count.len();
+        let num_right = rid_count.len();
 
         // Compute Left-id probs
         let mut lid_probs = Vec::with_capacity(num_left);
-        let mut lid_to_rid_probs = Vec::with_capacity(num_left);
-
-        for (lid, rid_count) in lid_to_rid_count.iter().enumerate() {
-            assert_eq!(num_right, rid_count.len());
-
-            let acc = rid_count.iter().sum::<usize>() as f64;
-            let mut probs = vec![0.0; num_right];
-            if acc != 0.0 {
-                for (rid, &cnt) in rid_count.iter().enumerate() {
-                    probs[rid] = cnt as f64 / acc;
-                }
+        {
+            let acc = lid_count.iter().sum::<usize>() as f64;
+            for (lid, &cnt) in lid_count.iter().enumerate() {
+                let cnt = cnt as f64;
+                lid_probs.push((lid, cnt / acc));
             }
-            lid_probs.push((lid, acc)); // ittan acc wo push suru
-            lid_to_rid_probs.push(probs);
-        }
-
-        let acc = lid_probs.iter().fold(0., |acc, &(_, cnt)| acc + cnt);
-        for (_, lp) in lid_probs.iter_mut() {
-            *lp /= acc;
         }
 
         // Compute Right-id probs
-        let mut rid_probs = vec![(0, 0.0); num_right];
-        for (i, (rid, rp)) in rid_probs.iter_mut().enumerate() {
-            *rid = i;
-            for lid in 0..num_left {
-                assert_eq!(lid, lid_probs[lid].0);
-                *rp += lid_probs[lid].1 * lid_to_rid_probs[lid][*rid];
+        let mut rid_probs = Vec::with_capacity(num_right);
+        {
+            let acc = rid_count.iter().sum::<usize>() as f64;
+            for (rid, &cnt) in rid_count.iter().enumerate() {
+                let cnt = cnt as f64;
+                rid_probs.push((rid, cnt / acc));
             }
         }
 
