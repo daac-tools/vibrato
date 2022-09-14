@@ -3,24 +3,27 @@ mod corpus;
 mod feature_extractor;
 mod feature_rewriter;
 
+use std::io::Write;
 use std::num::NonZeroU32;
 
 use hashbrown::HashMap;
 use rucrf::{Edge, FeatureProvider, FeatureSet, Lattice};
 
-use crate::errors::Result;
 use crate::dictionary::LexType;
 use crate::dictionary::{word_idx::WordIdx, Dictionary};
+use crate::errors::Result;
 pub use crate::trainer::config::TrainerConfig;
-use crate::trainer::corpus::Example;
 pub use crate::trainer::corpus::Corpus;
+use crate::trainer::corpus::Example;
 use crate::trainer::feature_extractor::FeatureExtractor;
 use crate::trainer::feature_rewriter::FeatureRewriter;
+use crate::utils::FromU32;
 
 use crate::common::MAX_SENTENCE_LENGTH;
 
 pub struct Trainer {
     dict: Dictionary,
+    surfaces: Vec<String>,
     max_grouping_len: Option<u16>,
     provider: FeatureProvider,
     label_id_map: HashMap<String, HashMap<char, u32>>,
@@ -57,10 +60,13 @@ impl Trainer {
     pub fn new(mut config: TrainerConfig) -> Self {
         let mut provider = FeatureProvider::default();
         let mut label_id_map = HashMap::new();
-        for word_id in 0..u32::try_from(config.dict.system_lexicon().len()).unwrap() {
+        for word_id in 0..u32::try_from(config.surfaces.len()).unwrap() {
             let word_idx = WordIdx::new(LexType::System, word_id);
             let feature_str = config.dict.system_lexicon().word_feature(word_idx);
-            let first_char = config.dict.system_lexicon().word_firstchar(word_idx);
+            let first_char = config.surfaces[usize::from_u32(word_id)]
+                .chars()
+                .next()
+                .unwrap();
             let cate_id = config.dict.char_prop().char_info(first_char).base_id();
             let feature_set = Self::extract_feature_set(
                 &mut config.feature_extractor,
@@ -98,6 +104,7 @@ impl Trainer {
 
         Self {
             dict: config.dict,
+            surfaces: config.surfaces,
             max_grouping_len: None,
             provider,
             label_id_map,
@@ -131,9 +138,12 @@ impl Trainer {
             {
                 *label + 1
             } else {
-                eprintln!("adding virtual edge: {} {}", token.surface(), token.feature());
-                u32::try_from(self.dict.system_lexicon().len() + self.dict.unk_handler().len() + 1)
-                    .unwrap()
+                eprintln!(
+                    "adding virtual edge: {} {}",
+                    token.surface(),
+                    token.feature()
+                );
+                u32::try_from(self.surfaces.len() + self.dict.unk_handler().len() + 1).unwrap()
             };
             edges.push((
                 pos,
@@ -163,7 +173,7 @@ impl Trainer {
                 let target = pos + usize::from(m.end_char);
                 let edge = Edge::new(target, label_id);
                 if let Some(first_edge) = lattice.nodes()[pos].edges().first() {
-                    if edge == first_edge {
+                    if edge == *first_edge {
                         continue;
                     }
                 }
@@ -176,7 +186,7 @@ impl Trainer {
                 has_matched,
                 self.max_grouping_len,
                 |w| {
-                    let id_offset = u32::try_from(self.dict.system_lexicon().len()).unwrap();
+                    let id_offset = u32::try_from(self.surfaces.len()).unwrap();
                     let label_id = NonZeroU32::new(id_offset + w.word_idx().word_id + 1).unwrap();
                     let pos = usize::from(start_word);
                     let target = usize::from(w.end_char());
@@ -196,8 +206,93 @@ impl Trainer {
             lattices.push(self.build_lattice(example));
         }
 
-        let trainer = rucrf::Trainer::new();
+        let trainer = rucrf::Trainer::new()
+            .regularization(rucrf::Regularization::L1, 0.01)
+            .unwrap()
+            .max_iter(300)
+            .unwrap()
+            .n_threads(20)
+            .unwrap();
         let model = trainer.train(&lattices, self.provider);
+
+        let compiled_model = model.compile();
+
+        let mut lex_file = std::io::BufWriter::new(std::fs::File::create("lex.csv")?);
+        let mut unk_file = std::io::BufWriter::new(std::fs::File::create("unk.def")?);
+        let mut matrix_file = std::io::BufWriter::new(std::fs::File::create("matrix.def")?);
+
+        let mut output = [0; 4096];
+        let mut writer = csv_core::Writer::new();
+
+        for i in 0..self.surfaces.len() {
+            let mut surface = self.surfaces[i].as_bytes();
+            let feature_set = compiled_model.feature_sets[i];
+            let word_idx = WordIdx::new(LexType::System, u32::try_from(i).unwrap());
+            let feature = self.dict.system_lexicon().word_feature(word_idx);
+
+            // writes surface
+            loop {
+                let (result, nin, nout) = writer.field(surface, &mut output);
+                lex_file.write_all(&output[..nout])?;
+                if result == csv_core::WriteResult::InputEmpty {
+                    break;
+                }
+                surface = &surface[nin..];
+            }
+            let (result, nout) = writer.finish(&mut output);
+            assert_eq!(result, csv_core::WriteResult::OutputFull);
+            lex_file.write_all(&output[..nout])?;
+
+            // writes others
+            lex_file.write_all(
+                format!(
+                    ",{},{},{},{}\n",
+                    feature_set.left_id,
+                    feature_set.right_id,
+                    (feature_set.weight * 700.) as i32,
+                    feature
+                )
+                .as_bytes(),
+            )?;
+        }
+
+        for i in 0..self.dict.unk_handler().len() {
+            let word_idx = WordIdx::new(LexType::Unknown, u32::try_from(i).unwrap());
+            let cate_id = self.dict.unk_handler().word_cate_id(word_idx);
+            let feature = self.dict.unk_handler().word_feature(word_idx);
+            let cate_string = self
+                .dict
+                .char_prop()
+                .cate_string(u32::from(cate_id))
+                .unwrap();
+            let feature_set = compiled_model.feature_sets[self.surfaces.len() + i];
+            unk_file.write_all(
+                format!(
+                    "{},{},{},{},{}\n",
+                    cate_string,
+                    feature_set.left_id,
+                    feature_set.right_id,
+                    (feature_set.weight * 700.) as i32,
+                    feature
+                )
+                .as_bytes(),
+            )?;
+        }
+
+        matrix_file.write_all(
+            format!(
+                "{} {}\n",
+                compiled_model.left_ids.len(),
+                compiled_model.right_ids.len()
+            )
+            .as_bytes(),
+        )?;
+        for (i, hm) in compiled_model.matrix.iter().enumerate() {
+            for (j, w) in hm {
+                matrix_file
+                    .write_all(format!("{} {} {}\n", i + 1, j + 1, (w * 700.) as i32).as_bytes())?;
+            }
+        }
 
         Ok(())
     }

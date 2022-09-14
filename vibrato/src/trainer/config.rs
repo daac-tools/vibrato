@@ -1,5 +1,6 @@
 use std::io::{BufRead, BufReader, Read};
 
+use crate::dictionary::lexicon::Lexicon;
 use crate::dictionary::Dictionary;
 use crate::errors::{Result, VibratoError};
 use crate::trainer::feature_extractor::FeatureExtractor;
@@ -13,6 +14,7 @@ pub struct TrainerConfig {
     pub left_rewriter: FeatureRewriter,
     pub right_rewriter: FeatureRewriter,
     pub dict: Dictionary,
+    pub surfaces: Vec<String>,
 }
 
 impl TrainerConfig {
@@ -129,7 +131,7 @@ impl TrainerConfig {
     /// [`VibratoError`] is returned when an input format is invalid.
     #[allow(unused)]
     pub fn from_readers<L, C, U, F, R>(
-        lexicon_rdr: L,
+        mut lexicon_rdr: L,
         char_prop_rdr: C,
         unk_handler_rdr: U,
         feature_templates_rdr: F,
@@ -147,9 +149,20 @@ impl TrainerConfig {
         let (unigram_rewriter, left_rewriter, right_rewriter) =
             Self::parse_rewrite_config(rewrite_rules_rdr)?;
 
+        let mut lexicon_data = vec![];
+        lexicon_rdr.read_to_end(&mut lexicon_data)?;
+
         let dummy_conn = b"1 1\n0 0 0".as_slice();
-        let dict =
-            Dictionary::from_readers(lexicon_rdr, dummy_conn, char_prop_rdr, unk_handler_rdr)?;
+        let dict = Dictionary::from_readers(
+            lexicon_data.as_slice(),
+            dummy_conn,
+            char_prop_rdr,
+            unk_handler_rdr,
+        )?;
+        let surfaces = Lexicon::parse_csv(&lexicon_data, "lex.csv")?
+            .into_iter()
+            .map(|e| e.surface)
+            .collect();
 
         Ok(Self {
             feature_extractor,
@@ -157,6 +170,7 @@ impl TrainerConfig {
             left_rewriter,
             right_rewriter,
             dict,
+            surfaces,
         })
     }
 }

@@ -117,6 +117,13 @@ impl CharProperty {
     }
 
     #[inline(always)]
+    pub fn cate_string(&self, cate_id: u32) -> Option<&str> {
+        self.categories
+            .get(usize::from_u32(cate_id))
+            .map(|c| c.as_str())
+    }
+
+    #[inline(always)]
     pub fn num_categories(&self) -> usize {
         self.categories.len()
     }
