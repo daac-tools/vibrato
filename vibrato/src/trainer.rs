@@ -288,9 +288,11 @@ impl Trainer {
             .as_bytes(),
         )?;
         for (i, hm) in compiled_model.matrix.iter().enumerate() {
-            for (j, w) in hm {
+            let mut pairs: Vec<_> = hm.iter().map(|(&j, &w)| (j, w)).collect();
+            pairs.sort_unstable_by_key(|&(k, _)| k);
+            for (j, w) in pairs {
                 matrix_file
-                    .write_all(format!("{} {} {}\n", i + 1, j + 1, (w * 700.) as i32).as_bytes())?;
+                    .write_all(format!("{} {} {}\n", i, j, (w * 700.) as i32).as_bytes())?;
             }
         }
 
