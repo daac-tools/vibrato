@@ -348,7 +348,7 @@ impl Trainer {
             .unwrap();
         let model = trainer.train(&lattices, self.provider);
 
-        let compiled_model = model.compile();
+        let merged_model = model.merge();
 
         let mut lexicon_wtr = BufWriter::new(lexicon_wtr);
         let mut unk_handler_wtr = BufWriter::new(unk_handler_wtr);
@@ -358,10 +358,10 @@ impl Trainer {
 
         // scales weights to represent them in i16.
         let mut weight_abs_max = 0f64;
-        for feature_set in &compiled_model.feature_sets {
+        for feature_set in &merged_model.feature_sets {
             weight_abs_max = weight_abs_max.max(feature_set.weight.abs());
         }
-        for hm in &compiled_model.matrix {
+        for hm in &merged_model.matrix {
             for &w in hm.values() {
                 weight_abs_max = weight_abs_max.max(w);
             }
@@ -371,7 +371,7 @@ impl Trainer {
         for i in 0..self.surfaces.len() {
             let mut writer = csv_core::Writer::new();
             let mut surface = self.surfaces[i].as_bytes();
-            let feature_set = compiled_model.feature_sets[i];
+            let feature_set = merged_model.feature_sets[i];
             let word_idx = WordIdx::new(LexType::System, u32::try_from(i).unwrap());
             let feature = self.dict.system_lexicon().word_feature(word_idx);
 
@@ -408,7 +408,7 @@ impl Trainer {
                 .char_prop()
                 .cate_string(u32::from(cate_id))
                 .unwrap();
-            let feature_set = compiled_model.feature_sets[self.surfaces.len() + i];
+            let feature_set = merged_model.feature_sets[self.surfaces.len() + i];
             writeln!(
                 &mut unk_handler_wtr,
                 "{},{},{},{},{}",
@@ -423,10 +423,10 @@ impl Trainer {
         writeln!(
             &mut connector_wtr,
             "{} {}",
-            compiled_model.left_ids.len(),
-            compiled_model.right_ids.len(),
+            merged_model.left_ids.len(),
+            merged_model.right_ids.len(),
         )?;
-        for (i, hm) in compiled_model.matrix.iter().enumerate() {
+        for (i, hm) in merged_model.matrix.iter().enumerate() {
             let mut pairs: Vec<_> = hm.iter().map(|(&j, &w)| (j, w)).collect();
             pairs.sort_unstable_by_key(|&(k, _)| k);
             for (j, w) in pairs {
