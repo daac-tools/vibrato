@@ -1,4 +1,46 @@
 //! Module for training models.
+//!
+//! # Examples
+//!
+//! ```no_run
+//! use std::fs::File;
+//! use vibrato::trainer::{Corpus, Trainer, TrainerConfig};
+//!
+//! // Loads configurations
+//! let lexicon_rdr = File::open("lex_seed.csv").unwrap();
+//! let char_prop_rdr = File::open("char.def").unwrap();
+//! let unk_handler_rdr = File::open("unk_seed.def").unwrap();
+//! let feature_templates_rdr = File::open("feature.def").unwrap();
+//! let rewrite_rules_rdr = File::open("rewrite.def").unwrap();
+//! let config = TrainerConfig::from_readers(
+//!     lexicon_rdr,
+//!     char_prop_rdr,
+//!     unk_handler_rdr,
+//!     feature_templates_rdr,
+//!     rewrite_rules_rdr,
+//! )
+//! .unwrap();
+//!
+//! // Initializes trainer
+//! let trainer = Trainer::new(config)
+//!     .regularization_cost(0.01)
+//!     .max_iter(300)
+//!     .num_threads(20);
+//!
+//! // Loads corpus
+//! let corpus_rdr = File::open("train.txt").unwrap();
+//! let corpus = Corpus::from_reader(corpus_rdr).unwrap();
+//!
+//! // Files to store results
+//! let lexicon_wtr = File::create("lex.csv").unwrap();
+//! let connector_wtr = File::create("matrix.def").unwrap();
+//! let unk_handler_wtr = File::create("unk.def").unwrap();
+//!
+//! // Starts training
+//! trainer
+//!     .train(corpus, lexicon_wtr, connector_wtr, unk_handler_wtr)
+//!     .unwrap();
+//! ```
 
 mod config;
 mod corpus;
@@ -29,6 +71,9 @@ pub struct Trainer {
     max_grouping_len: Option<u16>,
     provider: FeatureProvider,
     label_id_map: HashMap<String, HashMap<char, u32>>,
+    regularization_cost: f64,
+    max_iter: u64,
+    num_threads: usize,
 }
 
 impl Trainer {
@@ -115,7 +160,50 @@ impl Trainer {
             max_grouping_len: None,
             provider,
             label_id_map,
+            regularization_cost: 0.01,
+            max_iter: 100,
+            num_threads: 1,
         }
+    }
+
+    /// Changes the cost of L1-regularization.
+    ///
+    /// The greater this value, the stronger the regularization.
+    /// Default to 0.01.
+    ///
+    /// # Panics
+    ///
+    /// The value must be greater or equal to 0.
+    pub fn regularization_cost(mut self, cost: f64) -> Self {
+        assert!(cost >= 0.0);
+        self.regularization_cost = cost;
+        self
+    }
+
+    /// Changes the maximum number of iterations.
+    ///
+    /// Default to 100.
+    ///
+    /// # Panics
+    ///
+    /// The value must be positive.
+    pub fn max_iter(mut self, n: u64) -> Self {
+        assert!(n >= 1);
+        self.max_iter = n;
+        self
+    }
+
+    /// Enables multi-threading.
+    ///
+    /// Default to 1.
+    ///
+    /// # Panics
+    ///
+    /// The value must be positive.
+    pub fn num_threads(mut self, n: usize) -> Self {
+        assert!(n >= 1);
+        self.num_threads = n;
+        self
     }
 
     /// Specifies the maximum grouping length for unknown words.
@@ -148,20 +236,22 @@ impl Trainer {
         for token in tokens {
             let len = token.surface().chars().count();
             let first_char = input_chars[pos];
-            let label_id = if let Some(label) = self
+            let label_id = self
                 .label_id_map
                 .get(token.feature())
                 .and_then(|hm| hm.get(&first_char))
-            {
-                *label + 1
-            } else {
-                eprintln!(
-                    "adding virtual edge: {} {}",
-                    token.surface(),
-                    token.feature()
+                .map_or_else(
+                    || {
+                        eprintln!(
+                            "adding virtual edge: {} {}",
+                            token.surface(),
+                            token.feature()
+                        );
+                        u32::try_from(self.surfaces.len() + self.dict.unk_handler().len() + 1)
+                            .unwrap()
+                    },
+                    |label| *label + 1,
                 );
-                u32::try_from(self.surfaces.len() + self.dict.unk_handler().len() + 1).unwrap()
-            };
             edges.push((
                 pos,
                 Edge::new(pos + len, NonZeroU32::new(label_id).unwrap()),
@@ -227,7 +317,7 @@ impl Trainer {
     ///
     /// # Errors
     ///
-    /// [`VibratoError`] is returned when
+    /// [`VibratoError`](crate::errors::VibratoError) is returned when
     ///
     ///  - the compilation of the corpus fails, or
     ///  - writing results fails.
@@ -250,11 +340,11 @@ impl Trainer {
         }
 
         let trainer = rucrf::Trainer::new()
-            .regularization(rucrf::Regularization::L1, 0.01)
+            .regularization(rucrf::Regularization::L1, self.regularization_cost)
             .unwrap()
-            .max_iter(300)
+            .max_iter(self.max_iter)
             .unwrap()
-            .n_threads(20)
+            .n_threads(self.num_threads)
             .unwrap();
         let model = trainer.train(&lattices, self.provider);
 
@@ -277,7 +367,6 @@ impl Trainer {
             }
         }
         let weight_scale_factor = f64::from(i16::MAX) / weight_abs_max;
-
 
         for i in 0..self.surfaces.len() {
             let mut writer = csv_core::Writer::new();
@@ -341,7 +430,13 @@ impl Trainer {
             let mut pairs: Vec<_> = hm.iter().map(|(&j, &w)| (j, w)).collect();
             pairs.sort_unstable_by_key(|&(k, _)| k);
             for (j, w) in pairs {
-                writeln!(&mut connector_wtr, "{} {} {}", i, j, (-w * weight_scale_factor) as i16)?;
+                writeln!(
+                    &mut connector_wtr,
+                    "{} {} {}",
+                    i,
+                    j,
+                    (-w * weight_scale_factor) as i16
+                )?;
             }
         }
 
