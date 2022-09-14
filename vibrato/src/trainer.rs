@@ -2,24 +2,25 @@
 //!
 //! # Examples
 //!
-//! ```no_run
+//! ```
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use std::fs::File;
 //! use vibrato::trainer::{Corpus, Trainer, TrainerConfig};
+//! use vibrato::{Dictionary, Tokenizer};
 //!
 //! // Loads configurations
-//! let lexicon_rdr = File::open("lex_seed.csv").unwrap();
-//! let char_prop_rdr = File::open("char.def").unwrap();
-//! let unk_handler_rdr = File::open("unk_seed.def").unwrap();
-//! let feature_templates_rdr = File::open("feature.def").unwrap();
-//! let rewrite_rules_rdr = File::open("rewrite.def").unwrap();
+//! let lexicon_rdr = File::open("src/tests/resources/train_lex.csv")?;
+//! let char_prop_rdr = File::open("src/tests/resources/char.def")?;
+//! let unk_handler_rdr = File::open("src/tests/resources/train_unk.def")?;
+//! let feature_templates_rdr = File::open("src/tests/resources/feature.def")?;
+//! let rewrite_rules_rdr = File::open("src/tests/resources/rewrite.def")?;
 //! let config = TrainerConfig::from_readers(
 //!     lexicon_rdr,
 //!     char_prop_rdr,
 //!     unk_handler_rdr,
 //!     feature_templates_rdr,
 //!     rewrite_rules_rdr,
-//! )
-//! .unwrap();
+//! )?;
 //!
 //! // Initializes trainer
 //! let trainer = Trainer::new(config)
@@ -28,18 +29,40 @@
 //!     .num_threads(20);
 //!
 //! // Loads corpus
-//! let corpus_rdr = File::open("train.txt").unwrap();
-//! let corpus = Corpus::from_reader(corpus_rdr).unwrap();
+//! let corpus_rdr = File::open("src/tests/resources/corpus.txt")?;
+//! let corpus = Corpus::from_reader(corpus_rdr)?;
 //!
 //! // Files to store results
-//! let lexicon_wtr = File::create("lex.csv").unwrap();
-//! let connector_wtr = File::create("matrix.def").unwrap();
-//! let unk_handler_wtr = File::create("unk.def").unwrap();
+//! let mut trained_lex_path = std::env::temp_dir();
+//! let mut trained_matrix_path = std::env::temp_dir();
+//! let mut trained_unk_path = std::env::temp_dir();
+//! trained_lex_path.push("trained_lex.csv");
+//! trained_matrix_path.push("trained_matrix.def");
+//! trained_unk_path.push("trained_unk.def");
+//!
+//! let lexicon_wtr = File::create(&trained_lex_path)?;
+//! let connector_wtr = File::create(&trained_matrix_path)?;
+//! let unk_handler_wtr = File::create(&trained_unk_path)?;
 //!
 //! // Starts training
-//! trainer
-//!     .train(corpus, lexicon_wtr, connector_wtr, unk_handler_wtr)
-//!     .unwrap();
+//! trainer.train(corpus, lexicon_wtr, connector_wtr, unk_handler_wtr)?;
+//!
+//! // Loads trained model
+//! let lexicon_rdr = File::open(&trained_lex_path)?;
+//! let connector_rdr = File::open(&trained_matrix_path)?;
+//! let char_prop_rdr = File::open("src/tests/resources/char.def")?;
+//! let unk_handler_rdr = File::open(&trained_unk_path)?;
+//! let dict =
+//!     Dictionary::from_readers(lexicon_rdr, connector_rdr, char_prop_rdr, unk_handler_rdr)?;
+//!
+//! let tokenizer = Tokenizer::new(dict);
+//! let mut worker = tokenizer.new_worker();
+//!
+//! worker.reset_sentence("外国人参政権")?;
+//! worker.tokenize();
+//! assert_eq!(worker.num_tokens(), 4); // 外国/人/参政/権
+//! # Ok(())
+//! # }
 //! ```
 
 mod config;
