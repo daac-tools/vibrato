@@ -265,6 +265,7 @@ impl Trainer {
                 .and_then(|hm| hm.get(&first_char))
                 .map_or_else(
                     || {
+                        // FIXME(vbkaisetsu): If an unknown word edge is available, add it instead.
                         eprintln!(
                             "adding virtual edge: {} {}",
                             token.surface(),
