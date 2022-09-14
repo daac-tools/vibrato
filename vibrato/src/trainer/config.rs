@@ -9,12 +9,12 @@ use crate::trainer::feature_rewriter::{FeatureRewriter, FeatureRewriterBuilder};
 /// Configuration for a trainer.
 #[allow(unused)]
 pub struct TrainerConfig {
-    pub feature_extractor: FeatureExtractor,
-    pub unigram_rewriter: FeatureRewriter,
-    pub left_rewriter: FeatureRewriter,
-    pub right_rewriter: FeatureRewriter,
-    pub dict: Dictionary,
-    pub surfaces: Vec<String>,
+    pub(crate) feature_extractor: FeatureExtractor,
+    pub(crate) unigram_rewriter: FeatureRewriter,
+    pub(crate) left_rewriter: FeatureRewriter,
+    pub(crate) right_rewriter: FeatureRewriter,
+    pub(crate) dict: Dictionary,
+    pub(crate) surfaces: Vec<String>,
 }
 
 impl TrainerConfig {

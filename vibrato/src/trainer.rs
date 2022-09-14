@@ -1,16 +1,17 @@
+//! Module for training models.
+
 mod config;
 mod corpus;
 mod feature_extractor;
 mod feature_rewriter;
 
-use std::io::Write;
+use std::io::{BufWriter, Write};
 use std::num::NonZeroU32;
 
 use hashbrown::HashMap;
 use rucrf::{Edge, FeatureProvider, FeatureSet, Lattice};
 
-use crate::dictionary::LexType;
-use crate::dictionary::{word_idx::WordIdx, Dictionary};
+use crate::dictionary::{word_idx::WordIdx, Dictionary, LexType};
 use crate::errors::Result;
 pub use crate::trainer::config::TrainerConfig;
 pub use crate::trainer::corpus::Corpus;
@@ -21,6 +22,7 @@ use crate::utils::FromU32;
 
 use crate::common::MAX_SENTENCE_LENGTH;
 
+/// Trainer of morphological analyzer.
 pub struct Trainer {
     dict: Dictionary,
     surfaces: Vec<String>,
@@ -57,6 +59,11 @@ impl Trainer {
         FeatureSet::new(&unigram_features, &left_features, &right_features)
     }
 
+    /// Creates a new [`Trainer`] using the specified configuration.
+    ///
+    /// # Arguments
+    ///
+    ///  * `config` - Training configuration.
     pub fn new(mut config: TrainerConfig) -> Self {
         let mut provider = FeatureProvider::default();
         let mut label_id_map = HashMap::new();
@@ -111,6 +118,16 @@ impl Trainer {
         }
     }
 
+    /// Specifies the maximum grouping length for unknown words.
+    /// By default, the length is infinity.
+    ///
+    /// This option is for compatibility with MeCab.
+    /// Specifies the argument with `24` if you want to obtain the same results as MeCab.
+    ///
+    /// # Arguments
+    ///
+    ///  * `max_grouping_len` - The maximum grouping length for unknown words.
+    ///                         The default value is 0, indicating the infinity length.
     pub fn max_grouping_len(mut self, max_grouping_len: usize) -> Self {
         if max_grouping_len != 0 && max_grouping_len <= usize::from(MAX_SENTENCE_LENGTH) {
             self.max_grouping_len = Some(max_grouping_len as u16);
@@ -199,7 +216,33 @@ impl Trainer {
         lattice
     }
 
-    pub fn train(self, mut corpus: Corpus) -> Result<()> {
+    /// Starts training and outputs results.
+    ///
+    /// # Arguments
+    ///
+    /// * `corpus` - Corpus used for training.
+    /// * `lexicon_wtr` - Write sink targetting to `lex.csv`.
+    /// * `connector_wtr` - Write sink targetting to `matrix.def`.
+    /// * `unk_handler_wtr` - Write sink targetting to `unk.def`.
+    ///
+    /// # Errors
+    ///
+    /// [`VibratoError`] is returned when
+    ///
+    ///  - the compilation of the corpus fails, or
+    ///  - writing results fails.
+    pub fn train<L, C, U>(
+        self,
+        mut corpus: Corpus,
+        lexicon_wtr: L,
+        connector_wtr: C,
+        unk_handler_wtr: U,
+    ) -> Result<()>
+    where
+        L: Write,
+        C: Write,
+        U: Write,
+    {
         let mut lattices = vec![];
         for example in &mut corpus.examples {
             example.sentence.compile(self.dict.char_prop())?;
@@ -217,14 +260,27 @@ impl Trainer {
 
         let compiled_model = model.compile();
 
-        let mut lex_file = std::io::BufWriter::new(std::fs::File::create("lex.csv")?);
-        let mut unk_file = std::io::BufWriter::new(std::fs::File::create("unk.def")?);
-        let mut matrix_file = std::io::BufWriter::new(std::fs::File::create("matrix.def")?);
+        let mut lexicon_wtr = BufWriter::new(lexicon_wtr);
+        let mut unk_handler_wtr = BufWriter::new(unk_handler_wtr);
+        let mut connector_wtr = BufWriter::new(connector_wtr);
 
         let mut output = [0; 4096];
-        let mut writer = csv_core::Writer::new();
+
+        // scales weights to represent them in i16.
+        let mut weight_abs_max = 0f64;
+        for feature_set in &compiled_model.feature_sets {
+            weight_abs_max = weight_abs_max.max(feature_set.weight.abs());
+        }
+        for hm in &compiled_model.matrix {
+            for &w in hm.values() {
+                weight_abs_max = weight_abs_max.max(w);
+            }
+        }
+        let weight_scale_factor = f64::from(i16::MAX) / weight_abs_max;
+
 
         for i in 0..self.surfaces.len() {
+            let mut writer = csv_core::Writer::new();
             let mut surface = self.surfaces[i].as_bytes();
             let feature_set = compiled_model.feature_sets[i];
             let word_idx = WordIdx::new(LexType::System, u32::try_from(i).unwrap());
@@ -233,7 +289,7 @@ impl Trainer {
             // writes surface
             loop {
                 let (result, nin, nout) = writer.field(surface, &mut output);
-                lex_file.write_all(&output[..nout])?;
+                lexicon_wtr.write_all(&output[..nout])?;
                 if result == csv_core::WriteResult::InputEmpty {
                     break;
                 }
@@ -241,18 +297,16 @@ impl Trainer {
             }
             let (result, nout) = writer.finish(&mut output);
             assert_eq!(result, csv_core::WriteResult::InputEmpty);
-            lex_file.write_all(&output[..nout])?;
+            lexicon_wtr.write_all(&output[..nout])?;
 
             // writes others
-            lex_file.write_all(
-                format!(
-                    ",{},{},{},{}\n",
-                    feature_set.left_id,
-                    feature_set.right_id,
-                    (feature_set.weight * 700.) as i32,
-                    feature
-                )
-                .as_bytes(),
+            writeln!(
+                &mut lexicon_wtr,
+                ",{},{},{},{}",
+                feature_set.right_id,
+                feature_set.left_id,
+                (-feature_set.weight * weight_scale_factor) as i16,
+                feature,
             )?;
         }
 
@@ -266,33 +320,28 @@ impl Trainer {
                 .cate_string(u32::from(cate_id))
                 .unwrap();
             let feature_set = compiled_model.feature_sets[self.surfaces.len() + i];
-            unk_file.write_all(
-                format!(
-                    "{},{},{},{},{}\n",
-                    cate_string,
-                    feature_set.left_id,
-                    feature_set.right_id,
-                    (feature_set.weight * 700.) as i32,
-                    feature
-                )
-                .as_bytes(),
+            writeln!(
+                &mut unk_handler_wtr,
+                "{},{},{},{},{}",
+                cate_string,
+                feature_set.right_id,
+                feature_set.left_id,
+                (-feature_set.weight * weight_scale_factor) as i16,
+                feature,
             )?;
         }
 
-        matrix_file.write_all(
-            format!(
-                "{} {}\n",
-                compiled_model.left_ids.len(),
-                compiled_model.right_ids.len()
-            )
-            .as_bytes(),
+        writeln!(
+            &mut connector_wtr,
+            "{} {}",
+            compiled_model.left_ids.len(),
+            compiled_model.right_ids.len(),
         )?;
         for (i, hm) in compiled_model.matrix.iter().enumerate() {
             let mut pairs: Vec<_> = hm.iter().map(|(&j, &w)| (j, w)).collect();
             pairs.sort_unstable_by_key(|&(k, _)| k);
             for (j, w) in pairs {
-                matrix_file
-                    .write_all(format!("{} {} {}\n", i, j, (w * 700.) as i32).as_bytes())?;
+                writeln!(&mut connector_wtr, "{} {} {}", i, j, (-w * weight_scale_factor) as i16)?;
             }
         }
 
