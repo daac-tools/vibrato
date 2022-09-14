@@ -240,7 +240,7 @@ impl Trainer {
                 surface = &surface[nin..];
             }
             let (result, nout) = writer.finish(&mut output);
-            assert_eq!(result, csv_core::WriteResult::OutputFull);
+            assert_eq!(result, csv_core::WriteResult::InputEmpty);
             lex_file.write_all(&output[..nout])?;
 
             // writes others
