@@ -2,11 +2,9 @@ use std::io::{BufRead, BufReader, Read};
 
 use csv_core::ReadFieldResult;
 
-use crate::dictionary::lexicon::Lexicon;
 use crate::errors::{Result, VibratoError};
 use crate::sentence::Sentence;
 
-#[allow(unused)]
 pub fn parse_csv_row(row: &str) -> Vec<String> {
     let mut features = vec![];
     let mut rdr = csv_core::Reader::new();
@@ -29,7 +27,6 @@ pub fn parse_csv_row(row: &str) -> Vec<String> {
 }
 
 /// Representation of a pair of a surface and features.
-#[allow(unused)]
 pub struct Word {
     surface: String,
 
@@ -40,27 +37,23 @@ pub struct Word {
 
 impl Word {
     /// Returns a surface string.
-    #[allow(unused)]
     pub fn surface(&self) -> &str {
         &self.surface
     }
 
     /// Returns a concatenated feature string.
-    #[allow(unused)]
     pub fn feature(&self) -> &str {
         &self.feature
     }
 }
 
 /// Representation of a sentence.
-#[allow(unused)]
 pub struct Example {
     pub(crate) sentence: Sentence,
     pub(crate) tokens: Vec<Word>,
 }
 
 /// Representation of a corpus.
-#[allow(unused)]
 pub struct Corpus {
     pub(crate) examples: Vec<Example>,
 }
@@ -75,7 +68,6 @@ impl Corpus {
     /// # Errors
     ///
     /// [`VibratoError`] is returned when an input format is invalid.
-    #[allow(unused)]
     pub fn from_reader<R>(rdr: R) -> Result<Self>
     where
         R: Read,
@@ -117,51 +109,6 @@ impl Corpus {
         }
 
         Ok(Self { examples })
-    }
-}
-
-/// Representation of a dictionary.
-#[allow(unused)]
-pub struct Dictionary {
-    words: Vec<Word>,
-}
-
-impl Dictionary {
-    /// Loads a dictionary from the given sink.
-    ///
-    /// # Arguments
-    ///
-    /// * `rdr` - A reader of the dictionary.
-    ///
-    /// # Errors
-    ///
-    /// [`VibratoError`] is returned when an input format is invalid.
-    #[allow(unused)]
-    pub fn from_reader<R>(mut rdr: R) -> Result<Self>
-    where
-        R: Read,
-    {
-        let mut buf = vec![];
-        rdr.read_to_end(&mut buf)?;
-
-        let mut words = vec![];
-
-        let parsed = Lexicon::parse_csv(&buf, "corpus")?;
-
-        for item in parsed {
-            words.push(Word {
-                surface: item.surface,
-                feature: item.feature.to_string(),
-            });
-        }
-
-        Ok(Self { words })
-    }
-
-    /// Returns a slice of words.
-    #[allow(unused)]
-    pub fn words(&self) -> &[Word] {
-        &self.words
     }
 }
 

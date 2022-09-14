@@ -7,7 +7,6 @@ use crate::trainer::feature_extractor::FeatureExtractor;
 use crate::trainer::feature_rewriter::{FeatureRewriter, FeatureRewriterBuilder};
 
 /// Configuration for a trainer.
-#[allow(unused)]
 pub struct TrainerConfig {
     pub(crate) feature_extractor: FeatureExtractor,
     pub(crate) unigram_rewriter: FeatureRewriter,
@@ -129,7 +128,6 @@ impl TrainerConfig {
     /// # Errors
     ///
     /// [`VibratoError`] is returned when an input format is invalid.
-    #[allow(unused)]
     pub fn from_readers<L, C, U, F, R>(
         mut lexicon_rdr: L,
         char_prop_rdr: C,
