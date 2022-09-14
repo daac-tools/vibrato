@@ -1,0 +1,10 @@
+UNIGRAM T:%t
+UNIGRAM U1:%F[0]
+UNIGRAM U2:%F[0],%F[1]
+UNIGRAM U3:%F[0],%F[1],%F[2]
+UNIGRAM U4:%F[0],%F[1],%F[2],%F[3]
+
+BIGRAM U1:%L[0]/%R[0]
+BIGRAM U2:%L[0],%L[1]/%R[0],%R[1]
+BIGRAM U3:%L[0],%L[1],%L[2]/%R[0],%R[1],%R[2]
+BIGRAM U4:%L[0],%L[1],%L[2],%L[3]/%R[0],%R[1],%R[2],%R[3]
