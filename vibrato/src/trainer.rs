@@ -23,7 +23,7 @@
 //! )?;
 //!
 //! // Initializes trainer
-//! let trainer = Trainer::new(config)
+//! let trainer = Trainer::new(config)?
 //!     .regularization_cost(0.01)
 //!     .max_iter(300)
 //!     .num_threads(20);
@@ -132,7 +132,11 @@ impl Trainer {
     /// # Arguments
     ///
     ///  * `config` - Training configuration.
-    pub fn new(mut config: TrainerConfig) -> Self {
+    ///
+    /// # Errors
+    ///
+    /// [`VibratoError`] is returned when the model will become too large.
+    pub fn new(mut config: TrainerConfig) -> Result<Self> {
         let mut provider = FeatureProvider::default();
         let mut label_id_map = HashMap::new();
         for word_id in 0..u32::try_from(config.surfaces.len()).unwrap() {
@@ -151,7 +155,7 @@ impl Trainer {
                 feature_str,
                 cate_id,
             );
-            provider.add_feature_set(feature_set);
+            provider.add_feature_set(feature_set)?;
             label_id_map
                 .raw_entry_mut()
                 .from_key(feature_str)
@@ -171,13 +175,13 @@ impl Trainer {
                 feature_str,
                 cate_id,
             );
-            provider.add_feature_set(feature_set);
+            provider.add_feature_set(feature_set)?;
         }
 
         // virtual feature set
-        provider.add_feature_set(FeatureSet::new(&[], &[], &[]));
+        provider.add_feature_set(FeatureSet::new(&[], &[], &[]))?;
 
-        Self {
+        Ok(Self {
             dict: config.dict,
             surfaces: config.surfaces,
             max_grouping_len: None,
@@ -186,7 +190,7 @@ impl Trainer {
             regularization_cost: 0.01,
             max_iter: 100,
             num_threads: 1,
-        }
+        })
     }
 
     /// Changes the cost of L1-regularization.
@@ -372,7 +376,7 @@ impl Trainer {
             .unwrap();
         let model = trainer.train(&lattices, self.provider);
 
-        let merged_model = model.merge();
+        let merged_model = model.merge()?;
 
         let mut lexicon_wtr = BufWriter::new(lexicon_wtr);
         let mut unk_handler_wtr = BufWriter::new(unk_handler_wtr);
@@ -447,8 +451,8 @@ impl Trainer {
         writeln!(
             &mut connector_wtr,
             "{} {}",
-            merged_model.right_ids.len(),
-            merged_model.left_ids.len(),
+            merged_model.right_conn_to_left_feats.len(),
+            merged_model.left_conn_to_right_feats.len(),
         )?;
         for (i, hm) in merged_model.matrix.iter().enumerate() {
             let mut pairs: Vec<_> = hm.iter().map(|(&j, &w)| (j, w)).collect();

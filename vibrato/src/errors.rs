@@ -32,6 +32,9 @@ pub enum VibratoError {
 
     /// The error variant for [`std::str::Utf8Error`].
     Utf8(std::str::Utf8Error),
+
+    /// The error variant for [`RucrfError`](rucrf::errors::RucrfError).
+    Crf(rucrf::errors::RucrfError),
 }
 
 impl VibratoError {
@@ -67,6 +70,7 @@ impl fmt::Display for VibratoError {
             Self::BincodeEncode(e) => e.fmt(f),
             Self::StdIo(e) => e.fmt(f),
             Self::Utf8(e) => e.fmt(f),
+            Self::Crf(e) => e.fmt(f),
         }
     }
 }
@@ -142,5 +146,11 @@ impl From<std::io::Error> for VibratoError {
 impl From<std::str::Utf8Error> for VibratoError {
     fn from(error: std::str::Utf8Error) -> Self {
         Self::Utf8(error)
+    }
+}
+
+impl From<rucrf::errors::RucrfError> for VibratoError {
+    fn from(error: rucrf::errors::RucrfError) -> Self {
+        Self::Crf(error)
     }
 }
