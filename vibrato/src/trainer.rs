@@ -138,7 +138,7 @@ impl Trainer {
     ///
     /// # Errors
     ///
-    /// [`VibratoError`] is returned when the model will become too large.
+    /// [`VibratoError`](crate::errors::VibratoError) is returned when the model will become too large.
     pub fn new(mut config: TrainerConfig) -> Result<Self> {
         let mut provider = FeatureProvider::default();
         let mut label_id_map = HashMap::new();
