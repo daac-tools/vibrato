@@ -1,30 +1,7 @@
 use std::io::{BufRead, BufReader, Read};
 
-use csv_core::ReadFieldResult;
-
 use crate::errors::{Result, VibratoError};
 use crate::sentence::Sentence;
-
-pub fn parse_csv_row(row: &str) -> Vec<String> {
-    let mut features = vec![];
-    let mut rdr = csv_core::Reader::new();
-    let mut bytes = row.as_bytes();
-    let mut output = [0; 4096];
-    loop {
-        let (result, nin, nout) = rdr.read_field(bytes, &mut output);
-        let end = match result {
-            ReadFieldResult::InputEmpty => true,
-            ReadFieldResult::Field { .. } => false,
-            _ => unreachable!(),
-        };
-        features.push(std::str::from_utf8(&output[..nout]).unwrap().to_string());
-        if end {
-            break;
-        }
-        bytes = &bytes[nin..];
-    }
-    features
-}
 
 /// Representation of a pair of a surface and features.
 pub struct Word {
@@ -152,35 +129,5 @@ EOS
         assert_eq!("名詞,カセー", sentence2.tokens[0].feature());
         assert_eq!("猫", sentence2.tokens[1].surface());
         assert_eq!("名詞,ネコ", sentence2.tokens[1].feature());
-    }
-
-    #[test]
-    fn test_parse_csv_row() {
-        let corpus_data = "\
-トスカーナ\t名詞,トスカーナ
-EOS
-";
-
-        let corpus = Corpus::from_reader(corpus_data.as_bytes()).unwrap();
-
-        assert_eq!(
-            &["名詞", "トスカーナ"],
-            parse_csv_row(corpus.examples[0].tokens[0].feature()).as_slice()
-        );
-    }
-
-    #[test]
-    fn test_parse_csv_row_with_quote() {
-        let corpus_data = "\
-1,2-ジクロロエタン\t名詞,\"1,2-ジクロロエタン\"
-EOS
-";
-
-        let corpus = Corpus::from_reader(corpus_data.as_bytes()).unwrap();
-
-        assert_eq!(
-            &["名詞", "1,2-ジクロロエタン"],
-            parse_csv_row(corpus.examples[0].tokens[0].feature()).as_slice()
-        );
     }
 }
