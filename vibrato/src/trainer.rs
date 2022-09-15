@@ -82,7 +82,7 @@ pub use crate::trainer::corpus::Corpus;
 use crate::trainer::corpus::Example;
 use crate::trainer::feature_extractor::FeatureExtractor;
 use crate::trainer::feature_rewriter::FeatureRewriter;
-use crate::utils::FromU32;
+use crate::utils::{self, FromU32};
 
 use crate::common::MAX_SENTENCE_LENGTH;
 
@@ -111,7 +111,7 @@ impl Trainer {
         feature_str: &str,
         cate_id: u32,
     ) -> FeatureSet {
-        let features = corpus::parse_csv_row(feature_str);
+        let features = utils::parse_csv_row(feature_str);
         let unigram_features = if let Some(rewrite) = unigram_rewriter.rewrite(&features) {
             feature_extractor.extract_unigram_feature_ids(&rewrite, cate_id)
         } else {
