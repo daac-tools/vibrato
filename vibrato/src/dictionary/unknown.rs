@@ -132,7 +132,10 @@ impl UnkHandler {
         f
     }
 
-    pub fn optimal_unk_index(
+    /// Returns the earliest occurrence of a compatible unknown word for a given word.
+    ///
+    /// Returns `None` if no suitable entry exists.
+    pub fn compatible_unk_index(
         &self,
         sent: &Sentence,
         start_char: u16,
@@ -243,7 +246,7 @@ NUMERIC,0,0,0,数字";
         sent.compile(&prop).unwrap();
 
         let unk_index = unk
-            .optimal_unk_index(&sent, 2, 7, "名詞,一般,変数,バーヨンジューニ")
+            .compatible_unk_index(&sent, 2, 7, "名詞,一般,変数,バーヨンジューニ")
             .unwrap();
         assert_eq!(unk.word_feature(unk_index), "名詞,*,変数",);
     }
@@ -258,7 +261,7 @@ NUMERIC,0,0,0,数字";
         sent.compile(&prop).unwrap();
 
         let unk_index = unk
-            .optimal_unk_index(&sent, 2, 7, "動詞,一般,変数,バーヨンジューニ")
+            .compatible_unk_index(&sent, 2, 7, "動詞,一般,変数,バーヨンジューニ")
             .unwrap();
         assert_eq!(unk.word_feature(unk_index), "動詞,*",);
     }
@@ -272,7 +275,7 @@ NUMERIC,0,0,0,数字";
         sent.set_sentence("変数var42を書き換えます");
         sent.compile(&prop).unwrap();
 
-        assert!(unk.optimal_unk_index(&sent, 2, 7, "形容詞").is_none());
+        assert!(unk.compatible_unk_index(&sent, 2, 7, "形容詞").is_none());
     }
 
     #[test]
@@ -285,7 +288,7 @@ NUMERIC,0,0,0,数字";
         sent.compile(&prop).unwrap();
 
         assert!(unk
-            .optimal_unk_index(&sent, 5, 7, "名詞,一般,変数,バーヨンジューニ")
+            .compatible_unk_index(&sent, 5, 7, "名詞,一般,変数,バーヨンジューニ")
             .is_none());
     }
 }
