@@ -200,7 +200,7 @@ impl Trainer {
     ///
     /// # Panics
     ///
-    /// The value must be greater or equal to 0.
+    /// The value must be greater than or equal to 0.
     pub fn regularization_cost(mut self, cost: f64) -> Self {
         assert!(cost >= 0.0);
         self.regularization_cost = cost;
