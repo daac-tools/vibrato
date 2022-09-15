@@ -49,7 +49,9 @@ impl Word {
 
 /// Representation of a sentence.
 pub struct Example {
+    /// Concatenation of `tokens`.
     pub(crate) sentence: Sentence,
+
     pub(crate) tokens: Vec<Word>,
 }
 
@@ -134,8 +136,10 @@ EOS
         assert_eq!(2, corpus.examples.len());
 
         let sentence1 = &corpus.examples[0];
-        assert_eq!(4, sentence1.tokens.len());
 
+        assert_eq!("トスカーナ地方に行く", sentence1.sentence.raw());
+
+        assert_eq!(4, sentence1.tokens.len());
         assert_eq!("トスカーナ", sentence1.tokens[0].surface());
         assert_eq!("名詞,トスカーナ", sentence1.tokens[0].feature());
         assert_eq!("地方", sentence1.tokens[1].surface());
@@ -146,8 +150,10 @@ EOS
         assert_eq!("動詞,イク", sentence1.tokens[3].feature());
 
         let sentence2 = &corpus.examples[1];
-        assert_eq!(2, sentence2.tokens.len());
 
+        assert_eq!("火星猫", sentence2.sentence.raw());
+
+        assert_eq!(2, sentence2.tokens.len());
         assert_eq!("火星", sentence2.tokens[0].surface());
         assert_eq!("名詞,カセー", sentence2.tokens[0].feature());
         assert_eq!("猫", sentence2.tokens[1].surface());

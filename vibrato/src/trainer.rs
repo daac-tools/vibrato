@@ -93,7 +93,11 @@ pub struct Trainer {
     surfaces: Vec<String>,
     max_grouping_len: Option<u16>,
     provider: FeatureProvider,
+
+    // Assume a dictionary word W is associated with id X and feature string F.
+    // It maps F to a hash table that maps the first character of W to X.
     label_id_map: HashMap<String, HashMap<char, u32>>,
+
     regularization_cost: f64,
     max_iter: u64,
     num_threads: usize,
@@ -431,11 +435,7 @@ impl Trainer {
             let word_idx = WordIdx::new(LexType::Unknown, u32::try_from(i).unwrap());
             let cate_id = self.dict.unk_handler().word_cate_id(word_idx);
             let feature = self.dict.unk_handler().word_feature(word_idx);
-            let cate_string = self
-                .dict
-                .char_prop()
-                .cate_string(u32::from(cate_id))
-                .unwrap();
+            let cate_string = self.dict.char_prop().cate_str(u32::from(cate_id)).unwrap();
             let feature_set = merged_model.feature_sets[self.surfaces.len() + i];
             writeln!(
                 &mut unk_handler_wtr,
@@ -454,15 +454,15 @@ impl Trainer {
             merged_model.right_conn_to_left_feats.len(),
             merged_model.left_conn_to_right_feats.len(),
         )?;
-        for (i, hm) in merged_model.matrix.iter().enumerate() {
+        for (right_conn_id, hm) in merged_model.matrix.iter().enumerate() {
             let mut pairs: Vec<_> = hm.iter().map(|(&j, &w)| (j, w)).collect();
             pairs.sort_unstable_by_key(|&(k, _)| k);
-            for (j, w) in pairs {
+            for (left_conn_id, w) in pairs {
                 writeln!(
                     &mut connector_wtr,
                     "{} {} {}",
-                    i,
-                    j,
+                    right_conn_id,
+                    left_conn_id,
                     (-w * weight_scale_factor) as i16
                 )?;
             }
