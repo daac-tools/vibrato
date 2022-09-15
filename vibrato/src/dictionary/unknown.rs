@@ -145,7 +145,7 @@ impl UnkHandler {
 
         let groupable = sent.groupable(start_char);
 
-        if end_char - start_char <= cinfo.length().min(groupable) {
+        if cinfo.group() || end_char - start_char <= cinfo.length().min(groupable) {
             let start = self.offsets[usize::from_u32(cinfo.base_id())];
             let end = self.offsets[usize::from_u32(cinfo.base_id()) + 1];
             'a: for word_id in start..end {

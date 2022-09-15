@@ -290,11 +290,6 @@ impl Trainer {
                                     .unwrap()
                                 },
                                 |unk_index| {
-                                    eprintln!(
-                                        "adding positive unknown edge: {} {}",
-                                        token.surface(),
-                                        self.dict.unk_handler().word_feature(unk_index),
-                                    );
                                     u32::try_from(self.surfaces.len() + 1).unwrap()
                                         + unk_index.word_id
                                 },
