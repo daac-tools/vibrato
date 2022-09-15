@@ -272,14 +272,36 @@ impl Trainer {
                 .and_then(|hm| hm.get(&first_char))
                 .map_or_else(
                     || {
-                        // FIXME(vbkaisetsu): If an unknown word edge is available, add it instead.
-                        eprintln!(
-                            "adding virtual edge: {} {}",
-                            token.surface(),
-                            token.feature()
-                        );
-                        u32::try_from(self.surfaces.len() + self.dict.unk_handler().len() + 1)
-                            .unwrap()
+                        self.dict
+                            .unk_handler()
+                            .optimal_unk_index(
+                                sentence,
+                                u16::try_from(pos).unwrap(),
+                                u16::try_from(pos + len).unwrap(),
+                                token.feature(),
+                            )
+                            .map_or_else(
+                                || {
+                                    eprintln!(
+                                        "adding virtual edge: {} {}",
+                                        token.surface(),
+                                        token.feature()
+                                    );
+                                    u32::try_from(
+                                        self.surfaces.len() + self.dict.unk_handler().len() + 1,
+                                    )
+                                    .unwrap()
+                                },
+                                |unk_index| {
+                                    eprintln!(
+                                        "adding positive unknown edge: {} {}",
+                                        token.surface(),
+                                        self.dict.unk_handler().word_feature(unk_index),
+                                    );
+                                    u32::try_from(self.surfaces.len() + 1).unwrap()
+                                        + unk_index.word_id
+                                },
+                            )
                     },
                     |label| *label + 1,
                 );
@@ -329,6 +351,11 @@ impl Trainer {
                     let pos = usize::from(start_word);
                     let target = usize::from(w.end_char());
                     let edge = Edge::new(target, label_id);
+                    if let Some(first_edge) = lattice.nodes()[pos].edges().first() {
+                        if edge == *first_edge {
+                            return;
+                        }
+                    }
                     lattice.add_edge(pos, edge).unwrap();
                 },
             );
