@@ -32,28 +32,27 @@
 //! let corpus_rdr = File::open("src/tests/resources/corpus.txt")?;
 //! let corpus = Corpus::from_reader(corpus_rdr)?;
 //!
-//! // Files to store results
-//! let mut trained_lex_path = std::env::temp_dir();
-//! let mut trained_matrix_path = std::env::temp_dir();
-//! let mut trained_unk_path = std::env::temp_dir();
-//! trained_lex_path.push("trained_lex.csv");
-//! trained_matrix_path.push("trained_matrix.def");
-//! trained_unk_path.push("trained_unk.def");
-//!
-//! let lexicon_wtr = File::create(&trained_lex_path)?;
-//! let connector_wtr = File::create(&trained_matrix_path)?;
-//! let unk_handler_wtr = File::create(&trained_unk_path)?;
+//! // Model data
+//! let mut lexicon_trained = vec![];
+//! let mut connector_trained = vec![];
+//! let mut unk_handler_trained = vec![];
 //!
 //! // Starts training
-//! trainer.train(corpus, lexicon_wtr, connector_wtr, unk_handler_wtr)?;
+//! trainer.train(
+//!     corpus,
+//!     &mut lexicon_trained,
+//!     &mut connector_trained,
+//!     &mut unk_handler_trained,
+//! )?;
 //!
 //! // Loads trained model
-//! let lexicon_rdr = File::open(&trained_lex_path)?;
-//! let connector_rdr = File::open(&trained_matrix_path)?;
 //! let char_prop_rdr = File::open("src/tests/resources/char.def")?;
-//! let unk_handler_rdr = File::open(&trained_unk_path)?;
-//! let dict =
-//!     Dictionary::from_readers(lexicon_rdr, connector_rdr, char_prop_rdr, unk_handler_rdr)?;
+//! let dict = Dictionary::from_readers(
+//!     &*lexicon_trained,
+//!     &*connector_trained,
+//!     char_prop_rdr,
+//!     &*unk_handler_trained,
+//! )?;
 //!
 //! let tokenizer = Tokenizer::new(dict);
 //! let mut worker = tokenizer.new_worker();
