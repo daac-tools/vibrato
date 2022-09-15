@@ -124,7 +124,7 @@ impl Trainer {
         } else {
             feature_extractor.extract_right_feature_ids(&features)
         };
-        FeatureSet::new(&unigram_features, &left_features, &right_features)
+        FeatureSet::new(&unigram_features, &right_features, &left_features)
     }
 
     /// Creates a new [`Trainer`] using the specified configuration.
@@ -416,8 +416,8 @@ impl Trainer {
             writeln!(
                 &mut lexicon_wtr,
                 ",{},{},{},{}",
-                feature_set.right_id,
                 feature_set.left_id,
+                feature_set.right_id,
                 (-feature_set.weight * weight_scale_factor) as i16,
                 feature,
             )?;
@@ -437,8 +437,8 @@ impl Trainer {
                 &mut unk_handler_wtr,
                 "{},{},{},{},{}",
                 cate_string,
-                feature_set.right_id,
                 feature_set.left_id,
+                feature_set.right_id,
                 (-feature_set.weight * weight_scale_factor) as i16,
                 feature,
             )?;
@@ -447,8 +447,8 @@ impl Trainer {
         writeln!(
             &mut connector_wtr,
             "{} {}",
-            merged_model.left_ids.len(),
             merged_model.right_ids.len(),
+            merged_model.left_ids.len(),
         )?;
         for (i, hm) in merged_model.matrix.iter().enumerate() {
             let mut pairs: Vec<_> = hm.iter().map(|(&j, &w)| (j, w)).collect();
