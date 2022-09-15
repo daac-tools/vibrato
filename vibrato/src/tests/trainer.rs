@@ -53,7 +53,7 @@ fn test_lexicon_format() {
         // surface
         assert_eq!(seed_row[0], result_row[0]);
 
-        // surface
+        // scores
         assert!(result_row[1].parse::<usize>().unwrap() < left_len);
         assert!(result_row[2].parse::<usize>().unwrap() < right_len);
         assert!(result_row[3].parse::<i16>().is_ok());
