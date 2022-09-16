@@ -266,6 +266,11 @@ impl Trainer {
         let unk_label_offset =
             NonZeroU32::new(u32::try_from(self.surfaces.len() + 1).unwrap()).unwrap();
 
+        // Add positive edges
+        // 1. If the word is found in the dictionary, add the edge as it is.
+        // 2. If the word is not found in the dictionary:
+        //   a) If a compatible unknown word is found, add the unknown word edge instead.
+        //   b) If there is no available word, add a virtual edge, which does not have any features.
         let mut edges = vec![];
         let mut pos = 0;
         for token in tokens {
@@ -304,7 +309,6 @@ impl Trainer {
 
         let mut lattice = Lattice::new(usize::from(input_len)).unwrap();
 
-        // Add positive edges
         for (pos, edge) in edges {
             lattice.add_edge(pos, edge).unwrap();
         }
