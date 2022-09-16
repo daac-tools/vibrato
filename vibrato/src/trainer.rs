@@ -299,7 +299,9 @@ impl Trainer {
                                 );
                                 virtual_edge_label
                             },
-                            |unk_index| unk_label_offset.checked_add(unk_index.word_id).unwrap(),
+                            |unk_index| {
+                                NonZeroU32::new(unk_label_offset.get() + unk_index.word_id).unwrap()
+                            },
                         )
                 });
             edges.push((pos, Edge::new(pos + len, label_id)));
