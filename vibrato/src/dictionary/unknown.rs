@@ -132,9 +132,9 @@ impl UnkHandler {
         f
     }
 
-    /// Returns the earliest occurrence of a compatible unknown word for a given word.
+    /// Returns the earliest occurrence of compatible unknown words for the given word.
     ///
-    /// Returns `None` if no suitable entry exists.
+    /// Returns `None` if no compatible entry exists.
     pub fn compatible_unk_index(
         &self,
         sent: &Sentence,
