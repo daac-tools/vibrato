@@ -248,7 +248,7 @@ NUMERIC,0,0,0,数字";
         let unk_index = unk
             .compatible_unk_index(&sent, 2, 7, "名詞,一般,変数,バーヨンジューニ")
             .unwrap();
-        assert_eq!(unk.word_feature(unk_index), "名詞,*,変数",);
+        assert_eq!(unk.word_feature(unk_index), "名詞,*,変数");
     }
 
     #[test]
@@ -263,7 +263,7 @@ NUMERIC,0,0,0,数字";
         let unk_index = unk
             .compatible_unk_index(&sent, 2, 7, "動詞,一般,変数,バーヨンジューニ")
             .unwrap();
-        assert_eq!(unk.word_feature(unk_index), "動詞,*",);
+        assert_eq!(unk.word_feature(unk_index), "動詞,*");
     }
 
     #[test]
@@ -278,7 +278,7 @@ NUMERIC,0,0,0,数字";
         let unk_index = unk
             .compatible_unk_index(&sent, 5, 7, "数字,一般,変数末尾,ヨンジューニ")
             .unwrap();
-        assert_eq!(unk.word_feature(unk_index), "数字",);
+        assert_eq!(unk.word_feature(unk_index), "数字");
     }
 
     #[test]
