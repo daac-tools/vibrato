@@ -267,6 +267,21 @@ NUMERIC,0,0,0,数字";
     }
 
     #[test]
+    fn test_compatible_unk_entry_3() {
+        let prop = CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap();
+        let unk = UnkHandler::from_reader(UNK_DEF.as_bytes(), &prop).unwrap();
+
+        let mut sent = Sentence::new();
+        sent.set_sentence("変数var42を書き換えます");
+        sent.compile(&prop).unwrap();
+
+        let unk_index = unk
+            .compatible_unk_index(&sent, 5, 7, "数字,一般,変数末尾,ヨンジューニ")
+            .unwrap();
+        assert_eq!(unk.word_feature(unk_index), "数字",);
+    }
+
+    #[test]
     fn test_compatible_unk_entry_undefined_1() {
         let prop = CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap();
         let unk = UnkHandler::from_reader(UNK_DEF.as_bytes(), &prop).unwrap();
