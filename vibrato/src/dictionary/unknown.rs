@@ -9,7 +9,7 @@ use crate::dictionary::mapper::ConnIdMapper;
 use crate::dictionary::word_idx::WordIdx;
 use crate::dictionary::LexType;
 use crate::sentence::Sentence;
-use crate::utils::FromU32;
+use crate::utils::{self, FromU32};
 
 use crate::common::MAX_SENTENCE_LENGTH;
 
@@ -132,6 +132,43 @@ impl UnkHandler {
         f
     }
 
+    /// Returns the earliest occurrence of compatible unknown words for the given word.
+    ///
+    /// Returns `None` if no compatible entry exists.
+    pub fn compatible_unk_index(
+        &self,
+        sent: &Sentence,
+        start_char: u16,
+        end_char: u16,
+        feature: &str,
+    ) -> Option<WordIdx> {
+        let features = utils::parse_csv_row(feature);
+
+        let cinfo = sent.char_info(start_char);
+
+        let groupable = sent.groupable(start_char);
+
+        if cinfo.group() || end_char - start_char <= cinfo.length().min(groupable) {
+            let start = self.offsets[usize::from_u32(cinfo.base_id())];
+            let end = self.offsets[usize::from_u32(cinfo.base_id()) + 1];
+            'a: for word_id in start..end {
+                let e = &self.entries[word_id];
+                let unk_features = utils::parse_csv_row(&e.feature);
+                for (i, unk_feature) in unk_features.iter().enumerate() {
+                    if unk_feature != "*" && features.get(i).map_or(true, |f| unk_feature != f) {
+                        continue 'a;
+                    }
+                }
+                return Some(WordIdx::new(
+                    LexType::Unknown,
+                    u32::try_from(word_id).unwrap(),
+                ));
+            }
+        }
+
+        None
+    }
+
     #[inline(always)]
     pub fn word_param(&self, word_idx: WordIdx) -> WordParam {
         debug_assert_eq!(word_idx.lex_type, LexType::Unknown);
@@ -177,5 +214,96 @@ impl UnkHandler {
             }
         }
         true
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use crate::dictionary::CharProperty;
+
+    const CHAR_DEF: &'static str = "\
+DEFAULT 0 1 0
+ALPHA   1 1 6
+NUMERIC 1 1 0
+0x0030..0x0039 NUMERIC
+0x0041..0x005A ALPHA NUMERIC
+0x0061..0x007A ALPHA NUMERIC";
+    const UNK_DEF: &'static str = "\
+DEFAULT,0,0,0,補助記号,*
+ALPHA,0,0,0,名詞,*,変数
+ALPHA,0,0,0,動詞,*
+NUMERIC,0,0,0,数字";
+
+    #[test]
+    fn test_compatible_unk_entry_1() {
+        let prop = CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap();
+        let unk = UnkHandler::from_reader(UNK_DEF.as_bytes(), &prop).unwrap();
+
+        let mut sent = Sentence::new();
+        sent.set_sentence("変数var42を書き換えます");
+        sent.compile(&prop).unwrap();
+
+        let unk_index = unk
+            .compatible_unk_index(&sent, 2, 7, "名詞,一般,変数,バーヨンジューニ")
+            .unwrap();
+        assert_eq!(unk.word_feature(unk_index), "名詞,*,変数");
+    }
+
+    #[test]
+    fn test_compatible_unk_entry_2() {
+        let prop = CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap();
+        let unk = UnkHandler::from_reader(UNK_DEF.as_bytes(), &prop).unwrap();
+
+        let mut sent = Sentence::new();
+        sent.set_sentence("変数var42を書き換えます");
+        sent.compile(&prop).unwrap();
+
+        let unk_index = unk
+            .compatible_unk_index(&sent, 2, 7, "動詞,一般,変数,バーヨンジューニ")
+            .unwrap();
+        assert_eq!(unk.word_feature(unk_index), "動詞,*");
+    }
+
+    #[test]
+    fn test_compatible_unk_entry_3() {
+        let prop = CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap();
+        let unk = UnkHandler::from_reader(UNK_DEF.as_bytes(), &prop).unwrap();
+
+        let mut sent = Sentence::new();
+        sent.set_sentence("変数var42を書き換えます");
+        sent.compile(&prop).unwrap();
+
+        let unk_index = unk
+            .compatible_unk_index(&sent, 5, 7, "数字,一般,変数末尾,ヨンジューニ")
+            .unwrap();
+        assert_eq!(unk.word_feature(unk_index), "数字");
+    }
+
+    #[test]
+    fn test_compatible_unk_entry_undefined_1() {
+        let prop = CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap();
+        let unk = UnkHandler::from_reader(UNK_DEF.as_bytes(), &prop).unwrap();
+
+        let mut sent = Sentence::new();
+        sent.set_sentence("変数var42を書き換えます");
+        sent.compile(&prop).unwrap();
+
+        assert!(unk.compatible_unk_index(&sent, 2, 7, "形容詞").is_none());
+    }
+
+    #[test]
+    fn test_compatible_unk_entry_undefined_2() {
+        let prop = CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap();
+        let unk = UnkHandler::from_reader(UNK_DEF.as_bytes(), &prop).unwrap();
+
+        let mut sent = Sentence::new();
+        sent.set_sentence("変数var42を書き換えます");
+        sent.compile(&prop).unwrap();
+
+        assert!(unk
+            .compatible_unk_index(&sent, 5, 7, "名詞,一般,変数,バーヨンジューニ")
+            .is_none());
     }
 }

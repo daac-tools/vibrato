@@ -95,7 +95,7 @@ pub struct Trainer {
 
     // Assume a dictionary word W is associated with id X and feature string F.
     // It maps F to a hash table that maps the first character of W to X.
-    label_id_map: HashMap<String, HashMap<char, u32>>,
+    label_id_map: HashMap<String, HashMap<char, NonZeroU32>>,
 
     regularization_cost: f64,
     max_iter: u64,
@@ -158,13 +158,13 @@ impl Trainer {
                 feature_str,
                 cate_id,
             );
-            provider.add_feature_set(feature_set)?;
+            let label_id = provider.add_feature_set(feature_set)?;
             label_id_map
                 .raw_entry_mut()
                 .from_key(feature_str)
                 .or_insert_with(|| (feature_str.to_string(), HashMap::new()))
                 .1
-                .insert(first_char, word_id);
+                .insert(first_char, label_id);
         }
         for word_id in 0..u32::try_from(config.dict.unk_handler().len()).unwrap() {
             let word_idx = WordIdx::new(LexType::Unknown, word_id);
@@ -261,6 +261,16 @@ impl Trainer {
         let input_chars = sentence.chars();
         let input_len = sentence.len_char();
 
+        let virtual_edge_label =
+            NonZeroU32::new(u32::try_from(self.provider.len()).unwrap()).unwrap();
+        let unk_label_offset =
+            NonZeroU32::new(u32::try_from(self.surfaces.len() + 1).unwrap()).unwrap();
+
+        // Add positive edges
+        // 1. If the word is found in the dictionary, add the edge as it is.
+        // 2. If the word is not found in the dictionary:
+        //   a) If a compatible unknown word is found, add the unknown word edge instead.
+        //   b) If there is no available word, add a virtual edge, which does not have any features.
         let mut edges = vec![];
         let mut pos = 0;
         for token in tokens {
@@ -270,30 +280,37 @@ impl Trainer {
                 .label_id_map
                 .get(token.feature())
                 .and_then(|hm| hm.get(&first_char))
-                .map_or_else(
-                    || {
-                        // FIXME(vbkaisetsu): If an unknown word edge is available, add it instead.
-                        eprintln!(
-                            "adding virtual edge: {} {}",
-                            token.surface(),
-                            token.feature()
-                        );
-                        u32::try_from(self.surfaces.len() + self.dict.unk_handler().len() + 1)
-                            .unwrap()
-                    },
-                    |label| *label + 1,
-                );
-            edges.push((
-                pos,
-                Edge::new(pos + len, NonZeroU32::new(label_id).unwrap()),
-            ));
+                .cloned()
+                .unwrap_or_else(|| {
+                    self.dict
+                        .unk_handler()
+                        .compatible_unk_index(
+                            sentence,
+                            u16::try_from(pos).unwrap(),
+                            u16::try_from(pos + len).unwrap(),
+                            token.feature(),
+                        )
+                        .map_or_else(
+                            || {
+                                eprintln!(
+                                    "adding virtual edge: {} {}",
+                                    token.surface(),
+                                    token.feature()
+                                );
+                                virtual_edge_label
+                            },
+                            |unk_index| {
+                                NonZeroU32::new(unk_label_offset.get() + unk_index.word_id).unwrap()
+                            },
+                        )
+                });
+            edges.push((pos, Edge::new(pos + len, label_id)));
             pos += len;
         }
         assert_eq!(pos, usize::from(input_len));
 
         let mut lattice = Lattice::new(usize::from(input_len)).unwrap();
 
-        // Add positive edges
         for (pos, edge) in edges {
             lattice.add_edge(pos, edge).unwrap();
         }
@@ -310,6 +327,7 @@ impl Trainer {
                 let pos = usize::from(start_word);
                 let target = pos + usize::from(m.end_char);
                 let edge = Edge::new(target, label_id);
+                // Skips adding if the edge is already added as a positive edge.
                 if let Some(first_edge) = lattice.nodes()[pos].edges().first() {
                     if edge == *first_edge {
                         continue;
@@ -329,6 +347,12 @@ impl Trainer {
                     let pos = usize::from(start_word);
                     let target = usize::from(w.end_char());
                     let edge = Edge::new(target, label_id);
+                    // Skips adding if the edge is already added as a positive edge.
+                    if let Some(first_edge) = lattice.nodes()[pos].edges().first() {
+                        if edge == *first_edge {
+                            return;
+                        }
+                    }
                     lattice.add_edge(pos, edge).unwrap();
                 },
             );
