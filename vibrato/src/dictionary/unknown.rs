@@ -237,7 +237,7 @@ ALPHA,0,0,0,動詞,*
 NUMERIC,0,0,0,数字";
 
     #[test]
-    fn test_optimal_unk_entry_1() {
+    fn test_compatible_unk_entry_1() {
         let prop = CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap();
         let unk = UnkHandler::from_reader(UNK_DEF.as_bytes(), &prop).unwrap();
 
@@ -252,7 +252,7 @@ NUMERIC,0,0,0,数字";
     }
 
     #[test]
-    fn test_optimal_unk_entry_2() {
+    fn test_compatible_unk_entry_2() {
         let prop = CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap();
         let unk = UnkHandler::from_reader(UNK_DEF.as_bytes(), &prop).unwrap();
 
@@ -267,7 +267,7 @@ NUMERIC,0,0,0,数字";
     }
 
     #[test]
-    fn test_optimal_unk_entry_undefined_1() {
+    fn test_compatible_unk_entry_undefined_1() {
         let prop = CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap();
         let unk = UnkHandler::from_reader(UNK_DEF.as_bytes(), &prop).unwrap();
 
@@ -279,7 +279,7 @@ NUMERIC,0,0,0,数字";
     }
 
     #[test]
-    fn test_optimal_unk_entry_undefined_2() {
+    fn test_compatible_unk_entry_undefined_2() {
         let prop = CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap();
         let unk = UnkHandler::from_reader(UNK_DEF.as_bytes(), &prop).unwrap();
 
