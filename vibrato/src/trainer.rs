@@ -327,6 +327,7 @@ impl Trainer {
                 let pos = usize::from(start_word);
                 let target = pos + usize::from(m.end_char);
                 let edge = Edge::new(target, label_id);
+                // Skips adding if the edge is already added as a positive edge.
                 if let Some(first_edge) = lattice.nodes()[pos].edges().first() {
                     if edge == *first_edge {
                         continue;
@@ -346,6 +347,7 @@ impl Trainer {
                     let pos = usize::from(start_word);
                     let target = usize::from(w.end_char());
                     let edge = Edge::new(target, label_id);
+                    // Skips adding if the edge is already added as a positive edge.
                     if let Some(first_edge) = lattice.nodes()[pos].edges().first() {
                         if edge == *first_edge {
                             return;
