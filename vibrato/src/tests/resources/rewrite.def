@@ -1,0 +1,8 @@
+[unigram rewrite]
+*,*,*,*     $1,$2,$3,$4
+
+[left rewrite]
+*,*,*,*     $1,$2,$3,$4
+
+[right rewrite]
+*,*,*,*     $1,$2,$3,$4

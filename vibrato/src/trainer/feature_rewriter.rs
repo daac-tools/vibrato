@@ -36,7 +36,6 @@ pub struct FeatureRewriterBuilder {
 }
 
 impl FeatureRewriterBuilder {
-    #[allow(unused)]
     pub fn new() -> Self {
         Self {
             nodes: vec![Node::default()],
@@ -44,7 +43,6 @@ impl FeatureRewriterBuilder {
         }
     }
 
-    #[allow(unused)]
     /// Adds the rewrite rule associated with the pattern.
     /// If the pattern is shorter than the rewrite rule,
     /// the remainings are automatically padded with "*".
@@ -115,7 +113,6 @@ impl From<FeatureRewriterBuilder> for FeatureRewriter {
 impl FeatureRewriter {
     /// Returns the rewritten features if matched.
     /// If multiple patterns are matched, the earlier registered one is applied.
-    #[allow(unused)]
     pub fn rewrite<S>(&self, features: &[S]) -> Option<Vec<String>>
     where
         S: AsRef<str>,

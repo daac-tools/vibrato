@@ -1,18 +1,19 @@
 use std::io::{BufRead, BufReader, Read};
 
-use crate::dictionary::character::CharProperty;
+use crate::dictionary::lexicon::Lexicon;
+use crate::dictionary::Dictionary;
 use crate::errors::{Result, VibratoError};
 use crate::trainer::feature_extractor::FeatureExtractor;
 use crate::trainer::feature_rewriter::{FeatureRewriter, FeatureRewriterBuilder};
 
 /// Configuration for a trainer.
-#[allow(unused)]
 pub struct TrainerConfig {
-    feature_extractor: FeatureExtractor,
-    unigram_rewriter: FeatureRewriter,
-    left_rewriter: FeatureRewriter,
-    right_rewriter: FeatureRewriter,
-    char_property: CharProperty,
+    pub(crate) feature_extractor: FeatureExtractor,
+    pub(crate) unigram_rewriter: FeatureRewriter,
+    pub(crate) left_rewriter: FeatureRewriter,
+    pub(crate) right_rewriter: FeatureRewriter,
+    pub(crate) dict: Dictionary,
+    pub(crate) surfaces: Vec<String>,
 }
 
 impl TrainerConfig {
@@ -127,29 +128,47 @@ impl TrainerConfig {
     /// # Errors
     ///
     /// [`VibratoError`] is returned when an input format is invalid.
-    #[allow(unused)]
-    pub fn from_readers<F, R, C>(
+    pub fn from_readers<L, C, U, F, R>(
+        mut lexicon_rdr: L,
+        char_prop_rdr: C,
+        unk_handler_rdr: U,
         feature_templates_rdr: F,
         rewrite_rules_rdr: R,
-        char_prop_rdr: C,
     ) -> Result<Self>
     where
+        L: Read,
+        C: Read,
+        U: Read,
         F: Read,
         R: Read,
-        C: Read,
     {
         // TODO(vbkaisetsu): This function also needs to support loading `dicrc`.
         let feature_extractor = Self::parse_feature_config(feature_templates_rdr)?;
         let (unigram_rewriter, left_rewriter, right_rewriter) =
             Self::parse_rewrite_config(rewrite_rules_rdr)?;
-        let char_property = CharProperty::from_reader(char_prop_rdr)?;
+
+        let mut lexicon_data = vec![];
+        lexicon_rdr.read_to_end(&mut lexicon_data)?;
+
+        let dummy_conn = b"1 1\n0 0 0".as_slice();
+        let dict = Dictionary::from_readers(
+            lexicon_data.as_slice(),
+            dummy_conn,
+            char_prop_rdr,
+            unk_handler_rdr,
+        )?;
+        let surfaces = Lexicon::parse_csv(&lexicon_data, "lex.csv")?
+            .into_iter()
+            .map(|e| e.surface)
+            .collect();
 
         Ok(Self {
             feature_extractor,
             unigram_rewriter,
             left_rewriter,
             right_rewriter,
-            char_property,
+            dict,
+            surfaces,
         })
     }
 }

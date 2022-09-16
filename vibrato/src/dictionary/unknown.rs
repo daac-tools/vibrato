@@ -145,6 +145,17 @@ impl UnkHandler {
         &self.entries[usize::from_u32(word_idx.word_id)].feature
     }
 
+    #[inline(always)]
+    pub fn word_cate_id(&self, word_idx: WordIdx) -> u16 {
+        debug_assert_eq!(word_idx.lex_type, LexType::Unknown);
+        self.entries[usize::from_u32(word_idx.word_id)].cate_id
+    }
+
+    #[inline(always)]
+    pub fn len(&self) -> usize {
+        self.entries.len()
+    }
+
     /// Do NOT make this function public to maintain consistency in
     /// the connection-id mapping among members of `Dictionary`.
     /// The consistency is managed in `Dictionary`.

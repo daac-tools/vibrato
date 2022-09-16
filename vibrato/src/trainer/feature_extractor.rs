@@ -27,7 +27,6 @@ pub struct FeatureExtractor {
 }
 
 impl FeatureExtractor {
-    #[allow(unused)]
     pub fn new<S>(unigram_templates: &[S], bigram_templates: &[(S, S)]) -> Self
     where
         S: ToString,
@@ -138,7 +137,6 @@ impl FeatureExtractor {
     /// Inserts feature patterns matched to the input templates in the hash map,
     /// while incrementally assigning new feature ids.
     /// Returns a sequence of ids of found features.
-    #[allow(unused)]
     fn extract_feature_ids<S>(
         features: &[S],
         templates: &[ParsedTemplate],
@@ -178,7 +176,6 @@ impl FeatureExtractor {
         result
     }
 
-    #[allow(unused)]
     pub fn extract_unigram_feature_ids<S>(
         &mut self,
         features: &[S],
@@ -198,7 +195,6 @@ impl FeatureExtractor {
         .collect()
     }
 
-    #[allow(unused)]
     pub fn extract_left_feature_ids<S>(&mut self, features: &[S]) -> Vec<Option<NonZeroU32>>
     where
         S: AsRef<str>,
@@ -211,7 +207,6 @@ impl FeatureExtractor {
         )
     }
 
-    #[allow(unused)]
     pub fn extract_right_feature_ids<S>(&mut self, features: &[S]) -> Vec<Option<NonZeroU32>>
     where
         S: AsRef<str>,

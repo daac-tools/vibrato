@@ -44,7 +44,7 @@ pub mod errors;
 mod sentence;
 pub mod token;
 pub mod tokenizer;
-mod trainer;
+pub mod trainer;
 mod utils;
 
 #[cfg(test)]
