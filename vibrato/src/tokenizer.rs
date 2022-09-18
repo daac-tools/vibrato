@@ -85,15 +85,18 @@ impl Tokenizer {
     }
 
     pub(crate) fn build_lattice(&self, sent: &Sentence, lattice: &mut Lattice) {
-        let input_chars = sent.chars();
-        let input_len = sent.len_char();
+        lattice.reset(sent.len_char());
 
-        lattice.reset(input_len);
-
+        // These variables indicate the starting character positions of words currently stored
+        // in the lattice. If ignore_space() is unset, these always have the same values, and
+        // start_node is practically non-functional. If ignore_space() is set, start_node and
+        // start_word indicate the starting positions containing and ignoring a space character,
+        // respectively. Suppose handle sentence "mens second" at position 4. start_node indicates
+        // position 4, and start_word indicates position 5.
         let mut start_node = 0;
         let mut start_word = 0;
 
-        while start_word < input_len {
+        while start_word < sent.len_char() {
             if !lattice.has_previous_node(start_node) {
                 start_word += 1;
                 start_node = start_word;
@@ -112,110 +115,15 @@ impl Tokenizer {
             }
 
             // Does the input end with spaces?
-            if start_word == input_len {
+            if start_word == sent.len_char() {
                 break;
             }
 
-            let mut has_matched = false;
-
-            // Safety: `start_word < input_len` is already checked.
-            let suffix = unsafe { input_chars.get_unchecked(usize::from(start_word)..) };
-
             if self.dict.need_check {
-                if let Some(user_lexicon) = self.dict.user_lexicon() {
-                    for m in user_lexicon.common_prefix_iterator(suffix) {
-                        debug_assert!(start_word + m.end_char <= input_len);
-                        lattice.insert_node(
-                            start_node,
-                            start_word,
-                            start_word + m.end_char,
-                            m.word_idx,
-                            m.word_param,
-                            self.dict.connector(),
-                        );
-                        has_matched = true;
-                    }
-                }
-
-                for m in self.dict.system_lexicon().common_prefix_iterator(suffix) {
-                    debug_assert!(start_word + m.end_char <= input_len);
-                    lattice.insert_node(
-                        start_node,
-                        start_word,
-                        start_word + m.end_char,
-                        m.word_idx,
-                        m.word_param,
-                        self.dict.connector(),
-                    );
-                    has_matched = true;
-                }
-
-                self.dict.unk_handler().gen_unk_words(
-                    sent,
-                    start_word,
-                    has_matched,
-                    self.max_grouping_len,
-                    |w| {
-                        lattice.insert_node(
-                            start_node,
-                            w.start_char(),
-                            w.end_char(),
-                            w.word_idx(),
-                            w.word_param(),
-                            self.dict.connector(),
-                        );
-                    },
-                );
+                self.add_lattice_edges(sent, lattice, start_node, start_word);
             } else {
                 unsafe {
-                    if let Some(user_lexicon) = self.dict.user_lexicon() {
-                        for m in user_lexicon.common_prefix_iterator_unchecked(suffix) {
-                            debug_assert!(start_word + m.end_char <= input_len);
-                            lattice.insert_node_unchecked(
-                                start_node,
-                                start_word,
-                                start_word + m.end_char,
-                                m.word_idx,
-                                m.word_param,
-                                self.dict.connector(),
-                            );
-                            has_matched = true;
-                        }
-                    }
-
-                    for m in self
-                        .dict
-                        .system_lexicon()
-                        .common_prefix_iterator_unchecked(suffix)
-                    {
-                        debug_assert!(start_word + m.end_char <= input_len);
-                        lattice.insert_node_unchecked(
-                            start_node,
-                            start_word,
-                            start_word + m.end_char,
-                            m.word_idx,
-                            m.word_param,
-                            self.dict.connector(),
-                        );
-                        has_matched = true;
-                    }
-
-                    self.dict.unk_handler().gen_unk_words(
-                        sent,
-                        start_word,
-                        has_matched,
-                        self.max_grouping_len,
-                        |w| {
-                            lattice.insert_node_unchecked(
-                                start_node,
-                                w.start_char(),
-                                w.end_char(),
-                                w.word_idx(),
-                                w.word_param(),
-                                self.dict.connector(),
-                            );
-                        },
-                    );
+                    self.add_lattice_edges_unchecked(sent, lattice, start_node, start_word);
                 }
             }
 
@@ -230,6 +138,128 @@ impl Tokenizer {
                 lattice.insert_eos_unchecked(start_node, self.dict.connector());
             }
         }
+    }
+
+    fn add_lattice_edges(
+        &self,
+        sent: &Sentence,
+        lattice: &mut Lattice,
+        start_node: u16,
+        start_word: u16,
+    ) {
+        let mut has_matched = false;
+
+        // Safety: `start_word < sent.len_char()` is already checked in `build_lattice()`.
+        debug_assert!(start_word < sent.len_char());
+        let suffix = unsafe { sent.chars().get_unchecked(usize::from(start_word)..) };
+
+        if let Some(user_lexicon) = self.dict.user_lexicon() {
+            for m in user_lexicon.common_prefix_iterator(suffix) {
+                debug_assert!(start_word + m.end_char <= sent.len_char());
+                lattice.insert_node(
+                    start_node,
+                    start_word,
+                    start_word + m.end_char,
+                    m.word_idx,
+                    m.word_param,
+                    self.dict.connector(),
+                );
+                has_matched = true;
+            }
+        }
+
+        for m in self.dict.system_lexicon().common_prefix_iterator(suffix) {
+            debug_assert!(start_word + m.end_char <= sent.len_char());
+            lattice.insert_node(
+                start_node,
+                start_word,
+                start_word + m.end_char,
+                m.word_idx,
+                m.word_param,
+                self.dict.connector(),
+            );
+            has_matched = true;
+        }
+
+        self.dict.unk_handler().gen_unk_words(
+            sent,
+            start_word,
+            has_matched,
+            self.max_grouping_len,
+            |w| {
+                lattice.insert_node(
+                    start_node,
+                    w.start_char(),
+                    w.end_char(),
+                    w.word_idx(),
+                    w.word_param(),
+                    self.dict.connector(),
+                );
+            },
+        );
+    }
+
+    unsafe fn add_lattice_edges_unchecked(
+        &self,
+        sent: &Sentence,
+        lattice: &mut Lattice,
+        start_node: u16,
+        start_word: u16,
+    ) {
+        let mut has_matched = false;
+
+        // Safety: `start_word < sent.len_char()` is already checked in `build_lattice()`.
+        debug_assert!(start_word < sent.len_char());
+        let suffix = sent.chars().get_unchecked(usize::from(start_word)..);
+
+        if let Some(user_lexicon) = self.dict.user_lexicon() {
+            for m in user_lexicon.common_prefix_iterator_unchecked(suffix) {
+                debug_assert!(start_word + m.end_char <= sent.len_char());
+                lattice.insert_node_unchecked(
+                    start_node,
+                    start_word,
+                    start_word + m.end_char,
+                    m.word_idx,
+                    m.word_param,
+                    self.dict.connector(),
+                );
+                has_matched = true;
+            }
+        }
+
+        for m in self
+            .dict
+            .system_lexicon()
+            .common_prefix_iterator_unchecked(suffix)
+        {
+            debug_assert!(start_word + m.end_char <= sent.len_char());
+            lattice.insert_node_unchecked(
+                start_node,
+                start_word,
+                start_word + m.end_char,
+                m.word_idx,
+                m.word_param,
+                self.dict.connector(),
+            );
+            has_matched = true;
+        }
+
+        self.dict.unk_handler().gen_unk_words(
+            sent,
+            start_word,
+            has_matched,
+            self.max_grouping_len,
+            |w| {
+                lattice.insert_node_unchecked(
+                    start_node,
+                    w.start_char(),
+                    w.end_char(),
+                    w.word_idx(),
+                    w.word_param(),
+                    self.dict.connector(),
+                );
+            },
+        );
     }
 }
 
