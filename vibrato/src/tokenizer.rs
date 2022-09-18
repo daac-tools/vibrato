@@ -87,6 +87,12 @@ impl Tokenizer {
     pub(crate) fn build_lattice(&self, sent: &Sentence, lattice: &mut Lattice) {
         lattice.reset(sent.len_char());
 
+        // These variables indicate the starting character positions of words currently stored
+        // in the lattice. If ignore_space() is unset, these always have the same values, and
+        // start_node is practically non-functional. If ignore_space() is set, start_node and
+        // start_word indicate the starting positions containing and ignoring a space character,
+        // respectively. Suppose handle sentence "mens second" at position 4. start_node indicates
+        // position 4, and start_word indicates position 5.
         let mut start_node = 0;
         let mut start_word = 0;
 
