@@ -23,9 +23,12 @@ struct ParsedTemplate {
 }
 
 pub struct FeatureExtractor {
-    unigram_feature_ids: HashMap<String, NonZeroU32>,
-    left_feature_ids: HashMap<String, NonZeroU32>,
-    right_feature_ids: HashMap<String, NonZeroU32>,
+    pub unigram_feature_ids: HashMap<String, NonZeroU32>,
+    pub left_feature_ids: HashMap<String, NonZeroU32>,
+    pub right_feature_ids: HashMap<String, NonZeroU32>,
+    unigram_next_id: u32,
+    left_next_id: u32,
+    right_next_id: u32,
     unigram_templates: Vec<ParsedTemplate>,
     left_templates: Vec<ParsedTemplate>,
     right_templates: Vec<ParsedTemplate>,
@@ -133,6 +136,9 @@ impl FeatureExtractor {
             unigram_feature_ids: HashMap::new(),
             left_feature_ids: HashMap::new(),
             right_feature_ids: HashMap::new(),
+            unigram_next_id: 1,
+            left_next_id: 1,
+            right_next_id: 1,
             unigram_templates: unigram_parsed_templates,
             left_templates: left_parsed_templates,
             right_templates: right_parsed_templates,
@@ -146,6 +152,7 @@ impl FeatureExtractor {
         features: &[S],
         templates: &[ParsedTemplate],
         feature_ids: &mut HashMap<String, NonZeroU32>,
+        next_id: &mut u32,
         category_id: u32,
     ) -> Vec<Option<NonZeroU32>>
     where
@@ -174,8 +181,11 @@ impl FeatureExtractor {
                 start = range.end;
             }
             feature_string.push_str(&template.raw_template[start..]);
-            let new_id = NonZeroU32::new(u32::try_from(feature_ids.len() + 1).unwrap()).unwrap();
+            let new_id = NonZeroU32::new(*next_id).unwrap();
             let feature_id = *feature_ids.entry(feature_string).or_insert(new_id);
+            if new_id == feature_id {
+                *next_id += 1;
+            }
             result.push(Some(feature_id));
         }
         result
@@ -193,6 +203,7 @@ impl FeatureExtractor {
             features,
             &self.unigram_templates,
             &mut self.unigram_feature_ids,
+            &mut self.unigram_next_id,
             category_id,
         )
         .into_iter()
@@ -208,6 +219,7 @@ impl FeatureExtractor {
             features,
             &self.left_templates,
             &mut self.left_feature_ids,
+            &mut self.left_next_id,
             0,
         )
     }
@@ -220,6 +232,7 @@ impl FeatureExtractor {
             features,
             &self.right_templates,
             &mut self.right_feature_ids,
+            &mut self.right_next_id,
             0,
         )
     }
@@ -238,6 +251,9 @@ impl Decode for FeatureExtractor {
         let unigram_feature_ids: Vec<(String, NonZeroU32)> = Decode::decode(decoder)?;
         let left_feature_ids: Vec<(String, NonZeroU32)> = Decode::decode(decoder)?;
         let right_feature_ids: Vec<(String, NonZeroU32)> = Decode::decode(decoder)?;
+        let unigram_next_id = Decode::decode(decoder)?;
+        let left_next_id = Decode::decode(decoder)?;
+        let right_next_id = Decode::decode(decoder)?;
         let unigram_templates = Decode::decode(decoder)?;
         let left_templates = Decode::decode(decoder)?;
         let right_templates = Decode::decode(decoder)?;
@@ -245,6 +261,9 @@ impl Decode for FeatureExtractor {
             unigram_feature_ids: unigram_feature_ids.into_iter().collect(),
             left_feature_ids: left_feature_ids.into_iter().collect(),
             right_feature_ids: right_feature_ids.into_iter().collect(),
+            unigram_next_id,
+            left_next_id,
+            right_next_id,
             unigram_templates,
             left_templates,
             right_templates,
@@ -263,6 +282,9 @@ impl Encode for FeatureExtractor {
         Encode::encode(&unigram_feature_ids, encoder)?;
         Encode::encode(&left_feature_ids, encoder)?;
         Encode::encode(&right_feature_ids, encoder)?;
+        Encode::encode(&self.unigram_next_id, encoder)?;
+        Encode::encode(&self.left_next_id, encoder)?;
+        Encode::encode(&self.right_next_id, encoder)?;
         Encode::encode(&self.unigram_templates, encoder)?;
         Encode::encode(&self.left_templates, encoder)?;
         Encode::encode(&self.right_templates, encoder)?;

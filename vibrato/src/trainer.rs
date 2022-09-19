@@ -76,7 +76,7 @@ use std::io::{BufWriter, Read, Write};
 use std::num::NonZeroU32;
 
 use bincode::{Decode, Encode};
-use hashbrown::HashMap;
+use hashbrown::{HashMap, HashSet};
 use rucrf::{Edge, FeatureProvider, FeatureSet, Lattice};
 
 use crate::dictionary::lexicon::Lexicon;
@@ -380,7 +380,7 @@ impl Trainer {
     ///
     /// [`VibratoError`](crate::errors::VibratoError) is returned when the sentence compilation
     /// fails.
-    pub fn train(self, mut corpus: Corpus) -> Result<Model> {
+    pub fn train(mut self, mut corpus: Corpus) -> Result<Model> {
         let mut lattices = vec![];
         for example in &mut corpus.examples {
             example.sentence.compile(self.config.dict.char_prop())?;
@@ -395,6 +395,68 @@ impl Trainer {
             .n_threads(self.num_threads)
             .unwrap();
         let model = trainer.train(&lattices, self.provider);
+
+        // Remove unused feature strings
+        let mut used_right_features = HashSet::new();
+        let unigram_feature_keys: Vec<_> = self
+            .config
+            .feature_extractor
+            .unigram_feature_ids
+            .keys()
+            .cloned()
+            .collect();
+        let left_feature_keys: Vec<_> = self
+            .config
+            .feature_extractor
+            .left_feature_ids
+            .keys()
+            .cloned()
+            .collect();
+        let right_feature_keys: Vec<_> = self
+            .config
+            .feature_extractor
+            .right_feature_ids
+            .keys()
+            .cloned()
+            .collect();
+        for k in &unigram_feature_keys {
+            let id = self
+                .config
+                .feature_extractor
+                .unigram_feature_ids
+                .get(k)
+                .unwrap();
+            if model.unigram_feature_ids()[usize::from_u32(id.get() - 1)].is_none() {
+                self.config.feature_extractor.unigram_feature_ids.remove(k);
+            }
+        }
+        for feature_ids in model.bigram_feature_ids() {
+            for (feature_id, _) in feature_ids {
+                used_right_features.insert(*feature_id);
+            }
+        }
+        for k in &left_feature_keys {
+            let id = self
+                .config
+                .feature_extractor
+                .left_feature_ids
+                .get(k)
+                .unwrap();
+            if model.bigram_feature_ids()[usize::from_u32(id.get())].is_empty() {
+                self.config.feature_extractor.left_feature_ids.remove(k);
+            }
+        }
+        for k in &right_feature_keys {
+            let id = self
+                .config
+                .feature_extractor
+                .right_feature_ids
+                .get(k)
+                .unwrap();
+            if !used_right_features.contains(&id.get()) {
+                self.config.feature_extractor.right_feature_ids.remove(k);
+            }
+        }
 
         Ok(Model {
             data: ModelData {
@@ -551,7 +613,8 @@ impl Model {
     /// * `lexicon_wtr` - Write sink targetting `lex.csv`.
     /// * `connector_wtr` - Write sink targetting `matrix.def`.
     /// * `unk_handler_wtr` - Write sink targetting `unk.def`.
-    /// * `user_lexicon_wtr` - Write sink targetting `user.csv`.
+    /// * `user_lexicon_wtr` - Write sink targetting `user.csv`. If no user-defined lexicon file is
+    ///                        specified, this function generates an empty file.
     ///
     /// # Errors
     ///
@@ -724,7 +787,7 @@ impl Model {
     /// # Errors
     ///
     /// When bincode generates an error, it will be returned as is.
-    pub fn write<W>(&self, mut wtr: W) -> Result<usize>
+    pub fn write_model<W>(&self, mut wtr: W) -> Result<usize>
     where
         W: Write,
     {
@@ -738,7 +801,7 @@ impl Model {
     /// # Errors
     ///
     /// When bincode generates an error, it will be returned as is.
-    pub fn read<R>(mut rdr: R) -> Result<Self>
+    pub fn read_model<R>(mut rdr: R) -> Result<Self>
     where
         R: Read,
     {
