@@ -42,7 +42,7 @@ impl Default for LexType {
 
 /// Inner data of [`Dictionary`].
 #[derive(Decode, Encode)]
-struct DictionaryInner {
+pub(crate) struct DictionaryInner {
     system_lexicon: Lexicon,
     user_lexicon: Option<Lexicon>,
     connector: Connector,
@@ -53,7 +53,7 @@ struct DictionaryInner {
 
 /// Dictionary for tokenization.
 pub struct Dictionary {
-    data: DictionaryInner,
+    pub(crate) data: DictionaryInner,
     pub(crate) need_check: bool,
 }
 

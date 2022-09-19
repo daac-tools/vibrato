@@ -13,6 +13,13 @@ pub struct Word {
 }
 
 impl Word {
+    pub fn new(surface: &str, feature: &str) -> Self {
+        Self {
+            surface: surface.to_string(),
+            feature: feature.to_string(),
+        }
+    }
+
     /// Returns a surface string.
     pub fn surface(&self) -> &str {
         &self.surface

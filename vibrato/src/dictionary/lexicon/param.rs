@@ -2,7 +2,7 @@ use bincode::{Decode, Encode};
 
 use crate::dictionary::mapper::ConnIdMapper;
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Decode, Encode)]
+#[derive(Debug, Default, Clone, Copy, Eq, PartialEq, Decode, Encode)]
 pub struct WordParam {
     pub left_id: u16,
     pub right_id: u16,
