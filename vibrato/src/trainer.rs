@@ -426,8 +426,9 @@ pub struct Model {
 impl Model {
     /// Reads the user-defined lexicon file.
     ///
-    /// If you want to assign parameters of the user-defined lexicon file, you need to call this
-    /// function before exporting the dictionary.
+    /// If you want to assign parameters to the user-defined lexicon file, you need to call this
+    /// function before exporting the dictionary. The model overwrites parameter only when the
+    /// parameter is `0,0,0`. Otherwise, the parameter is used as is.
     ///
     /// # Arguments
     ///
