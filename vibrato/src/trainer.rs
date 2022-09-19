@@ -427,8 +427,8 @@ impl Model {
     /// Reads the user-defined lexicon file.
     ///
     /// If you want to assign parameters to the user-defined lexicon file, you need to call this
-    /// function before exporting the dictionary. The model overwrites parameter only when the
-    /// parameter is `0,0,0`. Otherwise, the parameter is used as is.
+    /// function before exporting the dictionary. The model overwrites the parameter only when it
+    /// is `0,0,0`. Otherwise, the parameter is used as is.
     ///
     /// # Arguments
     ///
@@ -484,7 +484,7 @@ impl Model {
     ///
     /// # Errors
     ///
-    /// [`VibratoError`] is returned when:
+    /// [`VibratoError`](crate::errors::VibratoError) is returned when:
     ///
     /// - the merging weights fails, or
     /// - the writing fails.
@@ -555,7 +555,7 @@ impl Model {
     ///
     /// # Errors
     ///
-    /// [`VibratoError`] is returned when:
+    /// [`VibratoError`](crate::errors::VibratoError) is returned when:
     ///
     /// - the merging weights fails, or
     /// - the writing fails.
@@ -680,8 +680,8 @@ impl Model {
             let feature_set = merged_model.feature_sets
                 [self.data.config.surfaces.len() + self.data.config.dict.unk_handler().len() + i];
 
-            let mut surface = word.surface().as_bytes();
             // writes surface
+            let mut surface = word.surface().as_bytes();
             loop {
                 let (result, nin, nout) = writer.field(surface, &mut output);
                 user_lexicon_wtr.write_all(&output[..nout])?;
