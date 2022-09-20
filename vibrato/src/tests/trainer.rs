@@ -9,6 +9,7 @@ const TRAIN_UNK_DEF: &[u8] = include_bytes!("./resources/train_unk.def");
 const REWRITE_DEF: &[u8] = include_bytes!("./resources/rewrite.def");
 const FEATURE_DEF: &[u8] = include_bytes!("./resources/feature.def");
 const CORPUS_TXT: &[u8] = include_bytes!("./resources/corpus.txt");
+const USER_CSV: &[u8] = include_bytes!("./resources/user.csv");
 
 #[test]
 fn test_lexicon_format() {
@@ -26,8 +27,10 @@ fn test_lexicon_format() {
     let mut lex = vec![];
     let mut matrix = vec![];
     let mut unk = vec![];
-    trainer
-        .train(corpus, &mut lex, &mut matrix, &mut unk)
+    let mut user_lex = vec![];
+    let mut model = trainer.train(corpus).unwrap();
+    model
+        .write_dictionary(&mut lex, &mut matrix, &mut unk, &mut user_lex)
         .unwrap();
 
     // Retrieves the number of right and left connection IDs.
@@ -79,8 +82,10 @@ fn test_unk_format() {
     let mut lex = vec![];
     let mut matrix = vec![];
     let mut unk = vec![];
-    trainer
-        .train(corpus, &mut lex, &mut matrix, &mut unk)
+    let mut user_lex = vec![];
+    let mut model = trainer.train(corpus).unwrap();
+    model
+        .write_dictionary(&mut lex, &mut matrix, &mut unk, &mut user_lex)
         .unwrap();
 
     // Retrieves the number of right and left connection IDs.
@@ -150,8 +155,10 @@ fn test_matrix_format() {
     let mut lex = vec![];
     let mut matrix = vec![];
     let mut unk = vec![];
-    trainer
-        .train(corpus, &mut lex, &mut matrix, &mut unk)
+    let mut user_lex = vec![];
+    let mut model = trainer.train(corpus).unwrap();
+    model
+        .write_dictionary(&mut lex, &mut matrix, &mut unk, &mut user_lex)
         .unwrap();
 
     let mut matrix_it = matrix.lines();
@@ -175,5 +182,61 @@ fn test_matrix_format() {
         assert!(spl.next().unwrap().parse::<usize>().unwrap() < left_len);
         assert!(spl.next().unwrap().parse::<i16>().is_ok());
         assert!(spl.next().is_none());
+    }
+}
+
+#[test]
+fn test_user_lex_format() {
+    let config = TrainerConfig::from_readers(
+        TRAIN_LEX_CSV,
+        CHAR_DEF,
+        TRAIN_UNK_DEF,
+        FEATURE_DEF,
+        REWRITE_DEF,
+    )
+    .unwrap();
+    let corpus = Corpus::from_reader(CORPUS_TXT).unwrap();
+    let trainer = Trainer::new(config).unwrap().max_iter(5);
+
+    let mut lex = vec![];
+    let mut matrix = vec![];
+    let mut unk = vec![];
+    let mut user_lex = vec![];
+    let mut model = trainer.train(corpus).unwrap();
+
+    model.read_user_lexicon(USER_CSV).unwrap();
+
+    model
+        .write_dictionary(&mut lex, &mut matrix, &mut unk, &mut user_lex)
+        .unwrap();
+
+    let result_user_lines: Vec<String> = user_lex.lines().map(|line| line.unwrap()).collect();
+
+    // Checks the number of lines
+    assert_eq!(result_user_lines.len(), 3);
+
+    {
+        let result_row = utils::parse_csv_row(&result_user_lines[0]);
+        assert_eq!(result_row[0], "京都東京都");
+        assert_eq!(result_row[1].parse::<usize>().unwrap(), 6);
+        assert_eq!(result_row[2].parse::<usize>().unwrap(), 8);
+        assert_eq!(result_row[3].parse::<i16>().unwrap(), -1000);
+        assert_eq!(result_row[4..], ["カスタム名詞"]);
+    }
+    {
+        let result_row = utils::parse_csv_row(&result_user_lines[1]);
+        assert_eq!(result_row[0], "kampersanda");
+        assert_eq!(result_row[1].parse::<usize>().unwrap(), 7);
+        assert_eq!(result_row[2].parse::<usize>().unwrap(), 7);
+        assert_eq!(result_row[3].parse::<i16>().unwrap(), -2000);
+        assert_eq!(result_row[4..], ["カスタム名詞"]);
+    }
+    {
+        let result_row = utils::parse_csv_row(&result_user_lines[2]);
+        assert_eq!(result_row[0], "ヴェネツィア");
+        assert_ne!(result_row[1].parse::<usize>().unwrap(), 0);
+        assert_ne!(result_row[2].parse::<usize>().unwrap(), 0);
+        assert!(result_row[3].parse::<i16>().is_ok());
+        assert_eq!(result_row[4..], ["名詞", "固有名詞", "地名", "一般"]);
     }
 }

@@ -1,29 +1,34 @@
-use hashbrown::HashSet;
+use std::collections::HashSet;
+
+use bincode::{Decode, Encode};
 use regex::Regex;
 
-#[derive(Eq, PartialEq)]
+#[derive(Eq, PartialEq, Decode, Encode)]
 enum Pattern {
     Any,
     Exact(String),
     Multiple(HashSet<String>),
 }
 
+#[derive(Decode, Encode)]
 enum Rewrite {
     Reference(usize),
     Text(String),
 }
 
+#[derive(Decode, Encode)]
 struct Edge {
     pattern: Pattern,
     target: usize,
 }
 
+#[derive(Decode, Encode)]
 enum Action {
     Transition(Edge),
     Rewrite(Vec<Rewrite>),
 }
 
-#[derive(Default)]
+#[derive(Default, Decode, Encode)]
 struct Node {
     actions: Vec<Action>,
 }
@@ -98,6 +103,7 @@ impl FeatureRewriterBuilder {
 }
 
 /// Rewriter that maintains rewrite patterns and rules in a prefix trie.
+#[derive(Decode, Encode)]
 pub struct FeatureRewriter {
     nodes: Vec<Node>,
 }
