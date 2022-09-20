@@ -426,11 +426,11 @@ impl Trainer {
                 .unigram_feature_ids
                 .get(k)
                 .unwrap();
-            if model.unigram_feature_ids()[usize::from_u32(id.get() - 1)].is_none() {
+            if model.unigram_weight_indices()[usize::from_u32(id.get() - 1)].is_none() {
                 self.config.feature_extractor.unigram_feature_ids.remove(k);
             }
         }
-        for feature_ids in model.bigram_feature_ids() {
+        for feature_ids in model.bigram_weight_indices() {
             for (feature_id, _) in feature_ids {
                 used_right_features.insert(*feature_id);
             }
@@ -442,7 +442,7 @@ impl Trainer {
                 .left_feature_ids
                 .get(k)
                 .unwrap();
-            if model.bigram_feature_ids()[usize::from_u32(id.get())].is_empty() {
+            if model.bigram_weight_indices()[usize::from_u32(id.get())].is_empty() {
                 self.config.feature_extractor.left_feature_ids.remove(k);
             }
         }
