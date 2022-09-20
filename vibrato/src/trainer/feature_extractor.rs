@@ -26,7 +26,7 @@ pub struct FeatureExtractor {
     pub unigram_feature_ids: HashMap<String, NonZeroU32>,
     pub left_feature_ids: HashMap<String, NonZeroU32>,
     pub right_feature_ids: HashMap<String, NonZeroU32>,
-    unigram_next_id: u32,
+    pub unigram_next_id: u32,
     left_next_id: u32,
     right_next_id: u32,
     unigram_templates: Vec<ParsedTemplate>,
