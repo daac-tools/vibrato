@@ -479,7 +479,8 @@ struct ModelData {
 pub struct Model {
     data: ModelData,
 
-    // This field is filled if necessary.
+    // This field is not filled in by default for processing efficiency. The data is pre-computed
+    // in `write_used_features()` and `write_dictionary()` and shared throughout the structure.
     merged_model: Option<rucrf::MergedModel>,
 
     user_entries: Vec<(Word, WordParam)>,
