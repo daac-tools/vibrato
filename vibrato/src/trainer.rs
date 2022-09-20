@@ -548,7 +548,7 @@ impl Model {
     ///
     /// [`VibratoError`](crate::errors::VibratoError) is returned when:
     ///
-    /// - the merging weights fails, or
+    /// - merging weights fails, or
     /// - the writing fails.
     pub fn write_used_features<L, R>(&mut self, left_wtr: L, right_wtr: R) -> Result<()>
     where
@@ -613,14 +613,14 @@ impl Model {
     /// * `lexicon_wtr` - Write sink targetting `lex.csv`.
     /// * `connector_wtr` - Write sink targetting `matrix.def`.
     /// * `unk_handler_wtr` - Write sink targetting `unk.def`.
-    /// * `user_lexicon_wtr` - Write sink targetting `user.csv`. If no user-defined lexicon file is
-    ///                        specified, this function generates an empty file.
+    /// * `user_lexicon_wtr` - Write sink targetting `user.csv`. Set a dummy argument if no user-defined
+    ///                        lexicon file is specified.
     ///
     /// # Errors
     ///
     /// [`VibratoError`](crate::errors::VibratoError) is returned when:
     ///
-    /// - the merging weights fails, or
+    /// - merging weights fails, or
     /// - the writing fails.
     pub fn write_dictionary<L, C, U, S>(
         &mut self,
