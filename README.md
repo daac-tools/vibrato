@@ -6,6 +6,8 @@
 
 Vibrato is a fast implementation of tokenization (or morphological analysis) based on the Viterbi algorithm.
 
+The technical ideas behind this library appear in [this blog post](https://tech.legalforce.co.jp/entry/2022/09/20/133132).
+
 ## Features
 
 ### Fast tokenization
