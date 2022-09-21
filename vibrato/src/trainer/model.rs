@@ -1,6 +1,7 @@
 use std::io::{BufWriter, Read, Write};
 
 use bincode::{Decode, Encode};
+use hashbrown::HashMap;
 
 use crate::common;
 use crate::dictionary::lexicon::Lexicon;
@@ -105,22 +106,20 @@ impl Model {
         }
         let merged_model = self.merged_model.as_ref().unwrap();
 
+        let feature_extractor = &self.data.config.feature_extractor;
+
         // left
-        let mut left_wtr = BufWriter::new(left_wtr);
-        let mut left_features: Vec<_> = self
-            .data
-            .config
-            .feature_extractor
-            .left_feature_ids()
-            .iter()
-            .collect();
-        left_features.sort_unstable_by_key(|(_, v)| **v);
+        let mut left_features = HashMap::new();
+        for (feature, idx) in feature_extractor.left_feature_ids().iter() {
+            left_features.insert(idx.get(), feature);
+        }
         let feature_list = &merged_model.left_conn_to_right_feats;
+        let mut left_wtr = BufWriter::new(left_wtr);
         for (conn_id, feat_ids) in feature_list[..feature_list.len() - 1].iter().enumerate() {
             write!(&mut left_wtr, "{}", conn_id + 1)?;
             for (i, feat_id) in feat_ids.iter().enumerate() {
                 if let Some(feat_id) = feat_id {
-                    let feat_str = &left_features[usize::from_u32(feat_id.get()) - 1].0;
+                    let feat_str = left_features.get(&feat_id.get()).unwrap();
                     write!(&mut left_wtr, " {i}:{feat_str}")?;
                 }
             }
@@ -128,21 +127,17 @@ impl Model {
         }
 
         // right
-        let mut right_wtr = BufWriter::new(right_wtr);
-        let mut right_features: Vec<_> = self
-            .data
-            .config
-            .feature_extractor
-            .right_feature_ids()
-            .iter()
-            .collect();
-        right_features.sort_unstable_by_key(|(_, v)| **v);
+        let mut right_features = HashMap::new();
+        for (feature, idx) in feature_extractor.right_feature_ids().iter() {
+            right_features.insert(idx.get(), feature);
+        }
         let feature_list = &merged_model.right_conn_to_left_feats;
+        let mut right_wtr = BufWriter::new(right_wtr);
         for (conn_id, feat_ids) in feature_list[..feature_list.len() - 1].iter().enumerate() {
             write!(&mut right_wtr, "{}", conn_id + 1)?;
             for (i, feat_id) in feat_ids.iter().enumerate() {
                 if let Some(feat_id) = feat_id {
-                    let feat_str = &right_features[usize::from_u32(feat_id.get()) - 1].0;
+                    let feat_str = right_features.get(&feat_id.get()).unwrap();
                     write!(&mut right_wtr, " {i}:{feat_str}")?;
                 }
             }
