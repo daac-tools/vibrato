@@ -81,8 +81,10 @@ impl Corpus {
                     for token in &tokens {
                         input.push_str(token.surface());
                     }
-                    sentence.set_sentence(input);
-                    examples.push(Example { sentence, tokens });
+                    if !input.is_empty() {
+                        sentence.set_sentence(input);
+                        examples.push(Example { sentence, tokens });
+                    }
                     tokens = vec![];
                 }
                 _ => {

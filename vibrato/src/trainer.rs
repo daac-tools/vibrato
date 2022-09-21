@@ -104,6 +104,7 @@ pub struct Trainer {
     // It maps F to a hash table that maps the first character of W to X.
     label_id_map: HashMap<String, HashMap<char, NonZeroU32>>,
 
+    label_id_map_unk: Vec<NonZeroU32>,
     regularization_cost: f64,
     max_iter: u64,
     num_threads: usize,
@@ -149,6 +150,8 @@ impl Trainer {
     pub fn new(mut config: TrainerConfig) -> Result<Self> {
         let mut provider = FeatureProvider::default();
         let mut label_id_map = HashMap::new();
+        let mut label_id_map_unk = vec![];
+
         for word_id in 0..u32::try_from(config.surfaces.len()).unwrap() {
             let word_idx = WordIdx::new(LexType::System, word_id);
             let feature_str = config.dict.system_lexicon().word_feature(word_idx);
@@ -185,7 +188,7 @@ impl Trainer {
                 feature_str,
                 cate_id,
             );
-            provider.add_feature_set(feature_set)?;
+            label_id_map_unk.push(provider.add_feature_set(feature_set)?);
         }
 
         Ok(Self {
@@ -193,6 +196,7 @@ impl Trainer {
             max_grouping_len: None,
             provider,
             label_id_map,
+            label_id_map_unk,
             regularization_cost: 0.01,
             max_iter: 100,
             num_threads: 1,
@@ -258,16 +262,11 @@ impl Trainer {
         self
     }
 
-    fn build_lattice(&self, example: &Example) -> Lattice {
+    fn build_lattice(&mut self, example: &Example) -> Result<Lattice> {
         let Example { sentence, tokens } = example;
 
         let input_chars = sentence.chars();
         let input_len = sentence.len_char();
-
-        let virtual_edge_label =
-            NonZeroU32::new(u32::try_from(self.provider.len()).unwrap() + 1).unwrap();
-        let unk_label_offset =
-            NonZeroU32::new(u32::try_from(self.config.surfaces.len() + 1).unwrap()).unwrap();
 
         // Add positive edges
         // 1. If the word is found in the dictionary, add the edge as it is.
@@ -284,6 +283,7 @@ impl Trainer {
                 .get(token.feature())
                 .and_then(|hm| hm.get(&first_char))
                 .cloned()
+                .map(Ok)
                 .unwrap_or_else(|| {
                     self.config
                         .dict
@@ -301,13 +301,14 @@ impl Trainer {
                                     token.surface(),
                                     token.feature()
                                 );
-                                virtual_edge_label
+                                self.provider
+                                    .add_feature_set(FeatureSet::new(&[], &[], &[]))
                             },
                             |unk_index| {
-                                NonZeroU32::new(unk_label_offset.get() + unk_index.word_id).unwrap()
+                                Ok(self.label_id_map_unk[usize::from_u32(unk_index.word_id)])
                             },
                         )
-                });
+                })?;
             edges.push((pos, Edge::new(pos + len, label_id)));
             pos += len;
         }
@@ -367,7 +368,7 @@ impl Trainer {
             );
         }
 
-        lattice
+        Ok(lattice)
     }
 
     /// Starts training and returns a model.
@@ -384,7 +385,7 @@ impl Trainer {
         let mut lattices = vec![];
         for example in &mut corpus.examples {
             example.sentence.compile(self.config.dict.char_prop())?;
-            lattices.push(self.build_lattice(example));
+            lattices.push(self.build_lattice(example)?);
         }
 
         let trainer = rucrf::Trainer::new()
