@@ -109,9 +109,9 @@ impl Model {
         let feature_extractor = &self.data.config.feature_extractor;
 
         // left
-        let mut left_features = HashMap::new();
-        for (feature, idx) in feature_extractor.left_feature_ids().iter() {
-            left_features.insert(idx.get(), feature);
+        let mut right_features = HashMap::new();
+        for (feature, idx) in feature_extractor.right_feature_ids().iter() {
+            right_features.insert(idx.get(), feature);
         }
         let feature_list = &merged_model.left_conn_to_right_feats;
         let mut left_wtr = BufWriter::new(left_wtr);
@@ -119,7 +119,7 @@ impl Model {
             write!(&mut left_wtr, "{}", conn_id + 1)?;
             for (i, feat_id) in feat_ids.iter().enumerate() {
                 if let Some(feat_id) = feat_id {
-                    let feat_str = left_features.get(&feat_id.get()).unwrap();
+                    let feat_str = right_features.get(&feat_id.get()).unwrap();
                     write!(&mut left_wtr, " {i}:{feat_str}")?;
                 }
             }
@@ -127,9 +127,9 @@ impl Model {
         }
 
         // right
-        let mut right_features = HashMap::new();
-        for (feature, idx) in feature_extractor.right_feature_ids().iter() {
-            right_features.insert(idx.get(), feature);
+        let mut left_features = HashMap::new();
+        for (feature, idx) in feature_extractor.left_feature_ids().iter() {
+            left_features.insert(idx.get(), feature);
         }
         let feature_list = &merged_model.right_conn_to_left_feats;
         let mut right_wtr = BufWriter::new(right_wtr);
@@ -137,7 +137,7 @@ impl Model {
             write!(&mut right_wtr, "{}", conn_id + 1)?;
             for (i, feat_id) in feat_ids.iter().enumerate() {
                 if let Some(feat_id) = feat_id {
-                    let feat_str = right_features.get(&feat_id.get()).unwrap();
+                    let feat_str = left_features.get(&feat_id.get()).unwrap();
                     write!(&mut right_wtr, " {i}:{feat_str}")?;
                 }
             }
