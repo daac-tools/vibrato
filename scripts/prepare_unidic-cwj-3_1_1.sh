@@ -7,7 +7,7 @@ type unzip
 type sort
 type openssl
 
-corpus_name="unidic-cwj-3_1_0"
+corpus_name="unidic-cwj-3_1_1"
 resources_dir="resources_${corpus_name}"
 
 if [ -d ${resources_dir} ]; then
@@ -16,21 +16,21 @@ if [ -d ${resources_dir} ]; then
 fi
 
 # Builds the system dictionary.
-wget --timeout 3 -t 10 "https://clrd.ninjal.ac.jp/unidic_archive/cwj/3.1.0/unidic-cwj-3.1.0-full.zip" -O "./unidic-cwj-3.1.0-full.zip" --no-check-certificate
+wget --timeout 3 -t 10 "https://clrd.ninjal.ac.jp/unidic_archive/cwj/3.1.1/unidic-cwj-3.1.1-full.zip" -O "./unidic-cwj-3.1.1-full.zip" --no-check-certificate
 if [ $? -ne 0 ]; then
   echo "[ERROR] Failed to download the resource. Please retry later."
   exit 1
 fi
-unzip unidic-cwj-3.1.0-full.zip
+unzip unidic-cwj-3.1.1-full.zip
 
 mkdir ${resources_dir}
-env LC_ALL=C cat unidic-cwj-3.1.0-full/lex_3_1.csv | sort > ${resources_dir}/lex.csv
-mv unidic-cwj-3.1.0-full/char.def ${resources_dir}/
-mv unidic-cwj-3.1.0-full/unk.def ${resources_dir}/
-mv unidic-cwj-3.1.0-full/matrix.def ${resources_dir}/
+env LC_ALL=C cat unidic-cwj-3.1.1-full/lex_3_1.csv | sort > ${resources_dir}/lex.csv
+mv unidic-cwj-3.1.1-full/char.def ${resources_dir}/
+mv unidic-cwj-3.1.1-full/unk.def ${resources_dir}/
+mv unidic-cwj-3.1.1-full/matrix.def ${resources_dir}/
 
-rm -rf unidic-cwj-3.1.0-full
-rm -f unidic-cwj-3.1.0-full.zip
+rm -rf unidic-cwj-3.1.1-full
+rm -f unidic-cwj-3.1.1-full.zip
 
 cargo run --release -p prepare --bin system -- -r ${resources_dir} -o ${resources_dir}/system.dic
 

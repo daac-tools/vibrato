@@ -12,11 +12,11 @@ Cargo.lock
 resources_ipadic-mecab-2_7_0/
 resources_ipadic-mecab-neologd-20200910/
 resources_unidic-mecab-2_1_2/
-resources_unidic-cwj-3_1_0/
+resources_unidic-cwj-3_1_1/
 
 dev-resources_ipadic-mecab-2_7_0/
 dev-resources_unidic-mecab-2_1_2/
-dev-resources_unidic-cwj-3_1_0/
+dev-resources_unidic-cwj-3_1_1/
 
 mecab-ipadic-2.7.0-20070801/
 mecab-ipadic-2.7.0-20070801.tar.gz
