@@ -301,7 +301,8 @@ impl Trainer {
                                     token.surface(),
                                     token.feature()
                                 );
-                                self.provider.add_feature_set(FeatureSet::new(&[], &[], &[]))
+                                self.provider
+                                    .add_feature_set(FeatureSet::new(&[], &[], &[]))
                             },
                             |unk_index| {
                                 Ok(self.label_id_map_unk[usize::from_u32(unk_index.word_id)])
