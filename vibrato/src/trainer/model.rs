@@ -12,7 +12,6 @@ pub use crate::trainer::config::TrainerConfig;
 pub use crate::trainer::corpus::Corpus;
 use crate::trainer::corpus::Word;
 pub use crate::trainer::Trainer;
-use crate::utils::FromU32;
 
 #[derive(Decode, Encode)]
 pub struct ModelData {
