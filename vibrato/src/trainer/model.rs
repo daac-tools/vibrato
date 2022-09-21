@@ -199,17 +199,14 @@ impl Model {
         }
         let weight_scale_factor = f64::from(i16::MAX) / weight_abs_max;
 
-        for i in 0..self.data.config.surfaces.len() {
+        let config = &self.data.config;
+
+        for i in 0..config.surfaces.len() {
             let mut writer = csv_core::Writer::new();
-            let mut surface = self.data.config.surfaces[i].as_bytes();
+            let mut surface = config.surfaces[i].as_bytes();
             let feature_set = merged_model.feature_sets[i];
             let word_idx = WordIdx::new(LexType::System, u32::try_from(i).unwrap());
-            let feature = self
-                .data
-                .config
-                .dict
-                .system_lexicon()
-                .word_feature(word_idx);
+            let feature = config.dict.system_lexicon().word_feature(word_idx);
 
             // writes surface
             loop {
@@ -235,18 +232,16 @@ impl Model {
             )?;
         }
 
-        for i in 0..self.data.config.dict.unk_handler().len() {
+        for i in 0..config.dict.unk_handler().len() {
             let word_idx = WordIdx::new(LexType::Unknown, u32::try_from(i).unwrap());
-            let cate_id = self.data.config.dict.unk_handler().word_cate_id(word_idx);
-            let feature = self.data.config.dict.unk_handler().word_feature(word_idx);
-            let cate_string = self
-                .data
-                .config
+            let cate_id = config.dict.unk_handler().word_cate_id(word_idx);
+            let feature = config.dict.unk_handler().word_feature(word_idx);
+            let cate_string = config
                 .dict
                 .char_prop()
                 .cate_str(u32::from(cate_id))
                 .unwrap();
-            let feature_set = merged_model.feature_sets[self.data.config.surfaces.len() + i];
+            let feature_set = merged_model.feature_sets[config.surfaces.len() + i];
             writeln!(
                 &mut unk_handler_wtr,
                 "{},{},{},{},{}",
@@ -281,7 +276,7 @@ impl Model {
         for (i, (word, param)) in self.user_entries.iter().enumerate() {
             let mut writer = csv_core::Writer::new();
             let feature_set = merged_model.feature_sets
-                [self.data.config.surfaces.len() + self.data.config.dict.unk_handler().len() + i];
+                [config.surfaces.len() + config.dict.unk_handler().len() + i];
 
             // writes surface
             let mut surface = word.surface().as_bytes();
