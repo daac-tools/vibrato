@@ -1,4 +1,5 @@
 use std::io::{BufWriter, Read, Write};
+use std::num::NonZeroU32;
 
 use bincode::{Decode, Encode};
 use hashbrown::HashMap;
@@ -12,6 +13,7 @@ pub use crate::trainer::config::TrainerConfig;
 pub use crate::trainer::corpus::Corpus;
 use crate::trainer::corpus::Word;
 pub use crate::trainer::Trainer;
+use crate::utils::FromU32;
 
 #[derive(Decode, Encode)]
 pub struct ModelData {
@@ -27,7 +29,7 @@ pub struct Model {
     // in `write_used_features()` and `write_dictionary()` and shared throughout the structure.
     pub(crate) merged_model: Option<rucrf::MergedModel>,
 
-    pub(crate) user_entries: Vec<(Word, WordParam)>,
+    pub(crate) user_entries: Vec<(Word, WordParam, NonZeroU32)>,
 }
 
 impl Model {
@@ -70,13 +72,13 @@ impl Model {
                 entry.feature,
                 cate_id,
             );
-            self.data
+            let label_id = self.data
                 .raw_model
                 .feature_provider()
                 .add_feature_set(feature_set)?;
 
             self.user_entries
-                .push((Word::new(&entry.surface, entry.feature), entry.param));
+                .push((Word::new(&entry.surface, entry.feature), entry.param, label_id));
         }
 
         Ok(())
@@ -272,10 +274,9 @@ impl Model {
             }
         }
 
-        for (i, (word, param)) in self.user_entries.iter().enumerate() {
+        for (word, param, label_id) in &self.user_entries {
             let mut writer = csv_core::Writer::new();
-            let feature_set = merged_model.feature_sets
-                [config.surfaces.len() + config.dict.unk_handler().len() + i];
+            let feature_set = merged_model.feature_sets[usize::from_u32(label_id.get() - 1)];
 
             // writes surface
             let mut surface = word.surface().as_bytes();
