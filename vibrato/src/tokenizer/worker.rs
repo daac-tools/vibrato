@@ -80,7 +80,7 @@ impl<'a> Worker<'a> {
         TokenIter::new(self, 0)
     }
 
-    /// Initializes a counter to count occurrence probabilities of connection ids.
+    /// Initializes a counter to compute occurrence probabilities of connection ids.
     pub fn init_connid_counter(&mut self) {
         let connector = self.tokenizer.dictionary().connector();
         self.counter = Some(ConnIdCounter::new(
@@ -99,7 +99,7 @@ impl<'a> Worker<'a> {
             .add_connid_counts(self.counter.as_mut().unwrap());
     }
 
-    /// Computes the counted occurrence probabilities of connection ids,
+    /// Computes the computed occurrence probabilities of connection ids,
     /// returning those for left- and right-ids.
     ///
     /// # Panics

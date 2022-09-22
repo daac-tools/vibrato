@@ -97,7 +97,8 @@ $ echo '本とカレーの街神保町へようこそ。' | cargo run --release 
 ### 3. Training
 
 Vibrato also supports training a dictionary.
-To train a dictionary, you must prepare at least the following six files:
+To train a dictionary, you must prepare at least the following six files,
+in the same format as [MeCab](https://taku910.github.io/mecab/learn.html).
 
 * `corpus.txt`: Corpus file to be trained. The format is the same as the output of the tokenize command of Vibrato.
                 The contents of the feature columns must match exactly with the columns of the lexicon file.
@@ -114,8 +115,8 @@ Execute the following command to start the training process (Replace file names 
 ```
 $ cargo run --release -p train -- \
     -t ./dataset/corpus.txt \
-    -l ./dataset/train_seed.csv \
-    -u ./dataset/train_seed.def \
+    -l ./dataset/train_lex.csv \
+    -u ./dataset/train_unk.def \
     -c ./dataset/char.def \
     -f ./dataset/feature.def \
     -r ./dataset/rewrite.def \
@@ -127,9 +128,10 @@ See the `--help` message for more details.
 
 When training is complete, the model is output to `./modeldata.zst`.
 
-Next, run the following command to generate a set of dictionary files from the model:
+Next, run the following commands to generate a set of dictionary files from the model:
 
 ```
+$ mkdir mydict # Prepare the output directly
 $ cargo run --release -p dictgen -- \
     -i ./modeldata.zst \
     -l ./mydict/lex.csv \
@@ -140,6 +142,8 @@ $ cargo run --release -p dictgen -- \
 Optionally, you can specify a user-defined dictionary to the `dictgen` command to automatically give connection IDs and weights.
 See the `--help` message for more details.
 
+After copying `dataset/char.def` to `mydict`, you can compile your system dictionary
+following the [documentation](https://github.com/daac-tools/vibrato/blob/train-cmd/prepare/README.md).
 ## MeCab-compatible options
 
 Vibrato is a reimplementation of the MeCab algorithm,

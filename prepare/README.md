@@ -27,11 +27,16 @@ This command requires the four files, `lex.csv`, `matrix.def`, `char.def`, and `
 
 Vibrato supports faster tokenization by improving the locality of reference through mapping connection ids.
 
-To tokenize sentences in `reorder.txt` and reorder the mapping,
+The reordering steps consist of
+1. computing statistics from training data of sentences,
+2. producing the reordered mapping, and
+3. editing the system dictionary with the reordered mapping.
+
+To produce the reordered mapping from sentences in `train.txt`,
 run the following command.
 
 ```
-$ cargo run --release --bin reorder -- -i system.dic -o reordered < reorder.txt
+$ cargo run --release --bin reorder -- -i system.dic -o reordered < train.txt
 ```
 
 The two files, `reordered.lmap` and `reordered.rmap`, will be produced.
