@@ -1,4 +1,3 @@
-use std::ffi::OsStr;
 use std::fs::File;
 use std::path::PathBuf;
 
@@ -69,18 +68,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     if let Some(path) = args.conn_id_info_out {
-        let ext = path
-            .extension()
-            .unwrap_or_else(|| OsStr::new(""))
-            .to_os_string();
-        let mut left_ext = ext.clone();
-        let mut right_ext = ext;
-        left_ext.push(".left");
-        right_ext.push(".right");
-        let mut left_path = path.clone();
-        let mut right_path = path;
-        left_path.set_extension(left_ext);
-        right_path.set_extension(right_ext);
+        let ext = path.as_os_str().to_os_string();
+        let mut left_path = ext.clone();
+        let mut right_path = ext;
+        left_path.push(".left");
+        right_path.push(".right");
         let left_wtr = File::create(left_path)?;
         let right_wtr = File::create(right_path)?;
         model.write_used_features(left_wtr, right_wtr)?;
