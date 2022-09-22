@@ -143,7 +143,8 @@ Optionally, you can specify a user-defined dictionary to the `dictgen` command t
 See the `--help` message for more details.
 
 After copying `dataset/char.def` to `mydict`, you can compile your system dictionary
-following the [documentation](https://github.com/daac-tools/vibrato/blob/train-cmd/prepare/README.md).
+following the [documentation](./prepare/README.md).
+
 ## MeCab-compatible options
 
 Vibrato is a reimplementation of the MeCab algorithm,
