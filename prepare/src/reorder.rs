@@ -53,7 +53,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         println!("Wrote {:?}", output_filename);
     }
     {
-        let mut output_filename = args.mapping_out.clone();
+        let mut output_filename = args.mapping_out;
         output_filename.set_extension("rmap");
         let mut w = BufWriter::new(File::create(&output_filename).unwrap());
         for (i, p) in rid_probs {
