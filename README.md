@@ -97,8 +97,7 @@ $ echo '本とカレーの街神保町へようこそ。' | cargo run --release 
 ### 3. Training
 
 Vibrato also supports training a dictionary.
-To train a dictionary, you must prepare at least the following six files,
-in the same format as [MeCab](https://taku910.github.io/mecab/learn.html).
+To train a dictionary, you must prepare at least the following six files.
 
 * `corpus.txt`: Corpus file to be trained. The format is the same as the output of the `tokenize` command of Vibrato.
                 The contents of the feature columns must match exactly with the columns of the lexicon file.
@@ -109,7 +108,8 @@ in the same format as [MeCab](https://taku910.github.io/mecab/learn.html).
 * `rewrite.def`: Rewrite rule definition file.
 * `feature.def`: Feature definition file.
 
-You can find an example dataset [here](./vibrato/src/tests/resources).
+The file formats follow those in MeCab (see the [official document](https://taku910.github.io/mecab/learn.html)).
+You can also find an example dataset [here](./vibrato/src/tests/resources).
 
 Execute the following command to start the training process (Replace file names with the actual ones):
 ```
@@ -142,7 +142,7 @@ $ cargo run --release -p dictgen -- \
 Optionally, you can specify a user-defined dictionary to the `dictgen` command to automatically give connection IDs and weights.
 See the `--help` message for more details.
 
-After copying `dataset/char.def` to `mydict`, you can compile your system dictionary
+After copying `dataset/char.def` under `mydict`, you can compile your system dictionary
 following the [documentation](./prepare/README.md).
 
 ## MeCab-compatible options
