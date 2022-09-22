@@ -94,6 +94,50 @@ $ echo '本とカレーの街神保町へようこそ。' | cargo run --release 
 本 と カレー の 街 神保 町 へ ようこそ 。
 ```
 
+### 3. Training
+
+Vibrato also supports training a dictionary.
+To train a dictionary, you must prepare at least the following six files:
+
+* `train.txt`: Corpus file to be trained. The format is the same as the output of the tokenize command of Vibrato.
+* `seed_lex.csv`: Lexicon file to be weighted. All connection IDs and weights must be set to 0.
+* `seed_unk.def`: Unknown word file to be weighted. All connection IDs and weights must be set to 0.
+* `char.def`: Character definition file.
+* `rewrite.def` Rewrite rule definition file.
+* `feature.def`: Feature definition file.
+
+You can find example dataset [here](./vibrato/src/tests/resources).
+
+Execute the following command to start the training process (Replace file names with the actual ones):
+```
+$ cargo run --release -p train -- \
+    -l ./dataset/lex_seed.csv \
+    -u ./dataset/unk_seed.def \
+    -t ./dataset/train.txt \
+    -c ./dataset/char.def \
+    -f ./dataset/feature.def \
+    -r ./dataset/rewrite.def \
+    -o ./modeldata.zst
+```
+
+The training command supports multi-threading and changing some parameters.
+See the `--help` message for more details.
+
+When training is complete, the model is output to `./modeldata.zst`.
+
+Next, run the following command to generate a set of dictionary files from the model:
+
+```
+$ cargo run --release -p dictgen -- \
+    -i ./trained/modeldata.zst \
+    -l ./trained/lex.csv \
+    -u ./trained/unk.def \
+    -m ./trained/matrix.def
+```
+
+Optionally, you can specify a user-defined dictionary to the `dictgen` command to give connection IDs and weights automatically.
+See the `--help` message for more details.
+
 ## MeCab-compatible options
 
 Vibrato is a reimplementation of the MeCab algorithm,

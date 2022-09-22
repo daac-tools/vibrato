@@ -19,7 +19,8 @@ struct Args {
     #[clap(short = 'u', long)]
     seed_unk: PathBuf,
 
-    /// Corpus file to be trained. The format is the same as the tokenize command of Vibrato.
+    /// Corpus file to be trained. The format is the same as the output of the tokenize command of
+    /// Vibrato.
     #[clap(short = 't', long)]
     corpus: PathBuf,
 
