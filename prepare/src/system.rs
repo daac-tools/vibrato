@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::fs::File;
 use std::io::BufWriter;
+use std::path::PathBuf;
 use std::time::Instant;
 
 use vibrato::dictionary::Dictionary;
@@ -8,38 +9,44 @@ use vibrato::dictionary::Dictionary;
 use clap::Parser;
 
 #[derive(Parser, Debug)]
-#[clap(name = "main", about = "A program.")]
+#[clap(name = "main", about = "A program to compile the system dictionary.")]
 struct Args {
-    #[clap(short = 'r', long)]
-    resource_dirname: String,
+    /// System lexicon file (lex.csv).
+    #[clap(short = 'l', long)]
+    lexicon_in: PathBuf,
 
+    /// Unknown word definition file (unk.def).
+    #[clap(short = 'u', long)]
+    unk_in: PathBuf,
+
+    /// Character definition file (char.def).
+    #[clap(short = 'c', long)]
+    char_def: PathBuf,
+
+    /// A file to which the matrix is input (matrix.def).
+    #[clap(short = 'm', long)]
+    matrix_in: PathBuf,
+
+    /// A file to which the binary dictionary is output.
     #[clap(short = 'o', long)]
-    output_filename: String,
+    sysdic_out: PathBuf,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
-    let sysdic_filename = format!("{}/lex.csv", &args.resource_dirname);
-    let matrix_filename = format!("{}/matrix.def", &args.resource_dirname);
-    let chardef_filename = format!("{}/char.def", &args.resource_dirname);
-    let unkdef_filename = format!("{}/unk.def", &args.resource_dirname);
-
     eprintln!("Compiling the system dictionary...");
     let start = Instant::now();
     let dict = Dictionary::from_readers(
-        File::open(sysdic_filename)?,
-        File::open(matrix_filename)?,
-        File::open(chardef_filename)?,
-        File::open(unkdef_filename)?,
+        File::open(args.lexicon_in)?,
+        File::open(args.matrix_in)?,
+        File::open(args.char_def)?,
+        File::open(args.unk_in)?,
     )?;
     eprintln!("{} seconds", start.elapsed().as_secs_f64());
 
-    eprintln!(
-        "Writting the system dictionary...: {}",
-        &args.output_filename
-    );
-    let num_bytes = dict.write(BufWriter::new(File::create(args.output_filename)?))?;
+    eprintln!("Writting the system dictionary...: {:?}", &args.sysdic_out);
+    let num_bytes = dict.write(BufWriter::new(File::create(args.sysdic_out)?))?;
     eprintln!("{} MiB", num_bytes as f64 / (1024. * 1024.));
 
     Ok(())
