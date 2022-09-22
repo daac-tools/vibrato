@@ -100,7 +100,7 @@ Vibrato also supports training a dictionary.
 To train a dictionary, you must prepare at least the following six files,
 in the same format as [MeCab](https://taku910.github.io/mecab/learn.html).
 
-* `corpus.txt`: Corpus file to be trained. The format is the same as the output of the tokenize command of Vibrato.
+* `corpus.txt`: Corpus file to be trained. The format is the same as the output of the `tokenize` command of Vibrato.
                 The contents of the feature columns must match exactly with the columns of the lexicon file.
                 If it differs even slightly, it is considered an unknown word.
 * `train_lex.csv`: Lexicon file to be weighted. All connection IDs and weights must be set to 0.
