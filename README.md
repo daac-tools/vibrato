@@ -100,6 +100,8 @@ Vibrato also supports training a dictionary.
 To train a dictionary, you must prepare at least the following six files:
 
 * `train.txt`: Corpus file to be trained. The format is the same as the output of the tokenize command of Vibrato.
+               The contents of the feature columns must match exactly with the columns of the lexicon file.
+               If it differs even slightly, it is considered an unknown word.
 * `seed_lex.csv`: Lexicon file to be weighted. All connection IDs and weights must be set to 0.
 * `seed_unk.def`: Unknown word file to be weighted. All connection IDs and weights must be set to 0.
 * `char.def`: Character definition file.
