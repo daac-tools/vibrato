@@ -129,10 +129,10 @@ Next, run the following command to generate a set of dictionary files from the m
 
 ```
 $ cargo run --release -p dictgen -- \
-    -i ./trained/modeldata.zst \
-    -l ./trained/lex.csv \
-    -u ./trained/unk.def \
-    -m ./trained/matrix.def
+    -i ./modeldata.zst \
+    -l ./mydict/lex.csv \
+    -u ./mydict/unk.def \
+    -m ./mydict/matrix.def
 ```
 
 Optionally, you can specify a user-defined dictionary to the `dictgen` command to automatically give connection IDs and weights.
