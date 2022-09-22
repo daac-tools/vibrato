@@ -48,7 +48,7 @@ mv ${target_resources_dir}/char.def ${resources_dir}/char.def
 mv ${target_resources_dir}/unk.def ${resources_dir}/unk.def
 rm -rf ${workspace_dir}
 
-cargo run --release -p prepare --bin system -- -r ${resources_dir} -o ${resources_dir}/system.dic
+cargo run --release -p prepare --bin system -- -l ${resources_dir}/lex.csv -m ${resources_dir}/matrix.def -u ${resources_dir}/unk.def -c ${resources_dir}/char.def -o ${resources_dir}/system.dic
 
 # Trains the mapping
 if [ ! -e kftt-data-1.0.tar.gz ]; then

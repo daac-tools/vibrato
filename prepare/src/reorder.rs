@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
+use std::path::PathBuf;
 
 use vibrato::dictionary::Dictionary;
 use vibrato::Tokenizer;
@@ -8,20 +9,23 @@ use vibrato::Tokenizer;
 use clap::Parser;
 
 #[derive(Parser, Debug)]
-#[clap(name = "main", about = "A program.")]
+#[clap(name = "main", about = "A program to produce reordered mapping.")]
 struct Args {
+    /// System dictionary in binary.
     #[clap(short = 'i', long)]
-    sysdic_filename: String,
+    sysdic_in: PathBuf,
 
+    /// Basename to which the reordered mappings are output.
+    /// Two files *.lmap and *.rmap will be output.
     #[clap(short = 'o', long)]
-    output_basename: String,
+    mapping_out: PathBuf,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     eprintln!("Loading the dictionary...");
-    let reader = BufReader::new(File::open(args.sysdic_filename)?);
+    let reader = BufReader::new(File::open(args.sysdic_in)?);
     let dict = Dictionary::read(reader)?;
 
     eprintln!("Reordering connection id mappings...");
@@ -40,20 +44,22 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     eprintln!("Writting connection id mappings...");
     {
-        let output_filename = format!("{}.lmap", &args.output_basename);
+        let mut output_filename = args.mapping_out.clone();
+        output_filename.set_extension("lmap");
         let mut w = BufWriter::new(File::create(&output_filename).unwrap());
         for (i, p) in lid_probs {
             w.write_all(format!("{}\t{}\n", i, p).as_bytes())?;
         }
-        println!("Wrote {}", output_filename);
+        println!("Wrote {:?}", output_filename);
     }
     {
-        let output_filename = format!("{}.rmap", &args.output_basename);
+        let mut output_filename = args.mapping_out;
+        output_filename.set_extension("rmap");
         let mut w = BufWriter::new(File::create(&output_filename).unwrap());
         for (i, p) in rid_probs {
             w.write_all(format!("{}\t{}\n", i, p).as_bytes())?;
         }
-        println!("Wrote {}", output_filename);
+        println!("Wrote {:?}", output_filename);
     }
 
     Ok(())
