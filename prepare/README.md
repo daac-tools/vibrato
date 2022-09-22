@@ -4,7 +4,7 @@ This workspace provides several tools to compile Vibrato's dictionaries.
 
 ## 1. Compiling system dictionary
 
-You can compile system dictionaries from language resources in the MeCab format.
+You can compile system dictionaries from language resources in the [MeCab format](https://taku910.github.io/mecab/).
 The simplest way is using publicly-available resources such as UniDic or IPADIC.
 
 Here, consider to use `unidic-mecab-2.1.2`.
@@ -18,10 +18,13 @@ To compile the system dictionary from the resource,
 run the following command.
 
 ```
-$ cargo run --release --bin system -- -r unidic-mecab-2.1.2_src -o system.dic
+$ cargo run --release --bin system -- \
+    -l unidic-mecab-2.1.2_src/lex.csv \
+    -m unidic-mecab-2.1.2_src/matrix.def \
+    -u unidic-mecab-2.1.2_src/unk.def \
+    -c unidic-mecab-2.1.2_src/char.def \
+    -o system.dic
 ```
-
-This command requires the four files, `lex.csv`, `matrix.def`, `char.def`, and `unk.def`, to be in the directory specified by `-r`.
 
 ## 2. Reordering mapping of connection ids
 

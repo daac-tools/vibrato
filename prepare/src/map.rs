@@ -1,44 +1,60 @@
 use std::error::Error;
 use std::fs::File;
 use std::io::{prelude::*, BufReader, BufWriter};
+use std::path::PathBuf;
 
 use vibrato::dictionary::Dictionary;
 
 use clap::Parser;
 
 #[derive(Parser, Debug)]
-#[clap(name = "main", about = "A program.")]
+#[clap(
+    name = "main",
+    about = "A program to edit connection ids with the reordered mapping."
+)]
 struct Args {
+    /// System dictionary in binary to be edited.
     #[clap(short = 'i', long)]
-    sysdic_filename: String,
+    sysdic_in: PathBuf,
 
+    /// Basename of files of the reordered mappings.
+    /// Two files *.lmap and *.rmap will be input.
     #[clap(short = 'm', long)]
-    mapping_basename: String,
+    mapping_in: PathBuf,
 
+    /// File to which the edited dictionary is output.
     #[clap(short = 'o', long)]
-    output_filename: String,
+    sysdic_out: PathBuf,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     eprintln!("Loading the dictionary...");
-    let reader = BufReader::new(File::open(args.sysdic_filename)?);
+    let reader = BufReader::new(File::open(args.sysdic_in)?);
     #[cfg(not(feature = "unchecked"))]
     let dict = Dictionary::read(reader)?;
     #[cfg(feature = "unchecked")]
     let dict = unsafe { Dictionary::read_unchecked(reader)? };
 
     eprintln!("Loading and doing the mapping...");
-    let lmap = load_mapping(File::open(format!("{}.lmap", &args.mapping_basename))?)?;
-    let rmap = load_mapping(File::open(format!("{}.rmap", &args.mapping_basename))?)?;
+    let lmap = {
+        let mut filename = args.mapping_in.clone();
+        filename.set_extension("lmap");
+        load_mapping(File::open(filename)?)?
+    };
+    let rmap = {
+        let mut filename = args.mapping_in.clone();
+        filename.set_extension("rmap");
+        load_mapping(File::open(filename)?)?
+    };
     let dict = dict.mapping_from_iter(lmap, rmap)?;
 
     eprintln!(
-        "Writting the mapped system dictionary...: {}",
-        &args.output_filename
+        "Writting the mapped system dictionary...: {:?}",
+        &args.sysdic_out
     );
-    let num_bytes = dict.write(BufWriter::new(File::create(args.output_filename)?))?;
+    let num_bytes = dict.write(BufWriter::new(File::create(args.sysdic_out)?))?;
     eprintln!("{} MiB", num_bytes as f64 / (1024. * 1024.));
 
     Ok(())

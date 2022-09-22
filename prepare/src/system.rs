@@ -15,6 +15,10 @@ struct Args {
     #[clap(short = 'l', long)]
     lexicon_in: PathBuf,
 
+    /// Matrix definition file (matrix.def).
+    #[clap(short = 'm', long)]
+    matrix_in: PathBuf,
+
     /// Unknown word definition file (unk.def).
     #[clap(short = 'u', long)]
     unk_in: PathBuf,
@@ -23,11 +27,7 @@ struct Args {
     #[clap(short = 'c', long)]
     char_def: PathBuf,
 
-    /// A file to which the matrix is input (matrix.def).
-    #[clap(short = 'm', long)]
-    matrix_in: PathBuf,
-
-    /// A file to which the binary dictionary is output.
+    /// File to which the binary dictionary is output.
     #[clap(short = 'o', long)]
     sysdic_out: PathBuf,
 }
