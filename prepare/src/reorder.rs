@@ -24,7 +24,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let reader = BufReader::new(File::open(args.sysdic_filename)?);
     let dict = Dictionary::read(reader)?;
 
-    eprintln!("Training connection id mappings...");
+    eprintln!("Reordering connection id mappings...");
     let tokenizer = Tokenizer::new(dict);
     let mut worker = tokenizer.new_worker();
     worker.init_connid_counter();

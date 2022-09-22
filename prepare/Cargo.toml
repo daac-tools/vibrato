@@ -22,5 +22,5 @@ name = "map"
 path = "src/map.rs"
 
 [[bin]]
-name = "train"
-path = "src/train.rs"
+name = "reorder"
+path = "src/reorder.rs"
