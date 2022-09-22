@@ -34,7 +34,7 @@ impl ConnIdMapper {
 /// Trained occurrence probabilities of connection ids.
 pub type ConnIdProbs = Vec<(usize, f64)>;
 
-/// Counter to train mappings of connection ids.
+/// Counter to reorder mappings of connection ids.
 pub struct ConnIdCounter {
     lid_count: Vec<usize>,
     rid_count: Vec<usize>,
@@ -55,7 +55,7 @@ impl ConnIdCounter {
         self.rid_count[usize::from(right_id)] += num;
     }
 
-    /// Computes the trained probabilities of connection ids.
+    /// Computes the probabilities of connection ids.
     pub fn compute_probs(&self) -> (ConnIdProbs, ConnIdProbs) {
         let lid_count = &self.lid_count;
         let rid_count = &self.rid_count;

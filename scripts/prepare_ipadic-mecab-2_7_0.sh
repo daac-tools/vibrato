@@ -54,7 +54,7 @@ if [ "${tmp_hash}" != "0e1f5a9dc993b7d74ca6a0521232d17ce94c8cb4" ]; then
 fi
 
 tar -xzf kftt-data-1.0.tar.gz
-cargo run --release -p prepare --bin train -- -i ${resources_dir}/system.dic -o ${resources_dir}/kftt < kftt-data-1.0/data/orig/kyoto-train.ja
+cargo run --release -p prepare --bin reorder -- -i ${resources_dir}/system.dic -o ${resources_dir}/kftt < kftt-data-1.0/data/orig/kyoto-train.ja
 rm -rf kftt-data-1.0
 
 # Maps ids

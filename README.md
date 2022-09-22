@@ -94,6 +94,57 @@ $ echo '本とカレーの街神保町へようこそ。' | cargo run --release 
 本 と カレー の 街 神保 町 へ ようこそ 。
 ```
 
+### 3. Training
+
+Vibrato also supports training a dictionary.
+To train a dictionary, you must prepare at least the following six files,
+in the same format as [MeCab](https://taku910.github.io/mecab/learn.html).
+
+* `corpus.txt`: Corpus file to be trained. The format is the same as the output of the `tokenize` command of Vibrato.
+                The contents of the feature columns must match exactly with the columns of the lexicon file.
+                If it differs even slightly, it is considered an unknown word.
+* `train_lex.csv`: Lexicon file to be weighted. All connection IDs and weights must be set to 0.
+* `train_unk.def`: Unknown word file to be weighted. All connection IDs and weights must be set to 0.
+* `char.def`: Character definition file.
+* `rewrite.def`: Rewrite rule definition file.
+* `feature.def`: Feature definition file.
+
+You can find an example dataset [here](./vibrato/src/tests/resources).
+
+Execute the following command to start the training process (Replace file names with the actual ones):
+```
+$ cargo run --release -p train -- \
+    -t ./dataset/corpus.txt \
+    -l ./dataset/train_lex.csv \
+    -u ./dataset/train_unk.def \
+    -c ./dataset/char.def \
+    -f ./dataset/feature.def \
+    -r ./dataset/rewrite.def \
+    -o ./modeldata.zst
+```
+
+The training command supports multi-threading and changing some parameters.
+See the `--help` message for more details.
+
+When training is complete, the model is output to `./modeldata.zst`.
+
+Next, run the following commands to generate a set of dictionary files from the model:
+
+```
+$ mkdir mydict # Prepare the output directly
+$ cargo run --release -p dictgen -- \
+    -i ./modeldata.zst \
+    -l ./mydict/lex.csv \
+    -u ./mydict/unk.def \
+    -m ./mydict/matrix.def
+```
+
+Optionally, you can specify a user-defined dictionary to the `dictgen` command to automatically give connection IDs and weights.
+See the `--help` message for more details.
+
+After copying `dataset/char.def` to `mydict`, you can compile your system dictionary
+following the [documentation](./prepare/README.md).
+
 ## MeCab-compatible options
 
 Vibrato is a reimplementation of the MeCab algorithm,

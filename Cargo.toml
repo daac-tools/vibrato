@@ -4,4 +4,6 @@ members = [
     "prepare",
     "tokenize",
     "benchmark",
+    "train",
+    "dictgen",
 ]
