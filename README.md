@@ -99,11 +99,11 @@ $ echo '本とカレーの街神保町へようこそ。' | cargo run --release 
 Vibrato also supports training a dictionary.
 To train a dictionary, you must prepare at least the following six files:
 
-* `train.txt`: Corpus file to be trained. The format is the same as the output of the tokenize command of Vibrato.
-               The contents of the feature columns must match exactly with the columns of the lexicon file.
-               If it differs even slightly, it is considered an unknown word.
-* `seed_lex.csv`: Lexicon file to be weighted. All connection IDs and weights must be set to 0.
-* `seed_unk.def`: Unknown word file to be weighted. All connection IDs and weights must be set to 0.
+* `corpus.txt`: Corpus file to be trained. The format is the same as the output of the tokenize command of Vibrato.
+                The contents of the feature columns must match exactly with the columns of the lexicon file.
+                If it differs even slightly, it is considered an unknown word.
+* `train_lex.csv`: Lexicon file to be weighted. All connection IDs and weights must be set to 0.
+* `train_unk.def`: Unknown word file to be weighted. All connection IDs and weights must be set to 0.
 * `char.def`: Character definition file.
 * `rewrite.def`: Rewrite rule definition file.
 * `feature.def`: Feature definition file.
@@ -113,9 +113,9 @@ You can find an example dataset [here](./vibrato/src/tests/resources).
 Execute the following command to start the training process (Replace file names with the actual ones):
 ```
 $ cargo run --release -p train -- \
-    -l ./dataset/lex_seed.csv \
-    -u ./dataset/unk_seed.def \
-    -t ./dataset/train.txt \
+    -t ./dataset/corpus.txt \
+    -l ./dataset/train_seed.csv \
+    -u ./dataset/train_seed.def \
     -c ./dataset/char.def \
     -f ./dataset/feature.def \
     -r ./dataset/rewrite.def \
