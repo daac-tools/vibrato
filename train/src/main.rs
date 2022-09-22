@@ -24,7 +24,7 @@ struct Args {
     corpus: PathBuf,
 
     /// Character definition file (char.def).
-    #[clap(short = 'u', long)]
+    #[clap(short = 'c', long)]
     char_def: PathBuf,
 
     /// Feature definition file (feature.def).
