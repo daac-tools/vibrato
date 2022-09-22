@@ -103,10 +103,10 @@ To train a dictionary, you must prepare at least the following six files:
 * `seed_lex.csv`: Lexicon file to be weighted. All connection IDs and weights must be set to 0.
 * `seed_unk.def`: Unknown word file to be weighted. All connection IDs and weights must be set to 0.
 * `char.def`: Character definition file.
-* `rewrite.def` Rewrite rule definition file.
+* `rewrite.def`: Rewrite rule definition file.
 * `feature.def`: Feature definition file.
 
-You can find example dataset [here](./vibrato/src/tests/resources).
+You can find an example dataset [here](./vibrato/src/tests/resources).
 
 Execute the following command to start the training process (Replace file names with the actual ones):
 ```
@@ -135,7 +135,7 @@ $ cargo run --release -p dictgen -- \
     -m ./trained/matrix.def
 ```
 
-Optionally, you can specify a user-defined dictionary to the `dictgen` command to give connection IDs and weights automatically.
+Optionally, you can specify a user-defined dictionary to the `dictgen` command to automatically give connection IDs and weights.
 See the `--help` message for more details.
 
 ## MeCab-compatible options
