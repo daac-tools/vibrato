@@ -25,7 +25,7 @@ struct Args {
 
     /// Character definition file (char.def).
     #[clap(short = 'c', long)]
-    char_def: PathBuf,
+    char_in: PathBuf,
 
     /// File to which the binary dictionary is output.
     #[clap(short = 'o', long)]
@@ -40,7 +40,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let dict = Dictionary::from_readers(
         File::open(args.lexicon_in)?,
         File::open(args.matrix_in)?,
-        File::open(args.char_def)?,
+        File::open(args.char_in)?,
         File::open(args.unk_in)?,
     )?;
     eprintln!("{} seconds", start.elapsed().as_secs_f64());
