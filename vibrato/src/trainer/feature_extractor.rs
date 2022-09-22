@@ -1,4 +1,5 @@
-use std::{num::NonZeroU32, ops::Range};
+use std::num::NonZeroU32;
+use std::ops::Range;
 
 use bincode::{
     de::Decoder,
