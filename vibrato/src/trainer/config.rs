@@ -7,7 +7,10 @@ use bincode::{
     Decode, Encode,
 };
 
+use crate::dictionary::character::CharProperty;
+use crate::dictionary::connector::Connector;
 use crate::dictionary::lexicon::Lexicon;
+use crate::dictionary::unknown::UnkHandler;
 use crate::dictionary::Dictionary;
 use crate::errors::{Result, VibratoError};
 use crate::trainer::feature_extractor::FeatureExtractor;
@@ -183,25 +186,20 @@ impl TrainerConfig {
         F: Read,
         R: Read,
     {
-        // TODO(vbkaisetsu): This function also needs to support loading `dicrc`.
         let feature_extractor = Self::parse_feature_config(feature_templates_rdr)?;
         let (unigram_rewriter, left_rewriter, right_rewriter) =
             Self::parse_rewrite_config(rewrite_rules_rdr)?;
 
         let mut lexicon_data = vec![];
         lexicon_rdr.read_to_end(&mut lexicon_data)?;
+        let lex_entries = Lexicon::parse_csv(&lexicon_data, "lex.csv")?;
+        let connector = Connector::from_reader(b"1 1\n0 0 0".as_slice())?;
+        let char_prop = CharProperty::from_reader(char_prop_rdr)?;
+        let unk_handler = UnkHandler::from_reader(unk_handler_rdr, &char_prop)?;
 
-        let dummy_conn = b"1 1\n0 0 0".as_slice();
-        let dict = Dictionary::from_readers(
-            lexicon_data.as_slice(),
-            dummy_conn,
-            char_prop_rdr,
-            unk_handler_rdr,
-        )?;
-        let surfaces = Lexicon::parse_csv(&lexicon_data, "lex.csv")?
-            .into_iter()
-            .map(|e| e.surface)
-            .collect();
+        let dict = Dictionary::new(&lex_entries, connector, char_prop, unk_handler)?;
+
+        let surfaces = lex_entries.into_iter().map(|e| e.surface).collect();
 
         Ok(Self {
             feature_extractor,

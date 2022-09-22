@@ -8,16 +8,8 @@ use crate::dictionary::lexicon::{
 use crate::errors::{Result, VibratoError};
 
 impl Lexicon {
-    /// Builds a new instance from a lexicon file in the CSV format.
-    pub fn from_reader<R>(mut rdr: R, lex_type: LexType) -> Result<Self>
-    where
-        R: Read,
-    {
-        let mut buf = vec![];
-        rdr.read_to_end(&mut buf)?;
-
-        let entries = Self::parse_csv(&buf, "lex.csv")?;
-
+    /// Builds a new instance from a list of entries.
+    pub fn from_entries(entries: &[RawWordEntry], lex_type: LexType) -> Result<Self> {
         let map = WordMap::new(entries.iter().map(|e| &e.surface))?;
         let params = WordParams::new(entries.iter().map(|e| e.param));
         let features = WordFeatures::new(entries.iter().map(|e| &e.feature));
@@ -28,6 +20,19 @@ impl Lexicon {
             features,
             lex_type,
         })
+    }
+
+    /// Builds a new instance from a lexicon file in the CSV format.
+    pub fn from_reader<R>(mut rdr: R, lex_type: LexType) -> Result<Self>
+    where
+        R: Read,
+    {
+        let mut buf = vec![];
+        rdr.read_to_end(&mut buf)?;
+
+        let entries = Self::parse_csv(&buf, "lex.csv")?;
+
+        Self::from_entries(&entries, lex_type)
     }
 
     pub(crate) fn parse_csv<'a>(

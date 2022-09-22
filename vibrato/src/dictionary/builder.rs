@@ -6,35 +6,16 @@ use crate::dictionary::{
 };
 use crate::errors::{Result, VibratoError};
 
+use super::lexicon::RawWordEntry;
+
 impl Dictionary {
-    /// Creates a new instance from readers in the MeCab format.
-    ///
-    /// # Arguments
-    ///
-    ///  - `system_lexicon_rdr`: A reader of a lexicon file `*.csv`.
-    ///  - `connector_rdr`: A reader of matrix file `matrix.def`.
-    ///  - `char_prop_rdr`: A reader of character definition file `char.def`.
-    ///  - `unk_handler`: A reader of unknown definition file `unk.def`.
-    ///
-    /// # Errors
-    ///
-    /// [`VibratoError`] is returned when an input format is invalid.
-    pub fn from_readers<S, C, P, U>(
-        system_lexicon_rdr: S,
-        connector_rdr: C,
-        char_prop_rdr: P,
-        unk_handler_rdr: U,
-    ) -> Result<Self>
-    where
-        S: Read,
-        C: Read,
-        P: Read,
-        U: Read,
-    {
-        let system_lexicon = Lexicon::from_reader(system_lexicon_rdr, LexType::System)?;
-        let connector = Connector::from_reader(connector_rdr)?;
-        let char_prop = CharProperty::from_reader(char_prop_rdr)?;
-        let unk_handler = UnkHandler::from_reader(unk_handler_rdr, &char_prop)?;
+    pub(crate) fn new(
+        system_word_entries: &[RawWordEntry],
+        connector: Connector,
+        char_prop: CharProperty,
+        unk_handler: UnkHandler,
+    ) -> Result<Self> {
+        let system_lexicon = Lexicon::from_entries(system_word_entries, LexType::System)?;
 
         if !system_lexicon.verify(&connector) {
             return Err(VibratoError::invalid_argument(
@@ -60,6 +41,40 @@ impl Dictionary {
             },
             need_check: false,
         })
+    }
+
+    /// Creates a new instance from readers in the MeCab format.
+    ///
+    /// # Arguments
+    ///
+    ///  - `system_lexicon_rdr`: A reader of a lexicon file `*.csv`.
+    ///  - `connector_rdr`: A reader of matrix file `matrix.def`.
+    ///  - `char_prop_rdr`: A reader of character definition file `char.def`.
+    ///  - `unk_handler`: A reader of unknown definition file `unk.def`.
+    ///
+    /// # Errors
+    ///
+    /// [`VibratoError`] is returned when an input format is invalid.
+    pub fn from_readers<S, C, P, U>(
+        mut system_lexicon_rdr: S,
+        connector_rdr: C,
+        char_prop_rdr: P,
+        unk_handler_rdr: U,
+    ) -> Result<Self>
+    where
+        S: Read,
+        C: Read,
+        P: Read,
+        U: Read,
+    {
+        let mut system_lexicon_buf = vec![];
+        system_lexicon_rdr.read_to_end(&mut system_lexicon_buf)?;
+        let system_word_entries = Lexicon::parse_csv(&system_lexicon_buf, "lex.csv")?;
+        let connector = Connector::from_reader(connector_rdr)?;
+        let char_prop = CharProperty::from_reader(char_prop_rdr)?;
+        let unk_handler = UnkHandler::from_reader(unk_handler_rdr, &char_prop)?;
+
+        Self::new(&system_word_entries, connector, char_prop, unk_handler)
     }
 
     /// Resets the user dictionary from a reader.
