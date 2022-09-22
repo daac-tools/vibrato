@@ -72,13 +72,17 @@ impl Model {
                 entry.feature,
                 cate_id,
             );
-            let label_id = self.data
+            let label_id = self
+                .data
                 .raw_model
                 .feature_provider()
                 .add_feature_set(feature_set)?;
 
-            self.user_entries
-                .push((Word::new(&entry.surface, entry.feature), entry.param, label_id));
+            self.user_entries.push((
+                Word::new(&entry.surface, entry.feature),
+                entry.param,
+                label_id,
+            ));
         }
 
         Ok(())
