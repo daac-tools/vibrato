@@ -1,8 +1,11 @@
 [package]
 name = "vibrato"
-version = "0.1.2"
+version = "0.2.0"
 edition = "2021"
-authors = ["Shunsuke Kanda <shnsk.knd@gmail.com>"]
+authors = [
+    "Shunsuke Kanda <shnsk.knd@gmail.com>",
+    "Koichi Akabe <vbkaisetsu@gmail.com>",
+]
 description = "Vibrato: viterbi-based accelerated tokenizer"
 license = "MIT OR Apache-2.0"
 homepage = "https://github.com/daac-tools/vibrato"
