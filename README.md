@@ -131,7 +131,7 @@ When training is complete, the model is output to `./modeldata.zst`.
 Next, run the following commands to generate a set of dictionary files from the model:
 
 ```
-$ mkdir mydict # Prepare the output directly
+$ mkdir mydict # Prepare the output directory
 $ cargo run --release -p dictgen -- \
     -i ./modeldata.zst \
     -l ./mydict/lex.csv \
