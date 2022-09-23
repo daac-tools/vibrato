@@ -15,7 +15,7 @@ The technical ideas behind this library appear in [this blog post](https://tech.
 Vibrato is a Rust reimplementation of the fast tokenizer [MeCab](https://taku910.github.io/mecab/),
 although its implementation has been simplified and optimized for even faster tokenization.
 Especially for language resources with a large matrix
-(e.g., [`unidic-cwj-3.1.0`](https://clrd.ninjal.ac.jp/unidic/back_number.html#unidic_cwj) with a matrix of 459 MiB),
+(e.g., [`unidic-cwj-3.1.1`](https://clrd.ninjal.ac.jp/unidic/back_number.html#unidic_cwj) with a matrix of 459 MiB),
 Vibrato will run faster thanks to cache-efficient id mappings.
 
 For example, the following figure shows an experimental result of
