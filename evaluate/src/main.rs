@@ -34,8 +34,8 @@ struct Args {
     ///
     /// Specify comma-separated indices starting from 0.
     /// If empty, all features are used.
-    #[clap(long, default_value = "")]
-    feature_indices: String,
+    #[clap(long, use_delimiter(true))]
+    feature_indices: Vec<usize>,
 }
 
 fn parse_csv_row(row: &str) -> Vec<String> {
@@ -61,13 +61,6 @@ fn parse_csv_row(row: &str) -> Vec<String> {
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
-
-    let mut feature_indices: Vec<usize> = vec![];
-    if !args.feature_indices.is_empty() {
-        for i in args.feature_indices.split(',') {
-            feature_indices.push(i.parse()?);
-        }
-    }
 
     eprintln!("Loading the dictionary...");
     let reader = BufReader::new(File::open(args.sysdic_in)?);
@@ -97,11 +90,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             input_str.push_str(token.surface());
             let len = token.surface().chars().count();
             let features = parse_csv_row(token.feature());
-            if feature_indices.is_empty() {
+            if args.feature_indices.is_empty() {
                 refs.insert((start..start + len, features));
             } else {
                 let mut features_chose = vec![];
-                for &i in &feature_indices {
+                for &i in &args.feature_indices {
                     features_chose.push(
                         features
                             .get(i)
@@ -116,11 +109,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         worker.tokenize();
         for token in worker.token_iter() {
             let features = parse_csv_row(token.feature());
-            if feature_indices.is_empty() {
+            if args.feature_indices.is_empty() {
                 syss.insert((token.range_char(), features));
             } else {
                 let mut features_chose = vec![];
-                for &i in &feature_indices {
+                for &i in &args.feature_indices {
                     features_chose.push(
                         features
                             .get(i)
