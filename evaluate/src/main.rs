@@ -102,7 +102,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             } else {
                 let mut features_chose = vec![];
                 for &i in &feature_indices {
-                    features_chose.push(features[i].clone());
+                    features_chose.push(
+                        features
+                            .get(i)
+                            .map_or_else(|| "*".to_string(), |x| x.to_string()),
+                    );
                 }
                 refs.insert((start..start + len, features_chose));
             }
@@ -117,7 +121,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             } else {
                 let mut features_chose = vec![];
                 for &i in &feature_indices {
-                    features_chose.push(features[i].clone());
+                    features_chose.push(
+                        features
+                            .get(i)
+                            .map_or_else(|| "*".to_string(), |x| x.to_string()),
+                    );
                 }
                 syss.insert((token.range_char(), features_chose));
             }
