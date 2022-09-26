@@ -157,6 +157,8 @@ $ cargo run --release -p evaluate --bin split -- \
     -e ./dataset/test.txt
 ```
 
+By default, 80% of the data is split into a training set, 10% into a validation set, and 10% into a test set.
+
 To evaluate the accuracy, run the following command:
 
 ```
