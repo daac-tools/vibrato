@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use std::path::PathBuf;
 use std::str::FromStr;
 
 use vibrato::dictionary::Dictionary;
@@ -31,10 +32,10 @@ impl FromStr for OutputMode {
 #[clap(name = "main", about = "A program.")]
 struct Args {
     #[clap(short = 'i', long)]
-    sysdic_filename: String,
+    sysdic_filename: PathBuf,
 
     #[clap(short = 'u', long)]
-    userlex_csv_filename: Option<String>,
+    userlex_csv_filename: Option<PathBuf>,
 
     #[clap(short = 'O', long, default_value = "mecab")]
     output_mode: OutputMode,
