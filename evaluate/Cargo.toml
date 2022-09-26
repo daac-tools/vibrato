@@ -1,0 +1,15 @@
+[package]
+name = "evaluate"
+version = "0.1.0"
+edition = "2021"
+
+default-run = "evaluate"
+
+[dependencies]
+clap = { version = "3.2.22", features = ["derive"] }  # MIT or Apache-2.0
+vibrato = { path = "../vibrato" }  # MIT or Apache-2.0
+rand = "0.8"  # MIT or Apache-2.0
+
+[[bin]]
+name = "split"
+path = "src/split.rs"

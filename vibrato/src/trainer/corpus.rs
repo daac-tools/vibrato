@@ -1,4 +1,5 @@
-use std::io::{BufRead, BufReader, Read};
+use std::io::{BufRead, BufReader, BufWriter, Read, Write};
+use std::ops::{Deref, DerefMut};
 
 use crate::errors::{Result, VibratoError};
 use crate::sentence::Sentence;
@@ -13,7 +14,7 @@ pub struct Word {
 }
 
 impl Word {
-    pub fn new(surface: &str, feature: &str) -> Self {
+    pub(crate) fn new(surface: &str, feature: &str) -> Self {
         Self {
             surface: surface.to_string(),
             feature: feature.to_string(),
@@ -37,6 +38,26 @@ pub struct Example {
     pub(crate) sentence: Sentence,
 
     pub(crate) tokens: Vec<Word>,
+}
+
+impl Example {
+    /// Write an example to a given sink.
+    pub fn write<W>(&self, wtr: W) -> Result<()>
+    where
+        W: Write,
+    {
+        let mut wtr = BufWriter::new(wtr);
+        for word in &self.tokens {
+            writeln!(&mut wtr, "{}\t{}", word.surface, word.feature)?;
+        }
+        writeln!(&mut wtr, "EOS")?;
+        Ok(())
+    }
+
+    /// Returns a slice of tokens.
+    pub fn tokens(&self) -> &[Word] {
+        &self.tokens
+    }
 }
 
 /// Representation of a corpus.
@@ -97,6 +118,20 @@ impl Corpus {
         }
 
         Ok(Self { examples })
+    }
+}
+
+impl Deref for Corpus {
+    type Target = [Example];
+
+    fn deref(&self) -> &Self::Target {
+        &self.examples
+    }
+}
+
+impl DerefMut for Corpus {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.examples
     }
 }
 

@@ -6,4 +6,5 @@ members = [
     "benchmark",
     "train",
     "dictgen",
+    "evaluate",
 ]
