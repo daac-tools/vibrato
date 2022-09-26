@@ -33,6 +33,7 @@ struct Args {
     /// Index of features used to determine the correctness.
     ///
     /// Specify comma-separated indices starting from 0.
+    /// If empty, all features are used.
     #[clap(long, default_value = "")]
     feature_indices: String,
 }
@@ -62,8 +63,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     let mut feature_indices: Vec<usize> = vec![];
-    for i in args.feature_indices.split(',') {
-        feature_indices.push(i.parse()?);
+    if !feature_indices.is_empty() {
+        for i in args.feature_indices.split(',') {
+            feature_indices.push(i.parse()?);
+        }
     }
 
     eprintln!("Loading the dictionary...");
@@ -94,22 +97,30 @@ fn main() -> Result<(), Box<dyn Error>> {
             input_str.push_str(token.surface());
             let len = token.surface().chars().count();
             let features = parse_csv_row(token.feature());
-            let mut features_chose = vec![];
-            for &i in &feature_indices {
-                features_chose.push(features[i].clone());
+            if feature_indices.is_empty() {
+                refs.insert((start..start + len, features));
+            } else {
+                let mut features_chose = vec![];
+                for &i in &feature_indices {
+                    features_chose.push(features[i].clone());
+                }
+                refs.insert((start..start + len, features_chose));
             }
-            refs.insert((start..start + len, features_chose));
             start += len;
         }
         worker.reset_sentence(input_str)?;
         worker.tokenize();
         for token in worker.token_iter() {
             let features = parse_csv_row(token.feature());
-            let mut features_chose = vec![];
-            for &i in &feature_indices {
-                features_chose.push(features[i].clone());
+            if feature_indices.is_empty() {
+                syss.insert((token.range_char(), features));
+            } else {
+                let mut features_chose = vec![];
+                for &i in &feature_indices {
+                    features_chose.push(features[i].clone());
+                }
+                syss.insert((token.range_char(), features_chose));
             }
-            syss.insert((token.range_char(), features_chose));
         }
         num_ref += refs.len();
         num_sys += syss.len();
