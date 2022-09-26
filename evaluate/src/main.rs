@@ -24,7 +24,7 @@ struct Args {
 
     /// User dictionary.
     #[clap(short = 'u', long)]
-    userlex_csv_in: Option<String>,
+    userlex_csv_in: Option<PathBuf>,
 
     /// Maximum length of unknown words.
     #[clap(short = 'M', long)]
