@@ -4,6 +4,7 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
 
+use csv_core::ReadFieldResult;
 use vibrato::dictionary::Dictionary;
 use vibrato::trainer::Corpus;
 use vibrato::Tokenizer;
@@ -28,10 +29,42 @@ struct Args {
     /// Maximum length of unknown words.
     #[clap(short = 'M', long)]
     max_grouping_len: Option<usize>,
+
+    /// Index of features used to determine the correctness.
+    ///
+    /// Specify comma-separated indices starting from 0.
+    #[clap(long, default_value = "")]
+    feature_indices: String,
+}
+
+fn parse_csv_row(row: &str) -> Vec<String> {
+    let mut features = vec![];
+    let mut rdr = csv_core::Reader::new();
+    let mut bytes = row.as_bytes();
+    let mut output = [0; 4096];
+    loop {
+        let (result, nin, nout) = rdr.read_field(bytes, &mut output);
+        let end = match result {
+            ReadFieldResult::InputEmpty => true,
+            ReadFieldResult::Field { .. } => false,
+            _ => unreachable!(),
+        };
+        features.push(std::str::from_utf8(&output[..nout]).unwrap().to_string());
+        if end {
+            break;
+        }
+        bytes = &bytes[nin..];
+    }
+    features
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
+
+    let mut feature_indices: Vec<usize> = vec![];
+    for i in args.feature_indices.split(',') {
+        feature_indices.push(i.parse()?);
+    }
 
     eprintln!("Loading the dictionary...");
     let reader = BufReader::new(File::open(args.sysdic_in)?);
@@ -60,13 +93,23 @@ fn main() -> Result<(), Box<dyn Error>> {
         for token in example.tokens() {
             input_str.push_str(token.surface());
             let len = token.surface().chars().count();
-            refs.insert((start..start + len, token.feature().to_string()));
+            let features = parse_csv_row(token.feature());
+            let mut features_chose = vec![];
+            for &i in &feature_indices {
+                features_chose.push(features[i].clone());
+            }
+            refs.insert((start..start + len, features_chose));
             start += len;
         }
         worker.reset_sentence(input_str)?;
         worker.tokenize();
         for token in worker.token_iter() {
-            syss.insert((token.range_char(), token.feature().to_string()));
+            let features = parse_csv_row(token.feature());
+            let mut features_chose = vec![];
+            for &i in &feature_indices {
+                features_chose.push(features[i].clone());
+            }
+            syss.insert((token.range_char(), features_chose));
         }
         num_ref += refs.len();
         num_sys += syss.len();
