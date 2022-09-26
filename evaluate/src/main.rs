@@ -80,7 +80,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let tokenizer = Tokenizer::new(dict).max_grouping_len(args.max_grouping_len.unwrap_or(0));
     let mut worker = tokenizer.new_worker();
 
-    eprintln!("Ready to tokenize");
+    eprintln!("Tokenizing...");
 
     let rdr = File::open(args.test_in)?;
     let corpus = Corpus::from_reader(rdr)?;
