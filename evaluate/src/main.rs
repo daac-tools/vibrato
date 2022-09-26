@@ -63,7 +63,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     let mut feature_indices: Vec<usize> = vec![];
-    if !feature_indices.is_empty() {
+    if !args.feature_indices.is_empty() {
         for i in args.feature_indices.split(',') {
             feature_indices.push(i.parse()?);
         }
