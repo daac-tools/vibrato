@@ -147,7 +147,7 @@ following the [documentation](./prepare/README.md).
 
 #### Accuracy evaluation
 
-To split the corpus randomly into train/validation/test, run the following command:
+To split the input corpus randomly and output train/validation/test files, run the following command:
 
 ```
 $ cargo run --release -p evaluate --bin split -- \
@@ -162,7 +162,7 @@ By default, 80% of the data is split into a training set, 10% into a validation 
 To evaluate the accuracy, run the following command:
 
 ```
-$ cargo run --release -p evaluate --
+$ cargo run --release -p evaluate -- \
     -i ./system.dic \
     -t ./dataset/valid.txt \
     --feature-indices 0,1,2,3,9
