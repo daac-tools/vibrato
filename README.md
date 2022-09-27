@@ -145,6 +145,32 @@ See the `--help` message for more details.
 After copying `dataset/char.def` under `mydict`, you can compile your system dictionary
 following the [documentation](./prepare/README.md).
 
+#### Accuracy evaluation
+
+To split the input corpus randomly and output train/validation/test files, run the following command:
+
+```
+$ cargo run --release -p evaluate --bin split -- \
+    -i ./dataset/corpus.txt \
+    -t ./dataset/train.txt \
+    -v ./dataset/valid.txt \
+    -e ./dataset/test.txt
+```
+
+By default, 80% of the data is split into a training set, 10% into a validation set, and 10% into a test set.
+
+To evaluate the accuracy, run the following command:
+
+```
+$ cargo run --release -p evaluate -- \
+    -i ./system.dic \
+    -t ./dataset/valid.txt \
+    --feature-indices 0,1,2,3,9
+```
+
+where `--feature-indices` is an option to specify features' indices to determine correctness.
+In this example, the 0th, 1st, 2nd, 3rd, and 9th features are considered.
+
 ## MeCab-compatible options
 
 Vibrato is a reimplementation of the MeCab algorithm,
