@@ -1,6 +1,6 @@
 use std::error::Error;
 use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::path::PathBuf;
 use std::str::FromStr;
 
@@ -29,20 +29,25 @@ impl FromStr for OutputMode {
 }
 
 #[derive(Parser, Debug)]
-#[clap(name = "main", about = "A program.")]
+#[clap(name = "tokenize", about = "Predicts morphemes")]
 struct Args {
+    /// System dictionary.
     #[clap(short = 'i', long)]
-    sysdic_filename: PathBuf,
+    sysdic: PathBuf,
 
+    /// User lexicon file.
     #[clap(short = 'u', long)]
-    userlex_csv_filename: Option<PathBuf>,
+    userlex_csv: Option<PathBuf>,
 
+    /// Output mode. Choices are mecab, wakati, and detail.
     #[clap(short = 'O', long, default_value = "mecab")]
     output_mode: OutputMode,
 
+    /// Ignores white spaces in input strings.
     #[clap(short = 'S', long)]
     ignore_space: bool,
 
+    /// Maximum length of unknown words.
     #[clap(short = 'M', long)]
     max_grouping_len: Option<usize>,
 }
@@ -51,11 +56,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     eprintln!("Loading the dictionary...");
-    let reader = BufReader::new(File::open(args.sysdic_filename)?);
+    let reader = BufReader::new(File::open(args.sysdic)?);
     let mut dict = Dictionary::read(reader)?;
 
-    if let Some(userlex_csv_filename) = args.userlex_csv_filename {
-        dict = dict.user_lexicon_from_reader(Some(File::open(userlex_csv_filename)?))?;
+    if let Some(userlex_csv) = args.userlex_csv {
+        dict = dict.user_lexicon_from_reader(Some(File::open(userlex_csv)?))?;
     }
 
     let tokenizer = Tokenizer::new(dict)
@@ -65,6 +70,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     eprintln!("Ready to tokenize");
 
+    let is_tty = atty::is(atty::Stream::Stdout);
+
+    let out = std::io::stdout();
+    let mut out = BufWriter::new(out.lock());
     #[allow(clippy::significant_drop_in_scrutinee)]
     for line in std::io::stdin().lock().lines() {
         let line = line?;
@@ -74,23 +83,33 @@ fn main() -> Result<(), Box<dyn Error>> {
             OutputMode::Mecab => {
                 for i in 0..worker.num_tokens() {
                     let t = worker.token(i);
-                    println!("{}\t{}", t.surface(), t.feature());
+                    out.write_all(t.surface().as_bytes())?;
+                    out.write_all(b"\t")?;
+                    out.write_all(t.feature().as_bytes())?;
+                    out.write_all(b"\n")?;
                 }
-                println!("EOS");
+                out.write_all(b"EOS\n")?;
+                if is_tty {
+                    out.flush()?;
+                }
             }
             OutputMode::Wakati => {
                 for i in 0..worker.num_tokens() {
                     if i != 0 {
-                        print!(" ");
+                        out.write_all(b" ")?;
                     }
-                    print!("{}", worker.token(i).surface());
+                    out.write_all(worker.token(i).surface().as_bytes())?;
                 }
-                println!();
+                out.write_all(b"\n")?;
+                if is_tty {
+                    out.flush()?;
+                }
             }
             OutputMode::Detail => {
                 for i in 0..worker.num_tokens() {
                     let t = worker.token(i);
-                    println!(
+                    writeln!(
+                        &mut out,
                         "{}\t{}\tlex_type={:?}\tleft_id={}\tright_id={}\tword_cost={}\ttotal_cost={}",
                         t.surface(),
                         t.feature(),
@@ -99,9 +118,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                         t.right_id(),
                         t.word_cost(),
                         t.total_cost(),
-                    );
+                    )?;
                 }
-                println!("EOS");
+                out.write_all(b"EOS\n")?;
+                if is_tty {
+                    out.flush()?;
+                }
             }
         }
     }
