@@ -53,10 +53,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let valid_len = (corpus.len() as f64 * args.valid_ratio) as usize;
     let test_len = (corpus.len() as f64 * args.test_ratio) as usize;
     if valid_len + test_len > corpus.len() {
-        let mut cmd = Args::command();
-        cmd.error(
+        Args::command().error(
             ErrorKind::InvalidValue,
-            "the sum of the validation and test sets must be less than or equal to the size of the corpus",
+            "the total size of the validation and the test set must be less than or equal to the corpus size.",
         )
         .exit();
     }
