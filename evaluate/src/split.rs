@@ -55,7 +55,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if valid_len + test_len > corpus.len() {
         Args::command().error(
             ErrorKind::InvalidValue,
-            "the total size of the validation and the test set must be less than or equal to the corpus size.",
+            "the total size of the validation and the test set must be less than or equal to the corpus size",
         )
         .exit();
     }
