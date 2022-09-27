@@ -1,8 +1,17 @@
 use std::path::PathBuf;
 
-use clap::Parser;
+use clap::{CommandFactory, ErrorKind, Parser};
 use rand::seq::SliceRandom;
 use vibrato::trainer::Corpus;
+
+fn validate_ratio(val: &str) -> Result<(), String> {
+    let val = val.parse::<f64>().map_err(|e| e.to_string())?;
+    if (0.0..=1.0).contains(&val) {
+        Ok(())
+    } else {
+        Err(format!("{val} is not in 0.0..=1.0"))
+    }
+}
 
 #[derive(Parser, Debug)]
 #[clap(
@@ -27,11 +36,11 @@ struct Args {
     test_out: PathBuf,
 
     /// Ratio of validation data. (0.0 to 1.0)
-    #[clap(long, default_value = "0.1")]
+    #[clap(long, default_value = "0.1", validator = validate_ratio)]
     valid_ratio: f64,
 
     /// Ratio of testing data. (0.0 to 1.0)
-    #[clap(long, default_value = "0.1")]
+    #[clap(long, default_value = "0.1", validator = validate_ratio)]
     test_ratio: f64,
 }
 
@@ -40,21 +49,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let rdr = std::fs::File::open(args.corpus_in)?;
     let mut corpus = Corpus::from_reader(rdr)?;
+
+    let valid_len = (corpus.len() as f64 * args.valid_ratio) as usize;
+    let test_len = (corpus.len() as f64 * args.test_ratio) as usize;
+    if valid_len + test_len > corpus.len() {
+        let mut cmd = Args::command();
+        cmd.error(
+            ErrorKind::InvalidValue,
+            "the sum of the validation and test sets must be less than or equal to the size of the corpus",
+        )
+        .exit();
+    }
+
     let mut rng = rand::thread_rng();
+    corpus.shuffle(&mut rng);
 
     let mut train_wtr = std::fs::File::create(args.train_out)?;
     let mut valid_wtr = std::fs::File::create(args.valid_out)?;
     let mut test_wtr = std::fs::File::create(args.test_out)?;
-
-    corpus.shuffle(&mut rng);
-
-    assert!(args.valid_ratio >= 0.0);
-    assert!(args.valid_ratio <= 1.0);
-    assert!(args.test_ratio >= 0.0);
-    assert!(args.test_ratio <= 1.0);
-    let valid_len = (corpus.len() as f64 * args.valid_ratio) as usize;
-    let test_len = (corpus.len() as f64 * args.test_ratio) as usize;
-    assert!(valid_len + test_len <= corpus.len());
 
     let mut it = corpus.iter();
     for (_, example) in (0..valid_len).zip(&mut it) {
