@@ -70,12 +70,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(path) = args.conn_id_info_out {
         let ext = path.as_os_str().to_os_string();
         let mut left_path = ext.clone();
-        let mut right_path = ext;
+        let mut right_path = ext.clone();
+        let mut bigram_weight_path = ext;
         left_path.push(".left");
         right_path.push(".right");
+        bigram_weight_path.push(".weight");
         let left_wtr = File::create(left_path)?;
         let right_wtr = File::create(right_path)?;
-        model.write_used_features(left_wtr, right_wtr)?;
+        let bigram_weight_wtr = File::create(bigram_weight_path)?;
+        model.write_used_features(left_wtr, right_wtr, bigram_weight_wtr)?;
     }
 
     Ok(())

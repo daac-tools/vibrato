@@ -101,15 +101,33 @@ impl Model {
     ///
     /// - merging weights fails, or
     /// - the writing fails.
-    pub fn write_used_features<L, R>(&mut self, left_wtr: L, right_wtr: R) -> Result<()>
+    pub fn write_used_features<L, R, B>(
+        &mut self,
+        left_wtr: L,
+        right_wtr: R,
+        bigram_weight_wtr: B,
+    ) -> Result<()>
     where
         L: Write,
         R: Write,
+        B: Write,
     {
         if self.merged_model.is_none() {
             self.merged_model = Some(self.data.raw_model.merge()?);
         }
         let merged_model = self.merged_model.as_ref().unwrap();
+
+        // scales weights.
+        let mut weight_abs_max = 0f64;
+        for feature_set in &merged_model.feature_sets {
+            weight_abs_max = weight_abs_max.max(feature_set.weight.abs());
+        }
+        for hm in &merged_model.matrix {
+            for &w in hm.values() {
+                weight_abs_max = weight_abs_max.max(w.abs());
+            }
+        }
+        let weight_scale_factor = f64::from(i16::MAX) / weight_abs_max;
 
         let feature_extractor = &self.data.config.feature_extractor;
 
@@ -147,6 +165,28 @@ impl Model {
                 }
             }
             writeln!(&mut right_wtr)?;
+        }
+
+        let mut bigram_weight_wtr = BufWriter::new(bigram_weight_wtr);
+        for (left_feat_id, hm) in self
+            .data
+            .raw_model
+            .bigram_weight_indices()
+            .iter()
+            .enumerate()
+        {
+            let left_feat_str = left_features
+                .get(&u32::try_from(left_feat_id).unwrap())
+                .map_or("", |x| x.as_str());
+            for (right_feat_id, widx) in hm {
+                let right_feat_str = right_features.get(right_feat_id).map_or("", |x| x.as_str());
+                let w = self.data.raw_model.weights()[usize::from_u32(*widx)];
+                let w = (-w * weight_scale_factor) as i32;
+                writeln!(
+                    &mut bigram_weight_wtr,
+                    "{left_feat_str}/{right_feat_str} {w}"
+                )?;
+            }
         }
         Ok(())
     }
