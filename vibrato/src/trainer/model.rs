@@ -120,7 +120,7 @@ impl Model {
         }
         let feature_list = &merged_model.left_conn_to_right_feats;
         let mut left_wtr = BufWriter::new(left_wtr);
-        for (conn_id, feat_ids) in feature_list[..feature_list.len() - 1].iter().enumerate() {
+        for (conn_id, feat_ids) in feature_list[..feature_list.len()].iter().enumerate() {
             write!(&mut left_wtr, "{}", conn_id + 1)?;
             for (i, feat_id) in feat_ids.iter().enumerate() {
                 if let Some(feat_id) = feat_id {
@@ -138,7 +138,7 @@ impl Model {
         }
         let feature_list = &merged_model.right_conn_to_left_feats;
         let mut right_wtr = BufWriter::new(right_wtr);
-        for (conn_id, feat_ids) in feature_list[..feature_list.len() - 1].iter().enumerate() {
+        for (conn_id, feat_ids) in feature_list[..feature_list.len()].iter().enumerate() {
             write!(&mut right_wtr, "{}", conn_id + 1)?;
             for (i, feat_id) in feat_ids.iter().enumerate() {
                 if let Some(feat_id) = feat_id {
@@ -199,7 +199,7 @@ impl Model {
         }
         for hm in &merged_model.matrix {
             for &w in hm.values() {
-                weight_abs_max = weight_abs_max.max(w);
+                weight_abs_max = weight_abs_max.max(w.abs());
             }
         }
         let weight_scale_factor = f64::from(i16::MAX) / weight_abs_max;
