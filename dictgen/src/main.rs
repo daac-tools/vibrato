@@ -32,9 +32,10 @@ struct Args {
     #[clap(long)]
     user_lexicon_out: Option<PathBuf>,
 
-    /// Outputs a list of features associated with each left connection ID.
+    /// Outputs a list of features associated with each connection ID and a list of bi-gram
+    /// weights.
     ///
-    /// The file name is suffixed with `.left` and `.right`.
+    /// The file name is suffixed with `.left`, `.right`, and `.weight`.
     #[clap(long)]
     conn_id_info_out: Option<PathBuf>,
 }
