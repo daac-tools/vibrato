@@ -78,7 +78,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let left_wtr = File::create(left_path)?;
         let right_wtr = File::create(right_path)?;
         let bigram_weight_wtr = File::create(bigram_weight_path)?;
-        model.write_used_features(left_wtr, right_wtr, bigram_weight_wtr)?;
+        model.write_bigram_details(left_wtr, right_wtr, bigram_weight_wtr)?;
     }
 
     Ok(())

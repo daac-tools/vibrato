@@ -101,7 +101,7 @@ impl Model {
     ///
     /// - merging weights fails, or
     /// - the writing fails.
-    pub fn write_used_features<L, R, B>(
+    pub fn write_bigram_details<L, R, B>(
         &mut self,
         left_wtr: L,
         right_wtr: R,
