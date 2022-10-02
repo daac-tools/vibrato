@@ -5,12 +5,6 @@ use bincode::{Decode, Encode};
 use crate::dictionary::mapper::ConnIdMapper;
 
 pub trait Connector {
-    /// Gets the value of the connection matrix
-    fn cost(&self, right_id: u16, left_id: u16) -> i32;
-
-    /// Gets the value of the connection matrix
-    unsafe fn cost_unchecked(&self, right_id: u16, left_id: u16) -> i32;
-
     /// Returns maximum number of left connection ID
     fn num_left(&self) -> usize;
 
@@ -21,6 +15,14 @@ pub trait Connector {
     /// the connection-id mapping among members of `Dictionary`.
     /// The consistency is managed in `Dictionary`.
     fn do_mapping(&mut self, mapper: &ConnIdMapper);
+}
+
+pub trait ConnectorCost: Connector {
+    /// Gets the value of the connection matrix
+    fn cost(&self, right_id: u16, left_id: u16) -> i32;
+
+    /// Gets the value of the connection matrix
+    unsafe fn cost_unchecked(&self, right_id: u16, left_id: u16) -> i32;
 }
 
 /// Matrix of connection costs.
@@ -52,19 +54,6 @@ impl MatrixConnector {
 
 impl Connector for MatrixConnector {
     #[inline(always)]
-    fn cost(&self, right_id: u16, left_id: u16) -> i32 {
-        let index = self.index(right_id, left_id);
-        i32::from(self.data[index])
-    }
-
-    #[inline(always)]
-    unsafe fn cost_unchecked(&self, right_id: u16, left_id: u16) -> i32 {
-        let index = self.index(right_id, left_id);
-        // The tokenization time can be shortened by 5--10%.
-        i32::from(*self.data.get_unchecked(index))
-    }
-
-    #[inline(always)]
     fn num_left(&self) -> usize {
         self.num_left
     }
@@ -91,5 +80,48 @@ impl Connector for MatrixConnector {
             }
         }
         self.data = mapped;
+    }
+}
+
+impl ConnectorCost for MatrixConnector {
+    #[inline(always)]
+    fn cost(&self, right_id: u16, left_id: u16) -> i32 {
+        let index = self.index(right_id, left_id);
+        i32::from(self.data[index])
+    }
+
+    #[inline(always)]
+    unsafe fn cost_unchecked(&self, right_id: u16, left_id: u16) -> i32 {
+        let index = self.index(right_id, left_id);
+        // The tokenization time can be shortened by 5--10%.
+        i32::from(*self.data.get_unchecked(index))
+    }
+}
+
+#[derive(Decode, Encode)]
+pub enum ConnectorWrapper {
+    Matrix(MatrixConnector),
+}
+
+impl Connector for ConnectorWrapper {
+    #[inline(always)]
+    fn num_left(&self) -> usize {
+        match self {
+            Self::Matrix(c) => c.num_left(),
+        }
+    }
+
+    #[inline(always)]
+    fn num_right(&self) -> usize {
+        match self {
+            Self::Matrix(c) => c.num_right(),
+        }
+    }
+
+    #[inline(always)]
+    fn do_mapping(&mut self, mapper: &ConnIdMapper) {
+        match self {
+            Self::Matrix(c) => c.do_mapping(mapper),
+        }
     }
 }

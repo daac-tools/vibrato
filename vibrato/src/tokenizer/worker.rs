@@ -1,5 +1,5 @@
 //! Provider of a routine for tokenization.
-use crate::dictionary::connector::Connector;
+use crate::dictionary::connector::{Connector, ConnectorWrapper};
 use crate::dictionary::mapper::{ConnIdCounter, ConnIdProbs};
 use crate::errors::Result;
 use crate::sentence::Sentence;
@@ -58,7 +58,12 @@ impl<'a> Worker<'a> {
         if self.sent.chars().is_empty() {
             return;
         }
-        self.tokenizer.build_lattice(&self.sent, &mut self.lattice);
+        match self.tokenizer.dict.connector() {
+            ConnectorWrapper::Matrix(c) => {
+                self.tokenizer
+                    .build_lattice(&self.sent, &mut self.lattice, c)
+            }
+        }
         self.lattice.append_top_nodes(&mut self.top_nodes);
     }
 

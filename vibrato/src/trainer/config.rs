@@ -8,7 +8,7 @@ use bincode::{
 };
 
 use crate::dictionary::character::CharProperty;
-use crate::dictionary::connector::MatrixConnector;
+use crate::dictionary::connector::{ConnectorWrapper, MatrixConnector};
 use crate::dictionary::lexicon::Lexicon;
 use crate::dictionary::unknown::UnkHandler;
 use crate::dictionary::Dictionary;
@@ -197,7 +197,12 @@ impl TrainerConfig {
         let char_prop = CharProperty::from_reader(char_prop_rdr)?;
         let unk_handler = UnkHandler::from_reader(unk_handler_rdr, &char_prop)?;
 
-        let dict = Dictionary::new(&lex_entries, connector, char_prop, unk_handler)?;
+        let dict = Dictionary::new(
+            &lex_entries,
+            ConnectorWrapper::Matrix(connector),
+            char_prop,
+            unk_handler,
+        )?;
 
         let surfaces = lex_entries.into_iter().map(|e| e.surface).collect();
 

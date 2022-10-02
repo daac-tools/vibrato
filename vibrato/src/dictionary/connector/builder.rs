@@ -61,7 +61,7 @@ impl MatrixConnector {
 mod tests {
     use super::*;
 
-    use crate::dictionary::Connector;
+    use crate::dictionary::connector::ConnectorCost;
 
     #[test]
     fn test_2x2() {

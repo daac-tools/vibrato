@@ -1,4 +1,4 @@
-use crate::dictionary::connector::Connector;
+use crate::dictionary::connector::ConnectorCost;
 use crate::dictionary::lexicon::WordParam;
 use crate::dictionary::mapper::ConnIdCounter;
 use crate::dictionary::word_idx::WordIdx;
@@ -84,7 +84,7 @@ impl Lattice {
 
     pub fn insert_eos<C>(&mut self, start_node: u16, connector: &C)
     where
-        C: Connector,
+        C: ConnectorCost,
     {
         let (min_idx, min_cost) =
             self.search_min_node(start_node, BOS_EOS_CONNECTION_ID, connector);
@@ -102,7 +102,7 @@ impl Lattice {
 
     pub unsafe fn insert_eos_unchecked<C>(&mut self, start_node: u16, connector: &C)
     where
-        C: Connector,
+        C: ConnectorCost,
     {
         let (min_idx, min_cost) =
             self.search_min_node_unchecked(start_node, BOS_EOS_CONNECTION_ID, connector);
@@ -127,7 +127,7 @@ impl Lattice {
         word_param: WordParam,
         connector: &C,
     ) where
-        C: Connector,
+        C: ConnectorCost,
     {
         debug_assert!(start_node <= start_word);
         debug_assert!(start_word < end_word);
@@ -153,7 +153,7 @@ impl Lattice {
         word_param: WordParam,
         connector: &C,
     ) where
-        C: Connector,
+        C: ConnectorCost,
     {
         debug_assert!(start_node <= start_word);
         debug_assert!(start_word < end_word);
@@ -173,7 +173,7 @@ impl Lattice {
 
     fn search_min_node<C>(&self, start_node: u16, left_id: u16, connector: &C) -> (u16, i32)
     where
-        C: Connector,
+        C: ConnectorCost,
     {
         debug_assert!(!self.ends[usize::from(start_node)].is_empty());
 
@@ -202,7 +202,7 @@ impl Lattice {
         connector: &C,
     ) -> (u16, i32)
     where
-        C: Connector,
+        C: ConnectorCost,
     {
         debug_assert!(!self.ends[usize::from(start_node)].is_empty());
 
