@@ -143,7 +143,7 @@ impl Model {
             for (i, feat_id) in feat_ids.iter().enumerate() {
                 if let Some(feat_id) = feat_id {
                     let feat_str = right_features.get(&feat_id.get()).unwrap();
-                    write!(&mut left_wtr, " {i}:{feat_str}")?;
+                    write!(&mut left_wtr, "\t{i}:{feat_str}")?;
                 }
             }
             writeln!(&mut left_wtr)?;
@@ -161,7 +161,7 @@ impl Model {
             for (i, feat_id) in feat_ids.iter().enumerate() {
                 if let Some(feat_id) = feat_id {
                     let feat_str = left_features.get(&feat_id.get()).unwrap();
-                    write!(&mut right_wtr, " {i}:{feat_str}")?;
+                    write!(&mut right_wtr, "\t{i}:{feat_str}")?;
                 }
             }
             writeln!(&mut right_wtr)?;

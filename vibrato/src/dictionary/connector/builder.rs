@@ -43,8 +43,10 @@ impl Connector {
     {
         let mut left_feature_ids = HashMap::new();
         let mut right_feature_ids = HashMap::new();
+        left_feature_ids.insert(String::new(), 0);
+        right_feature_ids.insert(String::new(), 0);
         let mut map = std::collections::HashMap::new();
-        let weight_re = Regex::new(r"^(\S*)/(\S*)\t(\-?[0-9]+)$").unwrap();
+        let weight_re = Regex::new(r"^([^/\t]*)/([^/\t]*)\t(\-?[0-9]+)$").unwrap();
         let bigram_weight_reader = BufReader::new(bigram_weight_rdr);
         for line in bigram_weight_reader.lines() {
             let line = line?;
@@ -52,8 +54,8 @@ impl Connector {
                 let right_feature_str = cap.get(1).unwrap().as_str();
                 let left_feature_str = cap.get(2).unwrap().as_str();
                 let weight: i32 = cap.get(3).unwrap().as_str().parse()?;
-                let new_right_id = u32::try_from(right_feature_ids.len()).unwrap() + 1;
-                let new_left_id = u32::try_from(left_feature_ids.len()).unwrap() + 1;
+                let new_right_id = u32::try_from(right_feature_ids.len()).unwrap();
+                let new_left_id = u32::try_from(left_feature_ids.len()).unwrap();
                 let right_id = *right_feature_ids.raw_entry_mut().from_key(right_feature_str).or_insert_with(|| (right_feature_str.to_string(), new_right_id)).1;
                 let left_id = *left_feature_ids.raw_entry_mut().from_key(left_feature_str).or_insert_with(|| (left_feature_str.to_string(), new_left_id)).1;
                 map.insert((right_id, left_id), weight);
@@ -62,7 +64,7 @@ impl Connector {
             }
         }
 
-        let feature_line_re = Regex::new(r"^([0-9]+)( (.*))?$").unwrap();
+        let feature_line_re = Regex::new(r"^([0-9]+)(\t(.*))?$").unwrap();
         let feature_item_re = Regex::new(r"^([0-9]+):(.*)$").unwrap();
 
         let mut left_features = vec![];
@@ -76,7 +78,7 @@ impl Connector {
                 }
                 let mut feat_list = vec![];
                 if let Some(feats_str) = cap.get(3) {
-                for feat in feats_str.as_str().split(' ') {
+                for feat in feats_str.as_str().split('\t') {
                     if let Some(cap) = feature_item_re.captures(feat) {
                         let idx: usize = cap.get(1).unwrap().as_str().parse().unwrap();
                         let feat_str = cap.get(2).unwrap().as_str();
@@ -106,7 +108,7 @@ impl Connector {
                 }
                 let mut feat_list = vec![];
                 if let Some(feats_str) = cap.get(3) {
-                for feat in feats_str.as_str().split(' ') {
+                for feat in feats_str.as_str().split('\t') {
                     if let Some(cap) = feature_item_re.captures(feat) {
                         let idx: usize = cap.get(1).unwrap().as_str().parse().unwrap();
                         let feat_str = cap.get(2).unwrap().as_str();
