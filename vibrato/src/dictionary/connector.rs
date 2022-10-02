@@ -10,6 +10,10 @@ pub struct Connector {
     data: Vec<i16>,
     num_right: usize,
     num_left: usize,
+
+    map: std::collections::HashMap<(u32, u32), i32>,
+    right_ids: Vec<Vec<u32>>,
+    left_ids: Vec<Vec<u32>>,
 }
 
 impl Connector {
@@ -18,6 +22,21 @@ impl Connector {
             data,
             num_right,
             num_left,
+
+            map: std::collections::HashMap::new(),
+            right_ids: vec![],
+            left_ids: vec![],
+        }
+    }
+    pub fn new_detailed(map: std::collections::HashMap<(u32, u32), i32>, right_ids: Vec<Vec<u32>>, left_ids: Vec<Vec<u32>>) -> Self {
+        Self {
+            data: vec![],
+            num_right: 0,
+            num_left: 0,
+
+            map,
+            right_ids,
+            left_ids,
         }
     }
 
@@ -32,9 +51,32 @@ impl Connector {
 
     /// Gets the value of the connection matrix
     #[inline(always)]
-    pub fn cost(&self, right_id: u16, left_id: u16) -> i16 {
+    pub fn cost(&self, right_id: u16, left_id: u16) -> i32 {
+        /*
         let index = self.index(right_id, left_id);
         self.data[index]
+        */
+        let mut weight = 0;
+        if right_id == 0 {
+            for &left_id in &self.left_ids[usize::from(left_id - 1)] {
+                if let Some(w) = self.map.get(&(0, left_id)) {
+                    weight += w;
+                }
+            }
+        } else if left_id == 0 {
+            for &right_id in &self.right_ids[usize::from(right_id - 1)] {
+                if let Some(w) = self.map.get(&(right_id, 0)) {
+                    weight += w;
+                }
+            }
+        } else {
+            for (&right_id, &left_id) in self.right_ids[usize::from(right_id - 1)].iter().zip(&self.left_ids[usize::from(left_id - 1)]) {
+                if let Some(w) = self.map.get(&(right_id, left_id)) {
+                    weight += w;
+                }
+            }
+        }
+        weight
     }
 
     /// Gets the value of the connection matrix

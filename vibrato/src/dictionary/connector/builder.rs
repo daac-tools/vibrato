@@ -1,5 +1,8 @@
 use std::io::{prelude::*, BufReader, Read};
 
+use hashbrown::HashMap;
+use regex::Regex;
+
 use crate::dictionary::Connector;
 use crate::errors::{Result, VibratoError};
 
@@ -29,6 +32,100 @@ impl Connector {
             }
         }
         Ok(Self::new(data, num_right, num_left))
+    }
+
+    /// Creates a new instance from `bigram.left`, `bigram.right`, and `bigram.weight`.
+    pub fn from_origin<L, R, B>(left_rdr: L, right_rdr: R, bigram_weight_rdr: B) -> Result<Self>
+    where
+        L: Read,
+        R: Read,
+        B: Read,
+    {
+        let mut left_feature_ids = HashMap::new();
+        let mut right_feature_ids = HashMap::new();
+        let mut map = std::collections::HashMap::new();
+        let weight_re = Regex::new(r"^(\S*)/(\S*) (\-?[0-9]+)$").unwrap();
+        let bigram_weight_reader = BufReader::new(bigram_weight_rdr);
+        for line in bigram_weight_reader.lines() {
+            let line = line?;
+            if let Some(cap) = weight_re.captures(&line) {
+                let right_feature_str = cap.get(1).unwrap().as_str();
+                let left_feature_str = cap.get(2).unwrap().as_str();
+                let weight: i32 = cap.get(3).unwrap().as_str().parse()?;
+                let new_right_id = u32::try_from(right_feature_ids.len()).unwrap() + 1;
+                let new_left_id = u32::try_from(left_feature_ids.len()).unwrap() + 1;
+                let right_id = *right_feature_ids.raw_entry_mut().from_key(right_feature_str).or_insert_with(|| (right_feature_str.to_string(), new_right_id)).1;
+                let left_id = *left_feature_ids.raw_entry_mut().from_key(left_feature_str).or_insert_with(|| (left_feature_str.to_string(), new_left_id)).1;
+                map.insert((right_id, left_id), weight);
+            } else {
+                return Err(VibratoError::invalid_format("bigram.weight", "invalid weight format"))
+            }
+        }
+
+        let feature_line_re = Regex::new(r"^([0-9]+)( (.*))?$").unwrap();
+        let feature_item_re = Regex::new(r"^([0-9]+):(.*)$").unwrap();
+
+        let mut left_features = vec![];
+        let left_reader = BufReader::new(left_rdr);
+        for (i, line) in left_reader.lines().enumerate() {
+            let line = line?;
+            if let Some(cap) = feature_line_re.captures(&line) {
+                let idx: usize = cap.get(1).unwrap().as_str().parse().unwrap();
+                if idx != i + 1 {
+                    return Err(VibratoError::invalid_format("bigram.left", "invalid weight format"))
+                }
+                let mut feat_list = vec![];
+                if let Some(feats_str) = cap.get(3) {
+                for feat in feats_str.as_str().split(' ') {
+                    if let Some(cap) = feature_item_re.captures(feat) {
+                        let idx: usize = cap.get(1).unwrap().as_str().parse().unwrap();
+                        let feat_str = cap.get(2).unwrap().as_str();
+                        if idx >= feat_list.len() {
+                            feat_list.resize(idx + 1, 0);
+                        }
+                        feat_list[idx] = *left_feature_ids.get(feat_str).unwrap();
+                    } else {
+                        return Err(VibratoError::invalid_format("bigram.left", "invalid weight format"))
+                    }
+                }
+                }
+                left_features.push(feat_list);
+            } else {
+                return Err(VibratoError::invalid_format("bigram.left", "invalid weight format"))
+            }
+        }
+
+        let mut right_features = vec![];
+        let right_reader = BufReader::new(right_rdr);
+        for (i, line) in right_reader.lines().enumerate() {
+            let line = line?;
+            if let Some(cap) = feature_line_re.captures(&line) {
+                let idx: usize = cap.get(1).unwrap().as_str().parse().unwrap();
+                if idx != i + 1 {
+                    return Err(VibratoError::invalid_format("bigram.right", "invalid weight format"))
+                }
+                let mut feat_list = vec![];
+                if let Some(feats_str) = cap.get(3) {
+                for feat in feats_str.as_str().split(' ') {
+                    if let Some(cap) = feature_item_re.captures(feat) {
+                        let idx: usize = cap.get(1).unwrap().as_str().parse().unwrap();
+                        let feat_str = cap.get(2).unwrap().as_str();
+                        if idx >= feat_list.len() {
+                            feat_list.resize(idx + 1, 0);
+                        }
+                        feat_list[idx] = *right_feature_ids.get(feat_str).unwrap();
+                    } else {
+                        return Err(VibratoError::invalid_format("bigram.right", "invalid weight format"))
+                    }
+                }
+                }
+                right_features.push(feat_list);
+            } else {
+                return Err(VibratoError::invalid_format("bigram.right", "invalid weight format"))
+            }
+        }
+
+        Ok(Self::new_detailed(map, right_features, left_features))
     }
 
     fn parse_header(line: &str) -> Result<(usize, usize)> {

@@ -16,8 +16,16 @@ struct Args {
     lexicon_in: PathBuf,
 
     /// Matrix definition file (matrix.def).
-    #[clap(short = 'm', long)]
-    matrix_in: PathBuf,
+    #[clap(long)]
+    left_in: PathBuf,
+
+    /// Matrix definition file (matrix.def).
+    #[clap(long)]
+    right_in: PathBuf,
+
+    /// Matrix definition file (matrix.def).
+    #[clap(long)]
+    bigram_weight_in: PathBuf,
 
     /// Unknown word definition file (unk.def).
     #[clap(short = 'u', long)]
@@ -39,7 +47,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let start = Instant::now();
     let dict = Dictionary::from_readers(
         File::open(args.lexicon_in)?,
-        File::open(args.matrix_in)?,
+        File::open(args.left_in)?,
+        File::open(args.right_in)?,
+        File::open(args.bigram_weight_in)?,
         File::open(args.char_in)?,
         File::open(args.unk_in)?,
     )?;

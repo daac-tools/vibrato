@@ -17,18 +17,22 @@ impl Dictionary {
     ) -> Result<Self> {
         let system_lexicon = Lexicon::from_entries(system_word_entries, LexType::System)?;
 
+        /*
         if !system_lexicon.verify(&connector) {
             return Err(VibratoError::invalid_argument(
                 "system_lexicon_rdr",
                 "system_lexicon_rdr includes invalid connection ids.",
             ));
         }
+        */
+        /*
         if !unk_handler.verify(&connector) {
             return Err(VibratoError::invalid_argument(
                 "unk_handler_rdr",
                 "unk_handler_rdr includes invalid connection ids.",
             ));
         }
+        */
 
         Ok(Self {
             data: DictionaryInner {
@@ -57,7 +61,10 @@ impl Dictionary {
     /// [`VibratoError`] is returned when an input format is invalid.
     pub fn from_readers<S, C, P, U>(
         mut system_lexicon_rdr: S,
-        connector_rdr: C,
+        //connector_rdr: C,
+        left_rdr: C,
+        right_rdr: C,
+        bigram_weight_rdr: C,
         char_prop_rdr: P,
         unk_handler_rdr: U,
     ) -> Result<Self>
@@ -70,7 +77,8 @@ impl Dictionary {
         let mut system_lexicon_buf = vec![];
         system_lexicon_rdr.read_to_end(&mut system_lexicon_buf)?;
         let system_word_entries = Lexicon::parse_csv(&system_lexicon_buf, "lex.csv")?;
-        let connector = Connector::from_reader(connector_rdr)?;
+        //let connector = Connector::from_reader(connector_rdr)?;
+        let connector = Connector::from_origin(left_rdr, right_rdr, bigram_weight_rdr)?;
         let char_prop = CharProperty::from_reader(char_prop_rdr)?;
         let unk_handler = UnkHandler::from_reader(unk_handler_rdr, &char_prop)?;
 
