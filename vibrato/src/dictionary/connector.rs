@@ -4,15 +4,34 @@ use bincode::{Decode, Encode};
 
 use crate::dictionary::mapper::ConnIdMapper;
 
+pub trait Connector {
+    /// Gets the value of the connection matrix
+    fn cost(&self, right_id: u16, left_id: u16) -> i32;
+
+    /// Gets the value of the connection matrix
+    unsafe fn cost_unchecked(&self, right_id: u16, left_id: u16) -> i32;
+
+    /// Returns maximum number of left connection ID
+    fn num_left(&self) -> usize;
+
+    /// Returns maximum number of right connection ID
+    fn num_right(&self) -> usize;
+
+    /// Do NOT make this function public to maintain consistency in
+    /// the connection-id mapping among members of `Dictionary`.
+    /// The consistency is managed in `Dictionary`.
+    fn do_mapping(&mut self, mapper: &ConnIdMapper);
+}
+
 /// Matrix of connection costs.
 #[derive(Decode, Encode)]
-pub struct Connector {
+pub struct MatrixConnector {
     data: Vec<i16>,
     num_right: usize,
     num_left: usize,
 }
 
-impl Connector {
+impl MatrixConnector {
     pub fn new(data: Vec<i16>, num_right: usize, num_left: usize) -> Self {
         Self {
             data,
@@ -29,38 +48,33 @@ impl Connector {
         debug_assert!(index < self.data.len());
         index
     }
+}
 
-    /// Gets the value of the connection matrix
+impl Connector for MatrixConnector {
     #[inline(always)]
-    pub fn cost(&self, right_id: u16, left_id: u16) -> i16 {
+    fn cost(&self, right_id: u16, left_id: u16) -> i32 {
         let index = self.index(right_id, left_id);
-        self.data[index]
+        i32::from(self.data[index])
     }
 
-    /// Gets the value of the connection matrix
     #[inline(always)]
-    pub unsafe fn cost_unchecked(&self, right_id: u16, left_id: u16) -> i16 {
+    unsafe fn cost_unchecked(&self, right_id: u16, left_id: u16) -> i32 {
         let index = self.index(right_id, left_id);
         // The tokenization time can be shortened by 5--10%.
-        *self.data.get_unchecked(index)
+        i32::from(*self.data.get_unchecked(index))
     }
 
-    /// Returns maximum number of left connection ID
     #[inline(always)]
-    pub const fn num_left(&self) -> usize {
+    fn num_left(&self) -> usize {
         self.num_left
     }
 
-    /// Returns maximum number of right connection ID
     #[inline(always)]
-    pub const fn num_right(&self) -> usize {
+    fn num_right(&self) -> usize {
         self.num_right
     }
 
-    /// Do NOT make this function public to maintain consistency in
-    /// the connection-id mapping among members of `Dictionary`.
-    /// The consistency is managed in `Dictionary`.
-    pub fn do_mapping(&mut self, mapper: &ConnIdMapper) {
+    fn do_mapping(&mut self, mapper: &ConnIdMapper) {
         assert_eq!(mapper.num_left(), self.num_left);
         assert_eq!(mapper.num_right(), self.num_right);
 

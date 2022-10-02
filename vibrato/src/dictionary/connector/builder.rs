@@ -1,9 +1,9 @@
 use std::io::{prelude::*, BufReader, Read};
 
-use crate::dictionary::Connector;
+use crate::dictionary::MatrixConnector;
 use crate::errors::{Result, VibratoError};
 
-impl Connector {
+impl MatrixConnector {
     /// Creates a new instance from `matrix.def`.
     pub fn from_reader<R>(rdr: R) -> Result<Self>
     where
@@ -61,6 +61,8 @@ impl Connector {
 mod tests {
     use super::*;
 
+    use crate::dictionary::Connector;
+
     #[test]
     fn test_2x2() {
         let data = "2 2
@@ -68,7 +70,7 @@ mod tests {
 0 1 1
 1 0 -2
 1 1 -3";
-        let conn = Connector::from_reader(data.as_bytes()).unwrap();
+        let conn = MatrixConnector::from_reader(data.as_bytes()).unwrap();
         assert_eq!(conn.cost(0, 0), 0);
         assert_eq!(conn.cost(0, 1), 1);
         assert_eq!(conn.cost(1, 0), -2);
@@ -84,7 +86,7 @@ mod tests {
 1 0 -3
 1 1 -4
 1 2 -5";
-        let conn = Connector::from_reader(data.as_bytes()).unwrap();
+        let conn = MatrixConnector::from_reader(data.as_bytes()).unwrap();
         assert_eq!(conn.cost(0, 0), 0);
         assert_eq!(conn.cost(0, 1), 1);
         assert_eq!(conn.cost(0, 2), 2);
@@ -100,7 +102,7 @@ mod tests {
 0 1 1
 1 0 -2
 1 1 -3";
-        let result = Connector::from_reader(data.as_bytes());
+        let result = MatrixConnector::from_reader(data.as_bytes());
 
         assert!(result.is_err());
     }
@@ -112,7 +114,7 @@ mod tests {
 0 1 1
 1 0 -2
 1 1 -3";
-        let result = Connector::from_reader(data.as_bytes());
+        let result = MatrixConnector::from_reader(data.as_bytes());
 
         assert!(result.is_err());
     }
@@ -124,7 +126,7 @@ mod tests {
 0 1 1
 1 -2
 1 1 -3";
-        let result = Connector::from_reader(data.as_bytes());
+        let result = MatrixConnector::from_reader(data.as_bytes());
 
         assert!(result.is_err());
     }
@@ -136,7 +138,7 @@ mod tests {
 0 1 1
 1 0 1 -2
 1 1 -3";
-        let result = Connector::from_reader(data.as_bytes());
+        let result = MatrixConnector::from_reader(data.as_bytes());
 
         assert!(result.is_err());
     }
@@ -144,7 +146,7 @@ mod tests {
     #[test]
     fn test_larger_matrix() {
         let data = "65536 65536";
-        let result = Connector::from_reader(data.as_bytes());
+        let result = MatrixConnector::from_reader(data.as_bytes());
 
         assert!(result.is_err());
     }
@@ -156,7 +158,7 @@ mod tests {
 0 1 1
 1 2 -2
 1 1 -3";
-        let result = Connector::from_reader(data.as_bytes());
+        let result = MatrixConnector::from_reader(data.as_bytes());
 
         assert!(result.is_err());
     }
@@ -168,7 +170,7 @@ mod tests {
 0 1 1
 2 0 -2
 1 1 -3";
-        let result = Connector::from_reader(data.as_bytes());
+        let result = MatrixConnector::from_reader(data.as_bytes());
 
         assert!(result.is_err());
     }

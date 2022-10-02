@@ -1,4 +1,5 @@
 //! Provider of a routine for tokenization.
+use crate::dictionary::connector::Connector;
 use crate::dictionary::mapper::{ConnIdCounter, ConnIdProbs};
 use crate::errors::Result;
 use crate::sentence::Sentence;

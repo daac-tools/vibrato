@@ -8,7 +8,7 @@ use bincode::{
 };
 
 use crate::dictionary::character::CharProperty;
-use crate::dictionary::connector::Connector;
+use crate::dictionary::connector::MatrixConnector;
 use crate::dictionary::lexicon::Lexicon;
 use crate::dictionary::unknown::UnkHandler;
 use crate::dictionary::Dictionary;
@@ -193,7 +193,7 @@ impl TrainerConfig {
         let mut lexicon_data = vec![];
         lexicon_rdr.read_to_end(&mut lexicon_data)?;
         let lex_entries = Lexicon::parse_csv(&lexicon_data, "lex.csv")?;
-        let connector = Connector::from_reader(b"1 1\n0 0 0".as_slice())?;
+        let connector = MatrixConnector::from_reader(b"1 1\n0 0 0".as_slice())?;
         let char_prop = CharProperty::from_reader(char_prop_rdr)?;
         let unk_handler = UnkHandler::from_reader(unk_handler_rdr, &char_prop)?;
 

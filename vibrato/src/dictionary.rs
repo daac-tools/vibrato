@@ -13,7 +13,7 @@ use bincode::{Decode, Encode};
 
 use crate::common;
 use crate::dictionary::character::CharProperty;
-use crate::dictionary::connector::Connector;
+use crate::dictionary::connector::{Connector, MatrixConnector};
 use crate::dictionary::lexicon::Lexicon;
 use crate::dictionary::mapper::ConnIdMapper;
 use crate::dictionary::unknown::UnkHandler;
@@ -45,7 +45,7 @@ impl Default for LexType {
 pub(crate) struct DictionaryInner {
     system_lexicon: Lexicon,
     user_lexicon: Option<Lexicon>,
-    connector: Connector,
+    connector: MatrixConnector,
     mapper: Option<ConnIdMapper>,
     char_prop: CharProperty,
     unk_handler: UnkHandler,
@@ -72,7 +72,7 @@ impl Dictionary {
 
     /// Gets the reference to the connection matrix.
     #[inline(always)]
-    pub(crate) const fn connector(&self) -> &Connector {
+    pub(crate) const fn connector(&self) -> &MatrixConnector {
         &self.data.connector
     }
 
