@@ -44,7 +44,7 @@ impl Connector {
         let mut left_feature_ids = HashMap::new();
         let mut right_feature_ids = HashMap::new();
         let mut map = std::collections::HashMap::new();
-        let weight_re = Regex::new(r"^(\S*)/(\S*) (\-?[0-9]+)$").unwrap();
+        let weight_re = Regex::new(r"^(\S*)/(\S*)\t(\-?[0-9]+)$").unwrap();
         let bigram_weight_reader = BufReader::new(bigram_weight_rdr);
         for line in bigram_weight_reader.lines() {
             let line = line?;

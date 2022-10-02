@@ -184,7 +184,7 @@ impl Model {
                 let w = (-w * weight_scale_factor) as i32;
                 writeln!(
                     &mut bigram_weight_wtr,
-                    "{left_feat_str}/{right_feat_str} {w}"
+                    "{left_feat_str}/{right_feat_str}\t{w}"
                 )?;
             }
         }
