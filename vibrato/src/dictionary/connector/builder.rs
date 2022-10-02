@@ -6,6 +6,8 @@ use regex::Regex;
 use crate::dictionary::Connector;
 use crate::errors::{Result, VibratoError};
 
+use super::scorer::ScorerBuilder;
+
 impl Connector {
     /// Creates a new instance from `matrix.def`.
     pub fn from_reader<R>(rdr: R) -> Result<Self>
@@ -45,7 +47,7 @@ impl Connector {
         let mut right_feature_ids = HashMap::new();
         left_feature_ids.insert(String::new(), 0);
         right_feature_ids.insert(String::new(), 0);
-        let mut map = std::collections::HashMap::new();
+        let mut scorer_builder = ScorerBuilder::new();
         let weight_re = Regex::new(r"^([^/\t]*)/([^/\t]*)\t(\-?[0-9]+)$").unwrap();
         let bigram_weight_reader = BufReader::new(bigram_weight_rdr);
         for line in bigram_weight_reader.lines() {
@@ -56,16 +58,30 @@ impl Connector {
                 let weight: i32 = cap.get(3).unwrap().as_str().parse()?;
                 let new_right_id = u32::try_from(right_feature_ids.len()).unwrap();
                 let new_left_id = u32::try_from(left_feature_ids.len()).unwrap();
-                let right_id = *right_feature_ids.raw_entry_mut().from_key(right_feature_str).or_insert_with(|| (right_feature_str.to_string(), new_right_id)).1;
-                let left_id = *left_feature_ids.raw_entry_mut().from_key(left_feature_str).or_insert_with(|| (left_feature_str.to_string(), new_left_id)).1;
-                map.insert((right_id, left_id), weight);
+                let right_id = *right_feature_ids
+                    .raw_entry_mut()
+                    .from_key(right_feature_str)
+                    .or_insert_with(|| (right_feature_str.to_string(), new_right_id))
+                    .1;
+                let left_id = *left_feature_ids
+                    .raw_entry_mut()
+                    .from_key(left_feature_str)
+                    .or_insert_with(|| (left_feature_str.to_string(), new_left_id))
+                    .1;
+                scorer_builder.insert(right_id as usize, left_id as usize, weight);
             } else {
-                return Err(VibratoError::invalid_format("bigram.weight", "invalid weight format"))
+                return Err(VibratoError::invalid_format(
+                    "bigram.weight",
+                    "invalid weight format",
+                ));
             }
         }
+        let scorer = scorer_builder.build();
 
         let feature_line_re = Regex::new(r"^([0-9]+)(\t(.*))?$").unwrap();
         let feature_item_re = Regex::new(r"^([0-9]+):(.*)$").unwrap();
+
+        let mut feat_max_len = 0;
 
         let mut left_features = vec![];
         let left_reader = BufReader::new(left_rdr);
@@ -74,26 +90,38 @@ impl Connector {
             if let Some(cap) = feature_line_re.captures(&line) {
                 let idx: usize = cap.get(1).unwrap().as_str().parse().unwrap();
                 if idx != i + 1 {
-                    return Err(VibratoError::invalid_format("bigram.left", "invalid weight format"))
+                    return Err(VibratoError::invalid_format(
+                        "bigram.left",
+                        "invalid weight format",
+                    ));
                 }
                 let mut feat_list = vec![];
                 if let Some(feats_str) = cap.get(3) {
-                for feat in feats_str.as_str().split('\t') {
-                    if let Some(cap) = feature_item_re.captures(feat) {
-                        let idx: usize = cap.get(1).unwrap().as_str().parse().unwrap();
-                        let feat_str = cap.get(2).unwrap().as_str();
-                        if idx >= feat_list.len() {
-                            feat_list.resize(idx + 1, 0);
+                    for feat in feats_str.as_str().split('\t') {
+                        if let Some(cap) = feature_item_re.captures(feat) {
+                            let idx: usize = cap.get(1).unwrap().as_str().parse().unwrap();
+                            let feat_str = cap.get(2).unwrap().as_str();
+                            if idx >= feat_list.len() {
+                                feat_list.resize(idx + 1, usize::MAX);
+                            }
+                            feat_list[idx] = *left_feature_ids.get(feat_str).unwrap() as usize;
+                            if idx >= feat_max_len {
+                                feat_max_len = idx + 1;
+                            }
+                        } else {
+                            return Err(VibratoError::invalid_format(
+                                "bigram.left",
+                                "invalid weight format",
+                            ));
                         }
-                        feat_list[idx] = *left_feature_ids.get(feat_str).unwrap();
-                    } else {
-                        return Err(VibratoError::invalid_format("bigram.left", "invalid weight format"))
                     }
-                }
                 }
                 left_features.push(feat_list);
             } else {
-                return Err(VibratoError::invalid_format("bigram.left", "invalid weight format"))
+                return Err(VibratoError::invalid_format(
+                    "bigram.left",
+                    "invalid weight format",
+                ));
             }
         }
 
@@ -104,30 +132,53 @@ impl Connector {
             if let Some(cap) = feature_line_re.captures(&line) {
                 let idx: usize = cap.get(1).unwrap().as_str().parse().unwrap();
                 if idx != i + 1 {
-                    return Err(VibratoError::invalid_format("bigram.right", "invalid weight format"))
+                    return Err(VibratoError::invalid_format(
+                        "bigram.right",
+                        "invalid weight format",
+                    ));
                 }
                 let mut feat_list = vec![];
                 if let Some(feats_str) = cap.get(3) {
-                for feat in feats_str.as_str().split('\t') {
-                    if let Some(cap) = feature_item_re.captures(feat) {
-                        let idx: usize = cap.get(1).unwrap().as_str().parse().unwrap();
-                        let feat_str = cap.get(2).unwrap().as_str();
-                        if idx >= feat_list.len() {
-                            feat_list.resize(idx + 1, 0);
+                    for feat in feats_str.as_str().split('\t') {
+                        if let Some(cap) = feature_item_re.captures(feat) {
+                            let idx: usize = cap.get(1).unwrap().as_str().parse().unwrap();
+                            let feat_str = cap.get(2).unwrap().as_str();
+                            if idx >= feat_list.len() {
+                                feat_list.resize(idx + 1, usize::MAX);
+                            }
+                            feat_list[idx] = *right_feature_ids.get(feat_str).unwrap() as usize;
+                            if idx >= feat_max_len {
+                                feat_max_len = idx + 1;
+                            }
+                        } else {
+                            return Err(VibratoError::invalid_format(
+                                "bigram.right",
+                                "invalid weight format",
+                            ));
                         }
-                        feat_list[idx] = *right_feature_ids.get(feat_str).unwrap();
-                    } else {
-                        return Err(VibratoError::invalid_format("bigram.right", "invalid weight format"))
                     }
-                }
                 }
                 right_features.push(feat_list);
             } else {
-                return Err(VibratoError::invalid_format("bigram.right", "invalid weight format"))
+                return Err(VibratoError::invalid_format(
+                    "bigram.right",
+                    "invalid weight format",
+                ));
             }
         }
+        for feats in &mut right_features {
+            feats.resize(feat_max_len, usize::MAX);
+        }
+        for feats in &mut left_features {
+            feats.resize(feat_max_len, usize::MAX);
+        }
 
-        Ok(Self::new_detailed(map, right_features, left_features))
+        Ok(Self::new_detailed(
+            scorer,
+            right_features,
+            left_features,
+            vec![0; feat_max_len],
+        ))
     }
 
     fn parse_header(line: &str) -> Result<(usize, usize)> {

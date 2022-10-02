@@ -34,6 +34,8 @@
 //! assert_eq!(t1.feature(), "東京都,名詞,固有名詞,地名,一般,*,*,トウキョウト,東京都,*,B,5/9,*,5/9,*");
 //! ```
 #![deny(missing_docs)]
+#![feature(portable_simd)]
+#![feature(array_chunks)]
 
 #[cfg(not(any(target_pointer_width = "32", target_pointer_width = "64")))]
 compile_error!("`target_pointer_width` must be 32 or 64");

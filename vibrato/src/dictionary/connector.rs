@@ -1,8 +1,11 @@
 mod builder;
+mod scorer;
 
 use bincode::{Decode, Encode};
 
 use crate::dictionary::mapper::ConnIdMapper;
+
+use self::scorer::Scorer;
 
 /// Matrix of connection costs.
 #[derive(Decode, Encode)]
@@ -11,9 +14,10 @@ pub struct Connector {
     num_right: usize,
     num_left: usize,
 
-    map: std::collections::HashMap<(u32, u32), i32>,
-    right_ids: Vec<Vec<u32>>,
-    left_ids: Vec<Vec<u32>>,
+    scorer: Scorer,
+    right_ids: Vec<Vec<usize>>,
+    left_ids: Vec<Vec<usize>>,
+    zeros: Vec<usize>,
 }
 
 impl Connector {
@@ -23,20 +27,27 @@ impl Connector {
             num_right,
             num_left,
 
-            map: std::collections::HashMap::new(),
+            scorer: Scorer::default(),
             right_ids: vec![],
             left_ids: vec![],
+            zeros: vec![],
         }
     }
-    pub fn new_detailed(map: std::collections::HashMap<(u32, u32), i32>, right_ids: Vec<Vec<u32>>, left_ids: Vec<Vec<u32>>) -> Self {
+    pub fn new_detailed(
+        scorer: Scorer,
+        right_ids: Vec<Vec<usize>>,
+        left_ids: Vec<Vec<usize>>,
+        zeros: Vec<usize>,
+    ) -> Self {
         Self {
             data: vec![],
             num_right: 0,
             num_left: 0,
 
-            map,
+            scorer,
             right_ids,
             left_ids,
+            zeros,
         }
     }
 
@@ -56,27 +67,18 @@ impl Connector {
         let index = self.index(right_id, left_id);
         self.data[index]
         */
-        let mut weight = 0;
         if right_id == 0 {
-            for &left_id in &self.left_ids[usize::from(left_id - 1)] {
-                if let Some(w) = self.map.get(&(0, left_id)) {
-                    weight += w;
-                }
-            }
+            self.scorer
+                .calculate_score_simd(&self.zeros, &self.left_ids[usize::from(left_id - 1)])
         } else if left_id == 0 {
-            for &right_id in &self.right_ids[usize::from(right_id - 1)] {
-                if let Some(w) = self.map.get(&(right_id, 0)) {
-                    weight += w;
-                }
-            }
+            self.scorer
+                .calculate_score_simd(&self.right_ids[usize::from(right_id - 1)], &self.zeros)
         } else {
-            for (&right_id, &left_id) in self.right_ids[usize::from(right_id - 1)].iter().zip(&self.left_ids[usize::from(left_id - 1)]) {
-                if let Some(w) = self.map.get(&(right_id, left_id)) {
-                    weight += w;
-                }
-            }
+            self.scorer.calculate_score_simd(
+                &self.right_ids[usize::from(right_id - 1)],
+                &[usize::from(left_id - 1)],
+            )
         }
-        weight
     }
 
     /// Gets the value of the connection matrix
