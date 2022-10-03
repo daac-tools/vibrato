@@ -1,7 +1,12 @@
 use std::io::{prelude::*, BufReader, Read};
 
-use crate::dictionary::MatrixConnector;
+use hashbrown::HashMap;
+
+use crate::dictionary::connector::{MatrixConnector, RawConnector};
 use crate::errors::{Result, VibratoError};
+use crate::utils;
+
+const INVALID_FEATURE_ID: u32 = u32::MAX;
 
 impl MatrixConnector {
     /// Creates a new instance from `matrix.def`.
@@ -54,6 +59,133 @@ impl MatrixConnector {
         } else {
             Ok((cols[0].parse()?, cols[1].parse()?, cols[2].parse()?))
         }
+    }
+}
+
+impl RawConnector {
+    /// Creates a new instance from `matrix.def`.
+    pub fn from_readers<R, L, C>(right_rdr: R, left_rdr: L, cost_rdr: C) -> Result<Self>
+    where
+        R: Read,
+        L: Read,
+        C: Read,
+    {
+        let mut right_id_map = HashMap::new();
+        let mut left_id_map = HashMap::new();
+        right_id_map.insert(String::new(), 0);
+        left_id_map.insert(String::new(), 0);
+        let mut costs = std::collections::HashMap::new();
+
+        let cost_rdr = BufReader::new(cost_rdr);
+        for line in cost_rdr.lines() {
+            let line = line?;
+            let (right_id, left_id, cost) =
+                Self::parse_cost(&line, &mut right_id_map, &mut left_id_map)?;
+            costs.insert((right_id, left_id), cost);
+        }
+
+        let mut col_size = 0;
+        let mut right_ids_tmp = vec![];
+        let right_rdr = BufReader::new(right_rdr);
+        for (i, line) in right_rdr.lines().enumerate() {
+            let line = line?;
+            let (id, feature_ids) = Self::parse_features(&line, &right_id_map, "bigram.right")?;
+            if id != i + 1 {
+                return Err(VibratoError::invalid_format(
+                    "bigram.right",
+                    "must be ascending order",
+                ));
+            }
+            if feature_ids.len() > col_size {
+                col_size = feature_ids.len();
+            }
+            right_ids_tmp.push(feature_ids);
+        }
+
+        let mut left_ids_tmp = vec![];
+        let left_rdr = BufReader::new(left_rdr);
+        for (i, line) in left_rdr.lines().enumerate() {
+            let line = line?;
+            let (id, feature_ids) = Self::parse_features(&line, &left_id_map, "bigram.left")?;
+            if id != i + 1 {
+                return Err(VibratoError::invalid_format(
+                    "bigram.left",
+                    "must be ascending order",
+                ));
+            }
+            if feature_ids.len() > col_size {
+                col_size = feature_ids.len();
+            }
+            left_ids_tmp.push(feature_ids);
+        }
+
+        let mut right_ids = vec![INVALID_FEATURE_ID; right_ids_tmp.len() * col_size];
+        let mut left_ids = vec![INVALID_FEATURE_ID; right_ids_tmp.len() * col_size];
+        for (trg, src) in right_ids.chunks_mut(col_size).zip(&right_ids_tmp) {
+            trg[..src.len()].copy_from_slice(src);
+        }
+        for (trg, src) in left_ids.chunks_mut(col_size).zip(&left_ids_tmp) {
+            trg[..src.len()].copy_from_slice(src);
+        }
+
+        Ok(Self::new(right_ids, left_ids, col_size, costs))
+    }
+
+    fn parse_features(
+        line: &str,
+        id_map: &HashMap<String, u32>,
+        name: &'static str,
+    ) -> Result<(usize, Vec<u32>)> {
+        let mut spl = line.split('\t');
+        let id_str = spl.next();
+        let features_str = spl.next();
+        let rest = spl.next();
+        if let (Some(id_str), Some(features_str), None) = (id_str, features_str, rest) {
+            let id: usize = id_str.parse()?;
+            let features = utils::parse_csv_row(features_str);
+            let mut result = vec![];
+            for feature in features {
+                result.push(*id_map.get(&feature).unwrap_or(&INVALID_FEATURE_ID));
+            }
+            return Ok((id, result));
+        }
+        let msg = format!("The format must be id<tab>csv_row, {line}");
+        Err(VibratoError::invalid_format(name, msg))
+    }
+
+    fn parse_cost(
+        line: &str,
+        right_id_map: &mut HashMap<String, u32>,
+        left_id_map: &mut HashMap<String, u32>,
+    ) -> Result<(u32, u32, i32)> {
+        let mut spl = line.split('\t');
+        let feature_str = spl.next();
+        let cost_str = spl.next();
+        let rest = spl.next();
+        if let (Some(feature_str), Some(cost_str), None) = (feature_str, cost_str, rest) {
+            let cost: i32 = cost_str.parse()?;
+            let mut spl = feature_str.split('/');
+            let right_str = spl.next();
+            let left_str = spl.next();
+            let rest = spl.next();
+            if let (Some(right_str), Some(left_str), None) = (right_str, left_str, rest) {
+                let new_right_id = u32::try_from(right_id_map.len()).unwrap();
+                let right_id = *right_id_map
+                    .raw_entry_mut()
+                    .from_key(right_str)
+                    .or_insert_with(|| (right_str.to_string(), new_right_id))
+                    .1;
+                let new_left_id = u32::try_from(left_id_map.len()).unwrap();
+                let left_id = *left_id_map
+                    .raw_entry_mut()
+                    .from_key(left_str)
+                    .or_insert_with(|| (left_str.to_string(), new_left_id))
+                    .1;
+                return Ok((right_id, left_id, cost));
+            }
+        }
+        let msg = format!("The format must be right/left<tab>cost, {line}");
+        Err(VibratoError::invalid_format("bigram.cost", msg))
     }
 }
 

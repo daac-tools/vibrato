@@ -13,7 +13,7 @@ use bincode::{Decode, Encode};
 
 use crate::common;
 use crate::dictionary::character::CharProperty;
-use crate::dictionary::connector::{Connector, ConnectorWrapper, MatrixConnector};
+use crate::dictionary::connector::{Connector, ConnectorWrapper};
 use crate::dictionary::lexicon::Lexicon;
 use crate::dictionary::mapper::ConnIdMapper;
 use crate::dictionary::unknown::UnkHandler;

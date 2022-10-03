@@ -1,8 +1,9 @@
 use std::io::Read;
 
+use crate::dictionary::connector::{MatrixConnector, RawConnector};
 use crate::dictionary::{
     CharProperty, ConnIdMapper, Connector, ConnectorWrapper, Dictionary, DictionaryInner, LexType,
-    Lexicon, MatrixConnector, UnkHandler,
+    Lexicon, UnkHandler,
 };
 use crate::errors::{Result, VibratoError};
 
@@ -77,6 +78,52 @@ impl Dictionary {
         Self::new(
             &system_word_entries,
             ConnectorWrapper::Matrix(connector),
+            char_prop,
+            unk_handler,
+        )
+    }
+
+    /// Creates a new instance from readers with the detailed bi-gram information.
+    ///
+    /// # Arguments
+    ///
+    ///  - `system_lexicon_rdr`: A reader of a lexicon file `*.csv`.
+    ///  - `bigram_right_rdr`: A reader of bi-gram info associated with right IDs `bigram.right`.
+    ///  - `bigram_left_rdr`: A reader of bi-gram info associated with left IDs `bigram.left`.
+    ///  - `bigram_cost_rdr`: A reader of a bi-gram cost file `bigram.cost`.
+    ///  - `char_prop_rdr`: A reader of character definition file `char.def`.
+    ///  - `unk_handler`: A reader of unknown definition file `unk.def`.
+    ///
+    /// # Errors
+    ///
+    /// [`VibratoError`] is returned when an input format is invalid.
+    pub fn from_readers_with_bigram_info<S, R, L, C, P, U>(
+        mut system_lexicon_rdr: S,
+        bigram_right_rdr: R,
+        bigram_left_rdr: L,
+        bigram_cost_rdr: C,
+        char_prop_rdr: P,
+        unk_handler_rdr: U,
+    ) -> Result<Self>
+    where
+        S: Read,
+        R: Read,
+        L: Read,
+        C: Read,
+        P: Read,
+        U: Read,
+    {
+        let mut system_lexicon_buf = vec![];
+        system_lexicon_rdr.read_to_end(&mut system_lexicon_buf)?;
+        let system_word_entries = Lexicon::parse_csv(&system_lexicon_buf, "lex.csv")?;
+        let connector =
+            RawConnector::from_readers(bigram_right_rdr, bigram_left_rdr, bigram_cost_rdr)?;
+        let char_prop = CharProperty::from_reader(char_prop_rdr)?;
+        let unk_handler = UnkHandler::from_reader(unk_handler_rdr, &char_prop)?;
+
+        Self::new(
+            &system_word_entries,
+            ConnectorWrapper::Raw(connector),
             char_prop,
             unk_handler,
         )

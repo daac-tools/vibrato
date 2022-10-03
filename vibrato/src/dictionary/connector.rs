@@ -1,5 +1,7 @@
 mod builder;
 
+use std::collections::HashMap;
+
 use bincode::{Decode, Encode};
 
 use crate::dictionary::mapper::ConnIdMapper;
@@ -99,8 +101,83 @@ impl ConnectorCost for MatrixConnector {
 }
 
 #[derive(Decode, Encode)]
+pub struct RawConnector {
+    right_ids: Vec<u32>,
+    left_ids: Vec<u32>,
+    col_size: usize,
+    costs: HashMap<(u32, u32), i32>,
+}
+
+impl RawConnector {
+    pub fn new(
+        right_ids: Vec<u32>,
+        left_ids: Vec<u32>,
+        col_size: usize,
+        costs: HashMap<(u32, u32), i32>,
+    ) -> Self {
+        Self {
+            right_ids,
+            left_ids,
+            col_size,
+            costs,
+        }
+    }
+
+    #[inline(always)]
+    fn right_feature_ids(&self, right_id: u16) -> &[u32] {
+        &self.right_ids
+            [usize::from(right_id) * self.col_size..usize::from(right_id + 1) * self.col_size]
+    }
+
+    #[inline(always)]
+    fn left_feature_ids(&self, left_id: u16) -> &[u32] {
+        &self.left_ids
+            [usize::from(left_id) * self.col_size..usize::from(left_id + 1) * self.col_size]
+    }
+}
+
+impl Connector for RawConnector {
+    #[inline(always)]
+    fn num_left(&self) -> usize {
+        self.left_ids.len() / self.col_size
+    }
+
+    #[inline(always)]
+    fn num_right(&self) -> usize {
+        self.right_ids.len() / self.col_size
+    }
+
+    fn do_mapping(&mut self, _mapper: &ConnIdMapper) {
+        unimplemented!()
+    }
+}
+
+impl ConnectorCost for RawConnector {
+    #[inline(always)]
+    fn cost(&self, right_id: u16, left_id: u16) -> i32 {
+        let mut cost = 0;
+        for (&rid, &lid) in self
+            .right_feature_ids(right_id)
+            .iter()
+            .zip(self.left_feature_ids(left_id))
+        {
+            if let Some(c) = self.costs.get(&(rid, lid)) {
+                cost += c;
+            }
+        }
+        cost
+    }
+
+    #[inline(always)]
+    unsafe fn cost_unchecked(&self, right_id: u16, left_id: u16) -> i32 {
+        self.cost(right_id, left_id)
+    }
+}
+
+#[derive(Decode, Encode)]
 pub enum ConnectorWrapper {
     Matrix(MatrixConnector),
+    Raw(RawConnector),
 }
 
 impl Connector for ConnectorWrapper {
@@ -108,6 +185,7 @@ impl Connector for ConnectorWrapper {
     fn num_left(&self) -> usize {
         match self {
             Self::Matrix(c) => c.num_left(),
+            Self::Raw(c) => c.num_left(),
         }
     }
 
@@ -115,6 +193,7 @@ impl Connector for ConnectorWrapper {
     fn num_right(&self) -> usize {
         match self {
             Self::Matrix(c) => c.num_right(),
+            Self::Raw(c) => c.num_right(),
         }
     }
 
@@ -122,6 +201,7 @@ impl Connector for ConnectorWrapper {
     fn do_mapping(&mut self, mapper: &ConnIdMapper) {
         match self {
             Self::Matrix(c) => c.do_mapping(mapper),
+            Self::Raw(c) => c.do_mapping(mapper),
         }
     }
 }
