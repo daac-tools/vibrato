@@ -22,10 +22,10 @@ impl ScorerBuilder {
     }
 
     #[inline(always)]
-    fn check_base(base: isize, hm: &BTreeMap<u32, i32>, checks: &[usize]) -> bool {
+    fn check_base(base: i32, hm: &BTreeMap<u32, i32>, checks: &[u32]) -> bool {
         for &key2 in hm.keys() {
-            if let Some(check) = checks.get((base + key2 as isize) as usize) {
-                if *check != usize::MAX {
+            if let Some(check) = checks.get((base + key2 as i32) as usize) {
+                if *check != u32::MAX {
                     return false;
                 }
             }
@@ -40,18 +40,19 @@ impl ScorerBuilder {
         let mut cand_first = 1;
         for (key1, hm) in self.trie.into_iter().enumerate() {
             if let Some(key2_head) = hm.keys().next() {
-                let mut base = cand_first as isize - *key2_head as isize;
+                let mut base = cand_first as i32 - *key2_head as i32;
                 while !Self::check_base(base, &hm, &checks) {
                     base += 1;
                 }
-                bases[key1] = base as usize;
+                bases[key1] = base as u32;
                 for (key2, weight) in hm {
-                    let pos = (base + key2 as isize) as usize;
+                    let pos = (base + key2 as i32) as u32;
+                    let pos = usize::from_u32(pos);
                     if pos >= checks.len() {
-                        checks.resize(pos + 1, usize::MAX);
+                        checks.resize(pos + 1, u32::MAX);
                         weights.resize(pos + 1, 0);
                     }
-                    checks[pos] = key1;
+                    checks[pos] = u32::try_from(key1).unwrap();
                     weights[pos] = weight;
                 }
                 while checks[cand_first] != 0 {
@@ -69,18 +70,16 @@ impl ScorerBuilder {
 
 #[derive(Decode, Encode, Default)]
 pub struct Scorer {
-    bases: Vec<usize>,
-    checks: Vec<usize>,
+    bases: Vec<u32>,
+    checks: Vec<u32>,
     weights: Vec<i32>,
 }
 
 impl Scorer {
     #[inline(always)]
     pub fn retrieve_weight(&self, key1: u32, key2: u32) -> Option<i32> {
-        let key1 = usize::from_u32(key1);
-        let key2 = usize::from_u32(key2);
-        if let Some(base) = self.bases.get(key1) {
-            let pos = base.wrapping_add(key2);
+        if let Some(base) = self.bases.get(usize::from_u32(key1)) {
+            let pos = usize::from_u32(base.wrapping_add(key2));
             if let Some(check) = self.checks.get(pos) {
                 if *check == key1 {
                     return Some(self.weights[pos]);
