@@ -64,7 +64,7 @@ impl MatrixConnector {
 }
 
 impl RawConnector {
-    /// Creates a new instance from `matrix.def`.
+    /// Creates a new instance from `bigram.right`, `bigram.left`, and `bigram.cost`.
     pub fn from_readers<R, L, C>(right_rdr: R, left_rdr: L, cost_rdr: C) -> Result<Self>
     where
         R: Read,
