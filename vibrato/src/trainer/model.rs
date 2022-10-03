@@ -102,16 +102,16 @@ impl Model {
     ///
     /// - merging costs fails, or
     /// - the writing fails.
-    pub fn write_bigram_details<L, R, B>(
+    pub fn write_bigram_details<L, R, C>(
         &mut self,
         left_wtr: L,
         right_wtr: R,
-        cost_wtr: B,
+        cost_wtr: C,
     ) -> Result<()>
     where
         L: Write,
         R: Write,
-        B: Write,
+        C: Write,
     {
         if self.merged_model.is_none() {
             self.merged_model = Some(self.data.raw_model.merge()?);
@@ -193,10 +193,7 @@ impl Model {
                 let right_feat_str = right_features.get(right_feat_id).map_or("", |x| x.as_str());
                 let w = self.data.raw_model.weights()[usize::from_u32(*widx)];
                 let cost = (-w * weight_scale_factor) as i32;
-                writeln!(
-                    &mut cost_wtr,
-                    "{left_feat_str}/{right_feat_str}\t{cost}"
-                )?;
+                writeln!(&mut cost_wtr, "{left_feat_str}/{right_feat_str}\t{cost}")?;
             }
         }
         Ok(())
