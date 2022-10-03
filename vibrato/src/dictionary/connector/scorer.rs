@@ -83,18 +83,14 @@ impl Scorer {
             let pos = base.wrapping_add(key2);
             if let Some(check) = self.checks.get(pos) {
                 if *check == key1 {
-                    Some(self.weights[pos])
-                } else {
-                    None
+                    return Some(self.weights[pos])
                 }
-            } else {
-                None
             }
-        } else {
-            None
         }
+        None
     }
 
+    #[inline(always)]
     pub fn calculate_score(&self, keys1: &[u32], keys2: &[u32]) -> i32 {
         let mut score = 0;
         for (&key1, &key2) in keys1.iter().zip(keys2) {
