@@ -2,8 +2,8 @@ use std::io::{prelude::*, BufReader, Read};
 
 use hashbrown::HashMap;
 
-use crate::dictionary::connector::{MatrixConnector, RawConnector};
 use crate::dictionary::connector::scorer::ScorerBuilder;
+use crate::dictionary::connector::{MatrixConnector, RawConnector};
 use crate::errors::{Result, VibratoError};
 use crate::utils;
 

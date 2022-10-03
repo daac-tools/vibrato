@@ -83,7 +83,7 @@ impl Scorer {
             let pos = base.wrapping_add(key2);
             if let Some(check) = self.checks.get(pos) {
                 if *check == key1 {
-                    return Some(self.weights[pos])
+                    return Some(self.weights[pos]);
                 }
             }
         }
