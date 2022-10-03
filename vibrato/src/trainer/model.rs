@@ -92,20 +92,21 @@ impl Model {
     ///
     /// # Arguments
     ///
-    /// * `left_wtr` - Write sink targetting `left.def`.
-    /// * `right_wtr` - Write sink targetting `right.def`.
+    /// * `left_wtr` - Write sink targetting the `.left` file.
+    /// * `right_wtr` - Write sink targetting the `.right` file.
+    /// * `cost_wtr` - Write sink targetting the `.cost` file.
     ///
     /// # Errors
     ///
     /// [`VibratoError`](crate::errors::VibratoError) is returned when:
     ///
-    /// - merging weights fails, or
+    /// - merging costs fails, or
     /// - the writing fails.
     pub fn write_bigram_details<L, R, B>(
         &mut self,
         left_wtr: L,
         right_wtr: R,
-        bigram_weight_wtr: B,
+        cost_wtr: B,
     ) -> Result<()>
     where
         L: Write,
@@ -177,7 +178,7 @@ impl Model {
             writeln!(&mut right_wtr)?;
         }
 
-        let mut bigram_weight_wtr = BufWriter::new(bigram_weight_wtr);
+        let mut cost_wtr = BufWriter::new(cost_wtr);
         for (left_feat_id, hm) in self
             .data
             .raw_model
@@ -191,10 +192,10 @@ impl Model {
             for (right_feat_id, widx) in hm {
                 let right_feat_str = right_features.get(right_feat_id).map_or("", |x| x.as_str());
                 let w = self.data.raw_model.weights()[usize::from_u32(*widx)];
-                let w = (-w * weight_scale_factor) as i32;
+                let cost = (-w * weight_scale_factor) as i32;
                 writeln!(
-                    &mut bigram_weight_wtr,
-                    "{left_feat_str}/{right_feat_str}\t{w}"
+                    &mut cost_wtr,
+                    "{left_feat_str}/{right_feat_str}\t{cost}"
                 )?;
             }
         }
@@ -215,7 +216,7 @@ impl Model {
     ///
     /// [`VibratoError`](crate::errors::VibratoError) is returned when:
     ///
-    /// - merging weights fails, or
+    /// - merging costs fails, or
     /// - the writing fails.
     pub fn write_dictionary<L, C, U, S>(
         &mut self,
