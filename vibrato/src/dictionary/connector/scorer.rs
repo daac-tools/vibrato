@@ -9,7 +9,7 @@ pub struct ScorerBuilder {
 }
 
 impl ScorerBuilder {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self { trie: vec![] }
     }
 
@@ -30,7 +30,7 @@ impl ScorerBuilder {
                 }
             }
         }
-        return true;
+        true
     }
 
     pub fn build(self) -> Scorer {
