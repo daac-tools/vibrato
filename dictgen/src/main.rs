@@ -72,14 +72,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let ext = path.as_os_str().to_os_string();
         let mut left_path = ext.clone();
         let mut right_path = ext.clone();
-        let mut bigram_weight_path = ext;
+        let mut cost_path = ext;
         left_path.push(".left");
         right_path.push(".right");
-        bigram_weight_path.push(".weight");
+        cost_path.push(".cost");
         let left_wtr = File::create(left_path)?;
         let right_wtr = File::create(right_path)?;
-        let bigram_weight_wtr = File::create(bigram_weight_path)?;
-        model.write_bigram_details(left_wtr, right_wtr, bigram_weight_wtr)?;
+        let cost_wtr = File::create(cost_path)?;
+        model.write_bigram_details(left_wtr, right_wtr, cost_wtr)?;
     }
 
     Ok(())
