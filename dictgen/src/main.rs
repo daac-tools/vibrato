@@ -32,9 +32,10 @@ struct Args {
     #[clap(long)]
     user_lexicon_out: Option<PathBuf>,
 
-    /// Outputs a list of features associated with each left connection ID.
+    /// Outputs a list of features associated with each connection ID and a list of bi-gram
+    /// costs.
     ///
-    /// The file name is suffixed with `.left` and `.right`.
+    /// The file names are suffixed with `.left`, `.right`, and `.cost`.
     #[clap(long)]
     conn_id_info_out: Option<PathBuf>,
 }
@@ -70,12 +71,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(path) = args.conn_id_info_out {
         let ext = path.as_os_str().to_os_string();
         let mut left_path = ext.clone();
-        let mut right_path = ext;
+        let mut right_path = ext.clone();
+        let mut cost_path = ext;
         left_path.push(".left");
         right_path.push(".right");
+        cost_path.push(".cost");
         let left_wtr = File::create(left_path)?;
         let right_wtr = File::create(right_path)?;
-        model.write_used_features(left_wtr, right_wtr)?;
+        let cost_wtr = File::create(cost_path)?;
+        model.write_bigram_details(left_wtr, right_wtr, cost_wtr)?;
     }
 
     Ok(())

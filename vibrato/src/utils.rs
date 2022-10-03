@@ -1,3 +1,5 @@
+use std::io::Write;
+
 use csv_core::ReadFieldResult;
 
 pub trait FromU32 {
@@ -12,6 +14,26 @@ impl FromU32 for usize {
         // the following process always succeeds.
         unsafe { Self::try_from(src).unwrap_unchecked() }
     }
+}
+
+pub fn quote_csv_cell<W>(mut wtr: W, mut data: &[u8]) -> std::io::Result<()>
+where
+    W: Write,
+{
+    let mut output = [0; 4096];
+    let mut writer = csv_core::Writer::new();
+    loop {
+        let (result, nin, nout) = writer.field(data, &mut output);
+        wtr.write_all(&output[..nout])?;
+        if result == csv_core::WriteResult::InputEmpty {
+            break;
+        }
+        data = &data[nin..];
+    }
+    let (result, nout) = writer.finish(&mut output);
+    assert_eq!(result, csv_core::WriteResult::InputEmpty);
+    wtr.write_all(&output[..nout])?;
+    Ok(())
 }
 
 pub fn parse_csv_row(row: &str) -> Vec<String> {

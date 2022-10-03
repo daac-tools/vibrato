@@ -13,7 +13,7 @@ pub use crate::trainer::config::TrainerConfig;
 pub use crate::trainer::corpus::Corpus;
 use crate::trainer::corpus::Word;
 pub use crate::trainer::Trainer;
-use crate::utils::FromU32;
+use crate::utils::{self, FromU32};
 
 #[derive(Decode, Encode)]
 pub struct ModelData {
@@ -92,24 +92,43 @@ impl Model {
     ///
     /// # Arguments
     ///
-    /// * `left_wtr` - Write sink targetting `left.def`.
-    /// * `right_wtr` - Write sink targetting `right.def`.
+    /// * `left_wtr` - Write sink targetting the `.left` file.
+    /// * `right_wtr` - Write sink targetting the `.right` file.
+    /// * `cost_wtr` - Write sink targetting the `.cost` file.
     ///
     /// # Errors
     ///
     /// [`VibratoError`](crate::errors::VibratoError) is returned when:
     ///
-    /// - merging weights fails, or
+    /// - merging costs fails, or
     /// - the writing fails.
-    pub fn write_used_features<L, R>(&mut self, left_wtr: L, right_wtr: R) -> Result<()>
+    pub fn write_bigram_details<L, R, C>(
+        &mut self,
+        left_wtr: L,
+        right_wtr: R,
+        cost_wtr: C,
+    ) -> Result<()>
     where
         L: Write,
         R: Write,
+        C: Write,
     {
         if self.merged_model.is_none() {
             self.merged_model = Some(self.data.raw_model.merge()?);
         }
         let merged_model = self.merged_model.as_ref().unwrap();
+
+        // scales weights.
+        let mut weight_abs_max = 0f64;
+        for feature_set in &merged_model.feature_sets {
+            weight_abs_max = weight_abs_max.max(feature_set.weight.abs());
+        }
+        for hm in &merged_model.matrix {
+            for &w in hm.values() {
+                weight_abs_max = weight_abs_max.max(w.abs());
+            }
+        }
+        let weight_scale_factor = f64::from(i16::MAX) / weight_abs_max;
 
         let feature_extractor = &self.data.config.feature_extractor;
 
@@ -120,12 +139,17 @@ impl Model {
         }
         let feature_list = &merged_model.left_conn_to_right_feats;
         let mut left_wtr = BufWriter::new(left_wtr);
-        for (conn_id, feat_ids) in feature_list[..feature_list.len() - 1].iter().enumerate() {
-            write!(&mut left_wtr, "{}", conn_id + 1)?;
+        for (conn_id, feat_ids) in feature_list[..feature_list.len()].iter().enumerate() {
+            write!(&mut left_wtr, "{}\t", conn_id + 1)?;
             for (i, feat_id) in feat_ids.iter().enumerate() {
+                if i != 0 {
+                    write!(&mut left_wtr, ",")?;
+                }
                 if let Some(feat_id) = feat_id {
                     let feat_str = right_features.get(&feat_id.get()).unwrap();
-                    write!(&mut left_wtr, " {i}:{feat_str}")?;
+                    utils::quote_csv_cell(&mut left_wtr, feat_str.as_bytes())?;
+                } else {
+                    write!(&mut left_wtr, "*")?;
                 }
             }
             writeln!(&mut left_wtr)?;
@@ -138,15 +162,39 @@ impl Model {
         }
         let feature_list = &merged_model.right_conn_to_left_feats;
         let mut right_wtr = BufWriter::new(right_wtr);
-        for (conn_id, feat_ids) in feature_list[..feature_list.len() - 1].iter().enumerate() {
-            write!(&mut right_wtr, "{}", conn_id + 1)?;
+        for (conn_id, feat_ids) in feature_list[..feature_list.len()].iter().enumerate() {
+            write!(&mut right_wtr, "{}\t", conn_id + 1)?;
             for (i, feat_id) in feat_ids.iter().enumerate() {
+                if i != 0 {
+                    write!(&mut right_wtr, ",")?;
+                }
                 if let Some(feat_id) = feat_id {
                     let feat_str = left_features.get(&feat_id.get()).unwrap();
-                    write!(&mut right_wtr, " {i}:{feat_str}")?;
+                    utils::quote_csv_cell(&mut right_wtr, feat_str.as_bytes())?;
+                } else {
+                    write!(&mut right_wtr, "*")?;
                 }
             }
             writeln!(&mut right_wtr)?;
+        }
+
+        let mut cost_wtr = BufWriter::new(cost_wtr);
+        for (left_feat_id, hm) in self
+            .data
+            .raw_model
+            .bigram_weight_indices()
+            .iter()
+            .enumerate()
+        {
+            let left_feat_str = left_features
+                .get(&u32::try_from(left_feat_id).unwrap())
+                .map_or("", |x| x.as_str());
+            for (right_feat_id, widx) in hm {
+                let right_feat_str = right_features.get(right_feat_id).map_or("", |x| x.as_str());
+                let w = self.data.raw_model.weights()[usize::from_u32(*widx)];
+                let cost = (-w * weight_scale_factor) as i32;
+                writeln!(&mut cost_wtr, "{left_feat_str}/{right_feat_str}\t{cost}")?;
+            }
         }
         Ok(())
     }
@@ -165,7 +213,7 @@ impl Model {
     ///
     /// [`VibratoError`](crate::errors::VibratoError) is returned when:
     ///
-    /// - merging weights fails, or
+    /// - merging costs fails, or
     /// - the writing fails.
     pub fn write_dictionary<L, C, U, S>(
         &mut self,
@@ -190,8 +238,6 @@ impl Model {
         let mut connector_wtr = BufWriter::new(connector_wtr);
         let mut user_lexicon_wtr = BufWriter::new(user_lexicon_wtr);
 
-        let mut output = [0; 4096];
-
         // scales weights to represent them in i16.
         let mut weight_abs_max = 0f64;
         for feature_set in &merged_model.feature_sets {
@@ -199,7 +245,7 @@ impl Model {
         }
         for hm in &merged_model.matrix {
             for &w in hm.values() {
-                weight_abs_max = weight_abs_max.max(w);
+                weight_abs_max = weight_abs_max.max(w.abs());
             }
         }
         let weight_scale_factor = f64::from(i16::MAX) / weight_abs_max;
@@ -207,24 +253,12 @@ impl Model {
         let config = &self.data.config;
 
         for i in 0..config.surfaces.len() {
-            let mut writer = csv_core::Writer::new();
-            let mut surface = config.surfaces[i].as_bytes();
             let feature_set = merged_model.feature_sets[i];
             let word_idx = WordIdx::new(LexType::System, u32::try_from(i).unwrap());
             let feature = config.dict.system_lexicon().word_feature(word_idx);
 
             // writes surface
-            loop {
-                let (result, nin, nout) = writer.field(surface, &mut output);
-                lexicon_wtr.write_all(&output[..nout])?;
-                if result == csv_core::WriteResult::InputEmpty {
-                    break;
-                }
-                surface = &surface[nin..];
-            }
-            let (result, nout) = writer.finish(&mut output);
-            assert_eq!(result, csv_core::WriteResult::InputEmpty);
-            lexicon_wtr.write_all(&output[..nout])?;
+            utils::quote_csv_cell(&mut lexicon_wtr, config.surfaces[i].as_bytes())?;
 
             // writes others
             writeln!(
@@ -279,22 +313,10 @@ impl Model {
         }
 
         for (word, param, label_id) in &self.user_entries {
-            let mut writer = csv_core::Writer::new();
             let feature_set = merged_model.feature_sets[usize::from_u32(label_id.get() - 1)];
 
             // writes surface
-            let mut surface = word.surface().as_bytes();
-            loop {
-                let (result, nin, nout) = writer.field(surface, &mut output);
-                user_lexicon_wtr.write_all(&output[..nout])?;
-                if result == csv_core::WriteResult::InputEmpty {
-                    break;
-                }
-                surface = &surface[nin..];
-            }
-            let (result, nout) = writer.finish(&mut output);
-            assert_eq!(result, csv_core::WriteResult::InputEmpty);
-            user_lexicon_wtr.write_all(&output[..nout])?;
+            utils::quote_csv_cell(&mut user_lexicon_wtr, word.surface().as_bytes())?;
 
             // writes others
             if *param == WordParam::default() {
