@@ -204,7 +204,10 @@ impl UnkHandler {
     }
 
     /// Checks if left/right-ids are valid to the connector.
-    pub fn verify(&self, conn: &Connector) -> bool {
+    pub fn verify<C>(&self, conn: &C) -> bool
+    where
+        C: Connector,
+    {
         for e in &self.entries {
             if conn.num_left() <= usize::from(e.left_id) {
                 return false;

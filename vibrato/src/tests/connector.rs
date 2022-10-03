@@ -4,7 +4,7 @@ const MATRIX_DEF: &str = include_str!("./resources/matrix.def");
 
 #[test]
 fn test_matrix() {
-    let conn = Connector::from_reader(MATRIX_DEF.as_bytes()).unwrap();
+    let conn = MatrixConnector::from_reader(MATRIX_DEF.as_bytes()).unwrap();
     assert_eq!(conn.num_left(), 10);
     assert_eq!(conn.num_right(), 10);
     assert_eq!(conn.cost(0, 0), 0);

@@ -1,8 +1,8 @@
 use std::io::Read;
 
 use crate::dictionary::{
-    CharProperty, ConnIdMapper, Connector, Dictionary, DictionaryInner, LexType, Lexicon,
-    UnkHandler,
+    CharProperty, ConnIdMapper, Connector, ConnectorWrapper, Dictionary, DictionaryInner, LexType,
+    Lexicon, MatrixConnector, UnkHandler,
 };
 use crate::errors::{Result, VibratoError};
 
@@ -11,7 +11,7 @@ use super::lexicon::RawWordEntry;
 impl Dictionary {
     pub(crate) fn new(
         system_word_entries: &[RawWordEntry],
-        connector: Connector,
+        connector: ConnectorWrapper,
         char_prop: CharProperty,
         unk_handler: UnkHandler,
     ) -> Result<Self> {
@@ -70,11 +70,16 @@ impl Dictionary {
         let mut system_lexicon_buf = vec![];
         system_lexicon_rdr.read_to_end(&mut system_lexicon_buf)?;
         let system_word_entries = Lexicon::parse_csv(&system_lexicon_buf, "lex.csv")?;
-        let connector = Connector::from_reader(connector_rdr)?;
+        let connector = MatrixConnector::from_reader(connector_rdr)?;
         let char_prop = CharProperty::from_reader(char_prop_rdr)?;
         let unk_handler = UnkHandler::from_reader(unk_handler_rdr, &char_prop)?;
 
-        Self::new(&system_word_entries, connector, char_prop, unk_handler)
+        Self::new(
+            &system_word_entries,
+            ConnectorWrapper::Matrix(connector),
+            char_prop,
+            unk_handler,
+        )
     }
 
     /// Resets the user dictionary from a reader.

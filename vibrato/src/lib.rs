@@ -6,13 +6,21 @@
 //! ## Examples
 //!
 //! ```
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use std::fs::File;
 //! use std::io::{BufRead, BufReader};
 //!
 //! use vibrato::{Dictionary, Tokenizer};
 //!
-//! let file = File::open("src/tests/resources/system.dic").unwrap();
-//! let dict = Dictionary::read(BufReader::new(file)).unwrap();
+//! // Loads a set of raw dictionary files
+//! let dict = Dictionary::from_readers(
+//!     File::open("src/tests/resources/lex.csv")?,
+//!     File::open("src/tests/resources/matrix.def")?,
+//!     File::open("src/tests/resources/char.def")?,
+//!     File::open("src/tests/resources/unk.def")?,
+//! )?;
+//! // or loads a compiled dictionary
+//! // let dict = Dictionary::read(File::open("src/tests/resources/system.dic")?)?;
 //!
 //! let tokenizer = vibrato::Tokenizer::new(dict);
 //! let mut worker = tokenizer.new_worker();
@@ -32,6 +40,8 @@
 //! assert_eq!(t1.range_char(), 2..5);
 //! assert_eq!(t1.range_byte(), 6..15);
 //! assert_eq!(t1.feature(), "東京都,名詞,固有名詞,地名,一般,*,*,トウキョウト,東京都,*,B,5/9,*,5/9,*");
+//! # Ok(())
+//! # }
 //! ```
 #![deny(missing_docs)]
 

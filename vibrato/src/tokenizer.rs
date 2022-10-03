@@ -2,6 +2,7 @@
 pub(crate) mod lattice;
 pub mod worker;
 
+use crate::dictionary::connector::{ConnectorCost, ConnectorWrapper};
 use crate::dictionary::Dictionary;
 use crate::errors::{Result, VibratoError};
 use crate::sentence::Sentence;
@@ -85,6 +86,15 @@ impl Tokenizer {
     }
 
     pub(crate) fn build_lattice(&self, sent: &Sentence, lattice: &mut Lattice) {
+        match self.dict.connector() {
+            ConnectorWrapper::Matrix(c) => self.build_lattice_inner(sent, lattice, c),
+        }
+    }
+
+    fn build_lattice_inner<C>(&self, sent: &Sentence, lattice: &mut Lattice, connector: &C)
+    where
+        C: ConnectorCost,
+    {
         lattice.reset(sent.len_char());
 
         // These variables indicate the starting character positions of words currently stored
@@ -120,10 +130,12 @@ impl Tokenizer {
             }
 
             if self.dict.need_check {
-                self.add_lattice_edges(sent, lattice, start_node, start_word);
+                self.add_lattice_edges(sent, lattice, start_node, start_word, connector);
             } else {
                 unsafe {
-                    self.add_lattice_edges_unchecked(sent, lattice, start_node, start_word);
+                    self.add_lattice_edges_unchecked(
+                        sent, lattice, start_node, start_word, connector,
+                    );
                 }
             }
 
@@ -132,21 +144,24 @@ impl Tokenizer {
         }
 
         if self.dict.need_check {
-            lattice.insert_eos(start_node, self.dict.connector());
+            lattice.insert_eos(start_node, connector);
         } else {
             unsafe {
-                lattice.insert_eos_unchecked(start_node, self.dict.connector());
+                lattice.insert_eos_unchecked(start_node, connector);
             }
         }
     }
 
-    fn add_lattice_edges(
+    fn add_lattice_edges<C>(
         &self,
         sent: &Sentence,
         lattice: &mut Lattice,
         start_node: u16,
         start_word: u16,
-    ) {
+        connector: &C,
+    ) where
+        C: ConnectorCost,
+    {
         let mut has_matched = false;
 
         // Safety: `start_word < sent.len_char()` is already checked in `build_lattice()`.
@@ -162,7 +177,7 @@ impl Tokenizer {
                     start_word + m.end_char,
                     m.word_idx,
                     m.word_param,
-                    self.dict.connector(),
+                    connector,
                 );
                 has_matched = true;
             }
@@ -176,7 +191,7 @@ impl Tokenizer {
                 start_word + m.end_char,
                 m.word_idx,
                 m.word_param,
-                self.dict.connector(),
+                connector,
             );
             has_matched = true;
         }
@@ -193,19 +208,22 @@ impl Tokenizer {
                     w.end_char(),
                     w.word_idx(),
                     w.word_param(),
-                    self.dict.connector(),
+                    connector,
                 );
             },
         );
     }
 
-    unsafe fn add_lattice_edges_unchecked(
+    unsafe fn add_lattice_edges_unchecked<C>(
         &self,
         sent: &Sentence,
         lattice: &mut Lattice,
         start_node: u16,
         start_word: u16,
-    ) {
+        connector: &C,
+    ) where
+        C: ConnectorCost,
+    {
         let mut has_matched = false;
 
         // Safety: `start_word < sent.len_char()` is already checked in `build_lattice()`.
@@ -221,7 +239,7 @@ impl Tokenizer {
                     start_word + m.end_char,
                     m.word_idx,
                     m.word_param,
-                    self.dict.connector(),
+                    connector,
                 );
                 has_matched = true;
             }
@@ -239,7 +257,7 @@ impl Tokenizer {
                 start_word + m.end_char,
                 m.word_idx,
                 m.word_param,
-                self.dict.connector(),
+                connector,
             );
             has_matched = true;
         }
@@ -256,7 +274,7 @@ impl Tokenizer {
                     w.end_char(),
                     w.word_idx(),
                     w.word_param(),
-                    self.dict.connector(),
+                    connector,
                 );
             },
         );

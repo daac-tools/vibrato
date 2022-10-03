@@ -78,7 +78,10 @@ impl Lexicon {
     }
 
     /// Checks if left/right-ids are valid with connector.
-    pub fn verify(&self, conn: &Connector) -> bool {
+    pub fn verify<C>(&self, conn: &C) -> bool
+    where
+        C: Connector,
+    {
         for i in 0..self.params.len() {
             let p = self.params.get(i);
             if conn.num_left() <= usize::from(p.left_id) {

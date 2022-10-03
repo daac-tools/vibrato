@@ -1,4 +1,4 @@
-use crate::dictionary::connector::Connector;
+use crate::dictionary::connector::ConnectorCost;
 use crate::dictionary::lexicon::WordParam;
 use crate::dictionary::mapper::ConnIdCounter;
 use crate::dictionary::word_idx::WordIdx;
@@ -82,7 +82,10 @@ impl Lattice {
         });
     }
 
-    pub fn insert_eos(&mut self, start_node: u16, connector: &Connector) {
+    pub fn insert_eos<C>(&mut self, start_node: u16, connector: &C)
+    where
+        C: ConnectorCost,
+    {
         let (min_idx, min_cost) =
             self.search_min_node(start_node, BOS_EOS_CONNECTION_ID, connector);
         self.eos = Some(Node {
@@ -97,7 +100,10 @@ impl Lattice {
         });
     }
 
-    pub unsafe fn insert_eos_unchecked(&mut self, start_node: u16, connector: &Connector) {
+    pub unsafe fn insert_eos_unchecked<C>(&mut self, start_node: u16, connector: &C)
+    where
+        C: ConnectorCost,
+    {
         let (min_idx, min_cost) =
             self.search_min_node_unchecked(start_node, BOS_EOS_CONNECTION_ID, connector);
         self.eos = Some(Node {
@@ -112,15 +118,17 @@ impl Lattice {
         });
     }
 
-    pub fn insert_node(
+    pub fn insert_node<C>(
         &mut self,
         start_node: u16,
         start_word: u16,
         end_word: u16,
         word_idx: WordIdx,
         word_param: WordParam,
-        connector: &Connector,
-    ) {
+        connector: &C,
+    ) where
+        C: ConnectorCost,
+    {
         debug_assert!(start_node <= start_word);
         debug_assert!(start_word < end_word);
         let (min_idx, min_cost) = self.search_min_node(start_node, word_param.left_id, connector);
@@ -136,15 +144,17 @@ impl Lattice {
         });
     }
 
-    pub unsafe fn insert_node_unchecked(
+    pub unsafe fn insert_node_unchecked<C>(
         &mut self,
         start_node: u16,
         start_word: u16,
         end_word: u16,
         word_idx: WordIdx,
         word_param: WordParam,
-        connector: &Connector,
-    ) {
+        connector: &C,
+    ) where
+        C: ConnectorCost,
+    {
         debug_assert!(start_node <= start_word);
         debug_assert!(start_word < end_word);
         let (min_idx, min_cost) =
@@ -161,14 +171,17 @@ impl Lattice {
         });
     }
 
-    fn search_min_node(&self, start_node: u16, left_id: u16, connector: &Connector) -> (u16, i32) {
+    fn search_min_node<C>(&self, start_node: u16, left_id: u16, connector: &C) -> (u16, i32)
+    where
+        C: ConnectorCost,
+    {
         debug_assert!(!self.ends[usize::from(start_node)].is_empty());
 
         let mut min_idx = INVALID_IDX;
         let mut min_cost = MAX_COST;
         for (i, left_node) in self.ends[usize::from(start_node)].iter().enumerate() {
             debug_assert!(left_node.is_connected_to_bos());
-            let conn_cost = i32::from(connector.cost(left_node.right_id, left_id));
+            let conn_cost = connector.cost(left_node.right_id, left_id);
             let new_cost = left_node.min_cost + conn_cost;
             // Depending on the order of tie-breaking, the result can be different from MeCab.
             // Using <= (not <) will produce results identical to MeCab in most case (empirically).
@@ -182,19 +195,22 @@ impl Lattice {
         (min_idx, min_cost)
     }
 
-    unsafe fn search_min_node_unchecked(
+    unsafe fn search_min_node_unchecked<C>(
         &self,
         start_node: u16,
         left_id: u16,
-        connector: &Connector,
-    ) -> (u16, i32) {
+        connector: &C,
+    ) -> (u16, i32)
+    where
+        C: ConnectorCost,
+    {
         debug_assert!(!self.ends[usize::from(start_node)].is_empty());
 
         let mut min_idx = INVALID_IDX;
         let mut min_cost = MAX_COST;
         for (i, left_node) in self.ends[usize::from(start_node)].iter().enumerate() {
             debug_assert!(left_node.is_connected_to_bos());
-            let conn_cost = i32::from(connector.cost_unchecked(left_node.right_id, left_id));
+            let conn_cost = connector.cost_unchecked(left_node.right_id, left_id);
             let new_cost = left_node.min_cost + conn_cost;
             // Depending on the order of tie-breaking, the result can be different from MeCab.
             // Using <= (not <) will produce results identical to MeCab in most case (empirically).
