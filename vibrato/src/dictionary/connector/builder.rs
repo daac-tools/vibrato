@@ -120,7 +120,7 @@ impl RawConnector {
         }
 
         let mut right_ids = vec![INVALID_FEATURE_ID; (right_ids_tmp.len() + 1) * col_size];
-        let mut left_ids = vec![INVALID_FEATURE_ID; (right_ids_tmp.len() + 1) * col_size];
+        let mut left_ids = vec![INVALID_FEATURE_ID; (left_ids_tmp.len() + 1) * col_size];
         right_ids[..col_size].fill(0);
         left_ids[..col_size].fill(0);
         for (trg, src) in right_ids[col_size..].chunks_mut(col_size).zip(&right_ids_tmp) {
