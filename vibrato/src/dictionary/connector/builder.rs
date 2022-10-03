@@ -74,7 +74,7 @@ impl RawConnector {
         let mut left_id_map = HashMap::new();
         right_id_map.insert(String::new(), 0);
         left_id_map.insert(String::new(), 0);
-        let mut costs = std::collections::HashMap::new();
+        let mut costs = HashMap::new();
 
         let cost_rdr = BufReader::new(cost_rdr);
         for line in cost_rdr.lines() {
@@ -123,7 +123,10 @@ impl RawConnector {
         let mut left_ids = vec![INVALID_FEATURE_ID; (left_ids_tmp.len() + 1) * col_size];
         right_ids[..col_size].fill(0);
         left_ids[..col_size].fill(0);
-        for (trg, src) in right_ids[col_size..].chunks_mut(col_size).zip(&right_ids_tmp) {
+        for (trg, src) in right_ids[col_size..]
+            .chunks_mut(col_size)
+            .zip(&right_ids_tmp)
+        {
             trg[..src.len()].copy_from_slice(src);
         }
         for (trg, src) in left_ids[col_size..].chunks_mut(col_size).zip(&left_ids_tmp) {

@@ -1,8 +1,12 @@
 mod builder;
 
-use std::collections::HashMap;
-
-use bincode::{Decode, Encode};
+use bincode::{
+    de::Decoder,
+    enc::Encoder,
+    error::{DecodeError, EncodeError},
+    Decode, Encode,
+};
+use hashbrown::HashMap;
 
 use crate::dictionary::mapper::ConnIdMapper;
 
@@ -100,12 +104,39 @@ impl ConnectorCost for MatrixConnector {
     }
 }
 
-#[derive(Decode, Encode)]
 pub struct RawConnector {
     right_ids: Vec<u32>,
     left_ids: Vec<u32>,
     col_size: usize,
     costs: HashMap<(u32, u32), i32>,
+}
+
+impl Decode for RawConnector {
+    #[allow(clippy::type_complexity)]
+    fn decode<D: Decoder>(decoder: &mut D) -> Result<Self, DecodeError> {
+        let right_ids = Decode::decode(decoder)?;
+        let left_ids = Decode::decode(decoder)?;
+        let col_size = Decode::decode(decoder)?;
+        let costs: Vec<((u32, u32), i32)> = Decode::decode(decoder)?;
+        Ok(Self {
+            right_ids,
+            left_ids,
+            col_size,
+            costs: costs.into_iter().collect(),
+        })
+    }
+}
+
+impl Encode for RawConnector {
+    #[allow(clippy::type_complexity)]
+    fn encode<E: Encoder>(&self, encoder: &mut E) -> Result<(), EncodeError> {
+        let costs: Vec<((u32, u32), i32)> = self.costs.clone().into_iter().collect();
+        Encode::encode(&self.right_ids, encoder)?;
+        Encode::encode(&self.left_ids, encoder)?;
+        Encode::encode(&self.col_size, encoder)?;
+        Encode::encode(&costs, encoder)?;
+        Ok(())
+    }
 }
 
 impl RawConnector {
