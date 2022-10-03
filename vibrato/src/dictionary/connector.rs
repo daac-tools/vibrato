@@ -1,13 +1,9 @@
 mod builder;
+mod scorer;
 
-use bincode::{
-    de::Decoder,
-    enc::Encoder,
-    error::{DecodeError, EncodeError},
-    Decode, Encode,
-};
-use hashbrown::HashMap;
+use bincode::{Decode, Encode};
 
+use crate::dictionary::connector::scorer::Scorer;
 use crate::dictionary::mapper::ConnIdMapper;
 
 pub trait Connector {
@@ -104,53 +100,21 @@ impl ConnectorCost for MatrixConnector {
     }
 }
 
+#[derive(Decode, Encode)]
 pub struct RawConnector {
     right_ids: Vec<u32>,
     left_ids: Vec<u32>,
     col_size: usize,
-    costs: HashMap<(u32, u32), i32>,
-}
-
-impl Decode for RawConnector {
-    #[allow(clippy::type_complexity)]
-    fn decode<D: Decoder>(decoder: &mut D) -> Result<Self, DecodeError> {
-        let right_ids = Decode::decode(decoder)?;
-        let left_ids = Decode::decode(decoder)?;
-        let col_size = Decode::decode(decoder)?;
-        let costs: Vec<((u32, u32), i32)> = Decode::decode(decoder)?;
-        Ok(Self {
-            right_ids,
-            left_ids,
-            col_size,
-            costs: costs.into_iter().collect(),
-        })
-    }
-}
-
-impl Encode for RawConnector {
-    #[allow(clippy::type_complexity)]
-    fn encode<E: Encoder>(&self, encoder: &mut E) -> Result<(), EncodeError> {
-        let costs: Vec<((u32, u32), i32)> = self.costs.clone().into_iter().collect();
-        Encode::encode(&self.right_ids, encoder)?;
-        Encode::encode(&self.left_ids, encoder)?;
-        Encode::encode(&self.col_size, encoder)?;
-        Encode::encode(&costs, encoder)?;
-        Ok(())
-    }
+    scorer: Scorer,
 }
 
 impl RawConnector {
-    pub fn new(
-        right_ids: Vec<u32>,
-        left_ids: Vec<u32>,
-        col_size: usize,
-        costs: HashMap<(u32, u32), i32>,
-    ) -> Self {
+    pub fn new(right_ids: Vec<u32>, left_ids: Vec<u32>, col_size: usize, scorer: Scorer) -> Self {
         Self {
             right_ids,
             left_ids,
             col_size,
-            costs,
+            scorer,
         }
     }
 
@@ -186,17 +150,10 @@ impl Connector for RawConnector {
 impl ConnectorCost for RawConnector {
     #[inline(always)]
     fn cost(&self, right_id: u16, left_id: u16) -> i32 {
-        let mut cost = 0;
-        for (&rid, &lid) in self
-            .right_feature_ids(right_id)
-            .iter()
-            .zip(self.left_feature_ids(left_id))
-        {
-            if let Some(c) = self.costs.get(&(rid, lid)) {
-                cost += c;
-            }
-        }
-        cost
+        self.scorer.calculate_score(
+            self.right_feature_ids(right_id),
+            self.left_feature_ids(left_id),
+        )
     }
 
     #[inline(always)]

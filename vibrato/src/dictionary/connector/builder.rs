@@ -3,6 +3,7 @@ use std::io::{prelude::*, BufReader, Read};
 use hashbrown::HashMap;
 
 use crate::dictionary::connector::{MatrixConnector, RawConnector};
+use crate::dictionary::connector::scorer::ScorerBuilder;
 use crate::errors::{Result, VibratoError};
 use crate::utils;
 
@@ -74,15 +75,16 @@ impl RawConnector {
         let mut left_id_map = HashMap::new();
         right_id_map.insert(String::new(), 0);
         left_id_map.insert(String::new(), 0);
-        let mut costs = HashMap::new();
+        let mut scorer_builder = ScorerBuilder::new();
 
         let cost_rdr = BufReader::new(cost_rdr);
         for line in cost_rdr.lines() {
             let line = line?;
             let (right_id, left_id, cost) =
                 Self::parse_cost(&line, &mut right_id_map, &mut left_id_map)?;
-            costs.insert((right_id, left_id), cost);
+            scorer_builder.insert(right_id, left_id, cost);
         }
+        let scorer = scorer_builder.build();
 
         let mut col_size = 0;
         let mut right_ids_tmp = vec![];
@@ -133,7 +135,7 @@ impl RawConnector {
             trg[..src.len()].copy_from_slice(src);
         }
 
-        Ok(Self::new(right_ids, left_ids, col_size, costs))
+        Ok(Self::new(right_ids, left_ids, col_size, scorer))
     }
 
     fn parse_features(

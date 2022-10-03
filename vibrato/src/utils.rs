@@ -46,6 +46,7 @@ pub fn parse_csv_row(row: &str) -> Vec<String> {
         let end = match result {
             ReadFieldResult::InputEmpty => true,
             ReadFieldResult::Field { .. } => false,
+            ReadFieldResult::End => true,
             _ => unreachable!(),
         };
         features.push(std::str::from_utf8(&output[..nout]).unwrap().to_string());
