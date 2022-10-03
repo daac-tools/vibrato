@@ -4,6 +4,8 @@ use bincode::{Decode, Encode};
 
 use crate::utils::FromU32;
 
+const UNUSED_POS: u32 = u32::MAX;
+
 pub struct ScorerBuilder {
     trie: Vec<BTreeMap<u32, i32>>,
 }
@@ -25,7 +27,7 @@ impl ScorerBuilder {
     fn check_base(base: i32, hm: &BTreeMap<u32, i32>, checks: &[u32]) -> bool {
         for &key2 in hm.keys() {
             if let Some(check) = checks.get((base + key2 as i32) as usize) {
-                if *check != u32::MAX {
+                if *check != UNUSED_POS {
                     return false;
                 }
             }
@@ -49,13 +51,13 @@ impl ScorerBuilder {
                     let pos = (base + key2 as i32) as u32;
                     let pos = usize::from_u32(pos);
                     if pos >= checks.len() {
-                        checks.resize(pos + 1, u32::MAX);
+                        checks.resize(pos + 1, UNUSED_POS);
                         weights.resize(pos + 1, 0);
                     }
                     checks[pos] = u32::try_from(key1).unwrap();
                     weights[pos] = weight;
                 }
-                while checks.get(cand_first).copied().unwrap_or(u32::MAX) != u32::MAX {
+                while checks.get(cand_first).copied().unwrap_or(UNUSED_POS) != UNUSED_POS {
                     cand_first += 1;
                 }
             }
