@@ -55,7 +55,7 @@ impl ScorerBuilder {
                     checks[pos] = u32::try_from(key1).unwrap();
                     weights[pos] = weight;
                 }
-                while checks[cand_first] != 0 {
+                while checks.get(cand_first).copied().unwrap_or(u32::MAX) != u32::MAX {
                     cand_first += 1;
                 }
             }
