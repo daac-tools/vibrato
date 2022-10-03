@@ -2,7 +2,7 @@
 pub(crate) mod lattice;
 pub mod worker;
 
-use crate::dictionary::connector::ConnectorCost;
+use crate::dictionary::connector::{ConnectorCost, ConnectorWrapper};
 use crate::dictionary::Dictionary;
 use crate::errors::{Result, VibratoError};
 use crate::sentence::Sentence;
@@ -85,7 +85,13 @@ impl Tokenizer {
         Worker::new(self)
     }
 
-    pub(crate) fn build_lattice<C>(&self, sent: &Sentence, lattice: &mut Lattice, connector: &C)
+    pub(crate) fn build_lattice(&self, sent: &Sentence, lattice: &mut Lattice) {
+        match self.dict.connector() {
+            ConnectorWrapper::Matrix(c) => self.build_lattice_inner(sent, lattice, c),
+        }
+    }
+
+    fn build_lattice_inner<C>(&self, sent: &Sentence, lattice: &mut Lattice, connector: &C)
     where
         C: ConnectorCost,
     {
