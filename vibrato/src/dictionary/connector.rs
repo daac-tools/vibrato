@@ -142,8 +142,28 @@ impl Connector for RawConnector {
         self.right_ids.len() / self.col_size
     }
 
-    fn do_mapping(&mut self, _mapper: &ConnIdMapper) {
-        unimplemented!()
+    fn do_mapping(&mut self, mapper: &ConnIdMapper) {
+        assert_eq!(mapper.num_left(), self.num_left());
+        assert_eq!(mapper.num_right(), self.num_right());
+
+        let mut mapped = vec![0; self.right_ids.len()];
+        for right_id in 0..self.num_right() {
+            let new_right_id = usize::from(mapper.right(u16::try_from(right_id).unwrap()));
+            mapped[new_right_id * self.col_size..(new_right_id + 1) * self.col_size]
+                .copy_from_slice(
+                    &self.right_ids[right_id * self.col_size..(right_id + 1) * self.col_size],
+                );
+        }
+        self.right_ids = mapped;
+
+        let mut mapped = vec![0; self.left_ids.len()];
+        for left_id in 0..self.num_left() {
+            let new_left_id = usize::from(mapper.right(u16::try_from(left_id).unwrap()));
+            mapped[new_left_id * self.col_size..(new_left_id + 1) * self.col_size].copy_from_slice(
+                &self.left_ids[left_id * self.col_size..(left_id + 1) * self.col_size],
+            );
+        }
+        self.left_ids = mapped;
     }
 }
 
