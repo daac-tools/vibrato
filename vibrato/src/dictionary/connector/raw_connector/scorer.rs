@@ -48,7 +48,7 @@ impl ScorerBuilder {
                 while !Self::check_base(base, &second_map, &checks) {
                     base += 1;
                 }
-                bases[key1] = base as u32;
+                bases[key1] = base;
                 for (key2, cost) in second_map {
                     let pos = (base + key2 as i32) as u32;
                     let pos = usize::from_u32(pos);
@@ -74,16 +74,17 @@ impl ScorerBuilder {
 
 #[derive(Decode, Encode, Default)]
 pub struct Scorer {
-    bases: Vec<u32>,
+    bases: Vec<i32>,
     checks: Vec<u32>,
     costs: Vec<i32>,
 }
 
 impl Scorer {
     #[inline(always)]
-    pub fn retrieve_cost(&self, key1: u32, key2: u32) -> Option<i32> {
+    fn retrieve_cost(&self, key1: u32, key2: u32) -> Option<i32> {
         if let Some(base) = self.bases.get(usize::from_u32(key1)) {
-            let pos = usize::from_u32(base.wrapping_add(key2));
+            let pos = (base + key2 as i32) as u32;
+            let pos = usize::from_u32(pos);
             if let Some(check) = self.checks.get(pos) {
                 if *check == key1 {
                     return Some(self.costs[pos]);
