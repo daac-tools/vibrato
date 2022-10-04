@@ -248,3 +248,155 @@ impl ConnectorCost for RawConnector {
         self.cost(right_id, left_id)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use crate::utils::hashmap;
+
+    #[test]
+    fn parse_cost_test() {
+        let mut right_id_map = HashMap::new();
+        let mut left_id_map = HashMap::new();
+
+        assert_eq!(
+            RawConnector::parse_cost(
+                "SURF-SURF:これ/は\t-100",
+                &mut right_id_map,
+                &mut left_id_map
+            )
+            .unwrap(),
+            (0, 0, -100),
+        );
+        assert_eq!(
+            RawConnector::parse_cost(
+                "SURF-POS:これ/助詞\t200",
+                &mut right_id_map,
+                &mut left_id_map
+            )
+            .unwrap(),
+            (1, 1, 200),
+        );
+        assert_eq!(
+            RawConnector::parse_cost(
+                "POS-SURF:代名詞/は\t-300",
+                &mut right_id_map,
+                &mut left_id_map
+            )
+            .unwrap(),
+            (2, 0, -300),
+        );
+
+        assert_eq!(
+            hashmap![
+                "SURF-SURF:これ".to_string() => 0,
+                "SURF-POS:これ".to_string() => 1,
+                "POS-SURF:代名詞".to_string() => 2,
+            ],
+            right_id_map,
+        );
+        assert_eq!(
+            hashmap![
+                "は".to_string() => 0,
+                "助詞".to_string() => 1,
+            ],
+            left_id_map,
+        );
+    }
+
+    #[test]
+    fn parse_cost_invalid_feature_test() {
+        let mut right_id_map = HashMap::new();
+        let mut left_id_map = HashMap::new();
+
+        assert!(RawConnector::parse_cost(
+            "SURF-SURF:これは\t100",
+            &mut right_id_map,
+            &mut left_id_map
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn parse_cost_invalid_tab_test() {
+        let mut right_id_map = HashMap::new();
+        let mut left_id_map = HashMap::new();
+
+        assert!(RawConnector::parse_cost(
+            "SURF-SURF:これ/は100",
+            &mut right_id_map,
+            &mut left_id_map
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn parse_cost_invalid_cost_test() {
+        let mut right_id_map = HashMap::new();
+        let mut left_id_map = HashMap::new();
+
+        assert!(RawConnector::parse_cost(
+            "SURF-SURF:これ/は\tabc",
+            &mut right_id_map,
+            &mut left_id_map
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn parse_feature_test() {
+        let id_map = hashmap![
+            "これ".to_string() => 0,
+            "助詞".to_string() => 1,
+            "コレ".to_string() => 2,
+            "これ,助詞".to_string() => 3,
+            "これ,コレ".to_string() => 4,
+        ];
+
+        assert_eq!(
+            RawConnector::parse_features("2\tこれ,*,コレ,\"これ,助詞\",*", &id_map, "bigram.left",)
+                .unwrap(),
+            (2, vec![0, INVALID_FEATURE_ID, 2, 3, INVALID_FEATURE_ID]),
+        );
+    }
+
+    #[test]
+    fn parse_feature_invalid_id_test() {
+        let id_map = hashmap![
+            "これ".to_string() => 0,
+            "助詞".to_string() => 1,
+            "コレ".to_string() => 2,
+            "これ,助詞".to_string() => 3,
+            "これ,コレ".to_string() => 4,
+        ];
+
+        assert!(RawConnector::parse_features(
+            "これ,*,コレ,\"これ,助詞\",*",
+            &id_map,
+            "bigram.left",
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn from_readers_test() {
+        let right_rdr = "\
+1\tSURF-SURF:これ,*,SURF-POS:これ,POS-SURF:代名詞,*
+2\tSURF-SURF:テスト,*,SURF-POS:テスト,POS-SURF:名詞,*"
+            .as_bytes();
+        let left_rdr = "\
+1\tです,*,助動詞,です,*
+2\tは,*,助詞,は,*"
+            .as_bytes();
+        let cost_rdr = "\
+SURF-SURF:これ/は\t-100
+SURF-POS:これ/助詞\t200
+POS-SURF:代名詞/は\t-300"
+            .as_bytes();
+
+        let conn = RawConnector::from_readers(right_rdr, left_rdr, cost_rdr).unwrap();
+
+        assert_eq!(conn.cost(1, 2), -200);
+    }
+}

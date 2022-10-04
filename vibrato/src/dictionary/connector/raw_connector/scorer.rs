@@ -105,3 +105,75 @@ impl Scorer {
         score
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn retrieve_cost_test() {
+        let mut builder = ScorerBuilder::new();
+        builder.insert(18, 17, 1);
+        builder.insert(4, 9, 2);
+        builder.insert(17, 0, 3);
+        builder.insert(17, 12, 4);
+        builder.insert(8, 6, 5);
+        builder.insert(2, 5, 6);
+        builder.insert(12, 18, 7);
+        builder.insert(9, 1, 8);
+        builder.insert(19, 5, 9);
+        builder.insert(9, 4, 10);
+        builder.insert(0, 19, 11);
+        builder.insert(2, 19, 12);
+        builder.insert(7, 9, 13);
+        builder.insert(18, 9, 14);
+        builder.insert(17, 4, 15);
+        builder.insert(9, 6, 16);
+        builder.insert(13, 0, 17);
+        builder.insert(1, 4, 18);
+        builder.insert(0, 18, 19);
+        builder.insert(18, 11, 20);
+        let scorer = builder.build();
+
+        assert_eq!(scorer.retrieve_cost(0, 18), Some(19));
+        assert_eq!(scorer.retrieve_cost(0, 19), Some(11));
+        assert_eq!(scorer.retrieve_cost(9, 4), Some(10));
+        assert_eq!(scorer.retrieve_cost(9, 6), Some(16));
+        assert_eq!(scorer.retrieve_cost(0, 0), None);
+        assert_eq!(scorer.retrieve_cost(9, 5), None);
+    }
+
+    #[test]
+    fn accumulate_cost_test() {
+        let mut builder = ScorerBuilder::new();
+        builder.insert(18, 17, 1);
+        builder.insert(4, 9, 2);
+        builder.insert(17, 0, 3);
+        builder.insert(17, 12, 4);
+        builder.insert(8, 6, 5);
+        builder.insert(2, 5, 6);
+        builder.insert(12, 18, 7);
+        builder.insert(9, 1, 8);
+        builder.insert(19, 5, 9);
+        builder.insert(9, 4, 10);
+        builder.insert(0, 19, 11);
+        builder.insert(2, 19, 12);
+        builder.insert(7, 9, 13);
+        builder.insert(18, 9, 14);
+        builder.insert(17, 4, 15);
+        builder.insert(9, 6, 16);
+        builder.insert(13, 0, 17);
+        builder.insert(1, 4, 18);
+        builder.insert(0, 18, 19);
+        builder.insert(18, 11, 20);
+        let scorer = builder.build();
+
+        assert_eq!(
+            scorer.accumulate_cost(
+                &[18, 17, 0, 8, 12, 19, 9, 0, 7, 17, 13, 0],
+                &[17, 0, 0, 6, 18, 5, 9, 19, 9, 4, 0, 18]
+            ),
+            100
+        );
+    }
+}

@@ -59,6 +59,26 @@ pub fn parse_csv_row(row: &str) -> Vec<String> {
 }
 
 #[cfg(test)]
+macro_rules! hashmap {
+    ( $($k:expr => $v:expr,)* ) => {
+        {
+            #[allow(unused_mut)]
+            let mut h = hashbrown::HashMap::new();
+            $(
+                h.insert($k, $v);
+            )*
+            h
+        }
+    };
+    ( $($k:expr => $v:expr),* ) => {
+        hashmap![$( $k => $v, )*]
+    };
+}
+
+#[cfg(test)]
+pub(crate) use hashmap;
+
+#[cfg(test)]
 mod tests {
     use super::*;
 
