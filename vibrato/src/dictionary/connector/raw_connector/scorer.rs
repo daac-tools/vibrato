@@ -7,6 +7,8 @@ use crate::utils::FromU32;
 const UNUSED_POS: u32 = u32::MAX;
 
 pub struct ScorerBuilder {
+    // Two-level trie mapping a pair of two keys into a cost, where
+    // the first level stores the first key, and the second level stores the second key.
     trie: Vec<BTreeMap<u32, i32>>,
 }
 

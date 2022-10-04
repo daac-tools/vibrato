@@ -65,9 +65,7 @@ impl RawConnector {
                     "must be ascending order",
                 ));
             }
-            if feature_ids.len() > col_size {
-                col_size = feature_ids.len();
-            }
+            col_size = col_size.max(feature_ids.len());
             right_ids_tmp.push(feature_ids);
         }
 
@@ -82,16 +80,21 @@ impl RawConnector {
                     "must be ascending order",
                 ));
             }
-            if feature_ids.len() > col_size {
-                col_size = feature_ids.len();
-            }
+            col_size = col_size.max(feature_ids.len());
             left_ids_tmp.push(feature_ids);
         }
 
+        // Converts a vector of N vectors into a matrix of size (N+1)*M,
+        // where M is the maximum length of a vector in the N vectors.
+        //
+        // All short vectors are padded with INVALID_FEATURE_IDs.
         let mut right_ids = vec![INVALID_FEATURE_ID; (right_ids_tmp.len() + 1) * col_size];
         let mut left_ids = vec![INVALID_FEATURE_ID; (left_ids_tmp.len() + 1) * col_size];
+
+        // The first row reserved for BOS/EOS is always an empty row with zero values.
         right_ids[..col_size].fill(0);
         left_ids[..col_size].fill(0);
+
         for (trg, src) in right_ids[col_size..]
             .chunks_mut(col_size)
             .zip(&right_ids_tmp)
@@ -105,6 +108,9 @@ impl RawConnector {
         Ok(Self::new(right_ids, left_ids, col_size, scorer))
     }
 
+    /// Parses a line in file `bigram.right/left`, returning the entry id and a sequence of feature
+    /// ids. If a feature is not stored in the given id map, `INVALID_FEATURE_ID` is used as the
+    /// feature id.
     fn parse_features(
         line: &str,
         id_map: &HashMap<String, u32>,
@@ -127,6 +133,22 @@ impl RawConnector {
         Err(VibratoError::invalid_format(name, msg))
     }
 
+    /// Parses a line in file `bigram.cost`, returning the ids of right and left features and the
+    /// connection cost.
+    ///
+    /// If a feature is already stored in the given id map, the assigned id is returned;
+    /// otherwise, the feature is inserted into the map, and a new id is returned.
+    ///
+    /// # Examples
+    ///
+    /// * Input
+    ///   * `line = B3:名詞,普通名詞,一般/名詞,普通名詞,サ変可能\t-520`
+    ///   * `right_id_map = {"B3:名詞,普通名詞,一般": 0, "B2:名詞,固有名詞": 1}`
+    ///   * `left_id_map = {"名詞,普通名詞,一般": 0}`
+    /// * Output
+    ///   * `(right_id, left_id, cost) = (0, 1, -520)`
+    ///   * `right_id_map = {"B3:名詞,普通名詞,一般": 0, "B2:名詞,固有名詞": 1}`
+    ///   * `left_id_map = {"名詞,普通名詞,一般": 0, "名詞,普通名詞,サ変可能": 1}`
     fn parse_cost(
         line: &str,
         right_id_map: &mut HashMap<String, u32>,
