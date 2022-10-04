@@ -26,8 +26,8 @@ impl ScorerBuilder {
     }
 
     #[inline(always)]
-    fn check_base(base: i32, hm: &BTreeMap<u32, i32>, checks: &[u32]) -> bool {
-        for &key2 in hm.keys() {
+    fn check_base(base: i32, second_map: &BTreeMap<u32, i32>, checks: &[u32]) -> bool {
+        for &key2 in second_map.keys() {
             if let Some(check) = checks.get((base + key2 as i32) as usize) {
                 if *check != UNUSED_POS {
                     return false;
@@ -42,14 +42,14 @@ impl ScorerBuilder {
         let mut checks = vec![];
         let mut costs = vec![];
         let mut cand_first = 1;
-        for (key1, hm) in self.trie.into_iter().enumerate() {
-            if let Some(key2_head) = hm.keys().next() {
+        for (key1, second_map) in self.trie.into_iter().enumerate() {
+            if let Some(key2_head) = second_map.keys().next() {
                 let mut base = cand_first as i32 - *key2_head as i32;
-                while !Self::check_base(base, &hm, &checks) {
+                while !Self::check_base(base, &second_map, &checks) {
                     base += 1;
                 }
                 bases[key1] = base as u32;
-                for (key2, cost) in hm {
+                for (key2, cost) in second_map {
                     let pos = (base + key2 as i32) as u32;
                     let pos = usize::from_u32(pos);
                     if pos >= checks.len() {
