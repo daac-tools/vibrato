@@ -1,69 +1,36 @@
+mod scorer;
+
 use std::io::{prelude::*, BufReader, Read};
 
+use bincode::{Decode, Encode};
 use hashbrown::HashMap;
 
-use crate::dictionary::connector::scorer::ScorerBuilder;
-use crate::dictionary::connector::{MatrixConnector, RawConnector};
+use crate::dictionary::connector::raw_connector::scorer::{Scorer, ScorerBuilder};
+use crate::dictionary::connector::{Connector, ConnectorCost};
+use crate::dictionary::mapper::ConnIdMapper;
 use crate::errors::{Result, VibratoError};
 use crate::utils;
 
 const INVALID_FEATURE_ID: u32 = u32::MAX;
 
-impl MatrixConnector {
-    /// Creates a new instance from `matrix.def`.
-    pub fn from_reader<R>(rdr: R) -> Result<Self>
-    where
-        R: Read,
-    {
-        let reader = BufReader::new(rdr);
-        let mut lines = reader.lines();
-
-        let (num_right, num_left) = Self::parse_header(&lines.next().unwrap()?)?;
-        let mut data = vec![0; num_right * num_left];
-
-        for line in lines {
-            let line = line?;
-            if !line.is_empty() {
-                let (right_id, left_id, conn_cost) = Self::parse_body(&line)?;
-                if num_right <= right_id || num_left <= left_id {
-                    return Err(VibratoError::invalid_format(
-                        "matrix.def",
-                        "left/right_id must be within num_left/right.",
-                    ));
-                }
-                data[left_id * num_right + right_id] = conn_cost;
-            }
-        }
-        Ok(Self::new(data, num_right, num_left))
-    }
-
-    fn parse_header(line: &str) -> Result<(usize, usize)> {
-        let cols: Vec<_> = line.split(' ').collect();
-        if cols.len() != 2 {
-            let msg =
-                format!("The header must consists of two integers separated by spaces, {line}");
-            Err(VibratoError::invalid_format("matrix.def", msg))
-        } else {
-            let num_right: u16 = cols[0].parse()?;
-            let num_left: u16 = cols[1].parse()?;
-            Ok((usize::from(num_right), usize::from(num_left)))
-        }
-    }
-
-    fn parse_body(line: &str) -> Result<(usize, usize, i16)> {
-        let cols: Vec<_> = line.split(' ').collect();
-        if cols.len() != 3 {
-            let msg = format!(
-                "A row other than the header must consists of three integers separated by spaces, {line}"
-            );
-            Err(VibratoError::invalid_format("matrix.def", msg))
-        } else {
-            Ok((cols[0].parse()?, cols[1].parse()?, cols[2].parse()?))
-        }
-    }
+#[derive(Decode, Encode)]
+pub struct RawConnector {
+    right_ids: Vec<u32>,
+    left_ids: Vec<u32>,
+    col_size: usize,
+    scorer: Scorer,
 }
 
 impl RawConnector {
+    pub fn new(right_ids: Vec<u32>, left_ids: Vec<u32>, col_size: usize, scorer: Scorer) -> Self {
+        Self {
+            right_ids,
+            left_ids,
+            col_size,
+            scorer,
+        }
+    }
+
     /// Creates a new instance from `bigram.right`, `bigram.left`, and `bigram.cost`.
     pub fn from_readers<R, L, C>(right_rdr: R, left_rdr: L, cost_rdr: C) -> Result<Self>
     where
@@ -194,123 +161,67 @@ impl RawConnector {
         let msg = format!("The format must be right/left<tab>cost, {line}");
         Err(VibratoError::invalid_format("bigram.cost", msg))
     }
+
+    #[inline(always)]
+    fn right_feature_ids(&self, right_id: u16) -> &[u32] {
+        &self.right_ids
+            [usize::from(right_id) * self.col_size..usize::from(right_id + 1) * self.col_size]
+    }
+
+    #[inline(always)]
+    fn left_feature_ids(&self, left_id: u16) -> &[u32] {
+        &self.left_ids
+            [usize::from(left_id) * self.col_size..usize::from(left_id + 1) * self.col_size]
+    }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    use crate::dictionary::connector::ConnectorCost;
-
-    #[test]
-    fn test_2x2() {
-        let data = "2 2
-0 0 0
-0 1 1
-1 0 -2
-1 1 -3";
-        let conn = MatrixConnector::from_reader(data.as_bytes()).unwrap();
-        assert_eq!(conn.cost(0, 0), 0);
-        assert_eq!(conn.cost(0, 1), 1);
-        assert_eq!(conn.cost(1, 0), -2);
-        assert_eq!(conn.cost(1, 1), -3);
+impl Connector for RawConnector {
+    #[inline(always)]
+    fn num_left(&self) -> usize {
+        self.left_ids.len() / self.col_size
     }
 
-    #[test]
-    fn test_2x3() {
-        let data = "2 3
-0 0 0
-0 1 1
-0 2 2
-1 0 -3
-1 1 -4
-1 2 -5";
-        let conn = MatrixConnector::from_reader(data.as_bytes()).unwrap();
-        assert_eq!(conn.cost(0, 0), 0);
-        assert_eq!(conn.cost(0, 1), 1);
-        assert_eq!(conn.cost(0, 2), 2);
-        assert_eq!(conn.cost(1, 0), -3);
-        assert_eq!(conn.cost(1, 1), -4);
-        assert_eq!(conn.cost(1, 2), -5);
+    #[inline(always)]
+    fn num_right(&self) -> usize {
+        self.right_ids.len() / self.col_size
     }
 
-    #[test]
-    fn test_less_header() {
-        let data = "2
-0 0 0
-0 1 1
-1 0 -2
-1 1 -3";
-        let result = MatrixConnector::from_reader(data.as_bytes());
+    fn do_mapping(&mut self, mapper: &ConnIdMapper) {
+        assert_eq!(mapper.num_left(), self.num_left());
+        assert_eq!(mapper.num_right(), self.num_right());
 
-        assert!(result.is_err());
+        let mut mapped = vec![0; self.right_ids.len()];
+        for right_id in 0..self.num_right() {
+            let new_right_id = usize::from(mapper.right(u16::try_from(right_id).unwrap()));
+            mapped[new_right_id * self.col_size..(new_right_id + 1) * self.col_size]
+                .copy_from_slice(
+                    &self.right_ids[right_id * self.col_size..(right_id + 1) * self.col_size],
+                );
+        }
+        self.right_ids = mapped;
+
+        let mut mapped = vec![0; self.left_ids.len()];
+        for left_id in 0..self.num_left() {
+            let new_left_id = usize::from(mapper.right(u16::try_from(left_id).unwrap()));
+            mapped[new_left_id * self.col_size..(new_left_id + 1) * self.col_size].copy_from_slice(
+                &self.left_ids[left_id * self.col_size..(left_id + 1) * self.col_size],
+            );
+        }
+        self.left_ids = mapped;
+    }
+}
+
+impl ConnectorCost for RawConnector {
+    #[inline(always)]
+    fn cost(&self, right_id: u16, left_id: u16) -> i32 {
+        self.scorer.accumulate_cost(
+            self.right_feature_ids(right_id),
+            self.left_feature_ids(left_id),
+        )
     }
 
-    #[test]
-    fn test_more_header() {
-        let data = "2 2 2
-0 0 0
-0 1 1
-1 0 -2
-1 1 -3";
-        let result = MatrixConnector::from_reader(data.as_bytes());
-
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_less_body() {
-        let data = "2 2
-0 0 0
-0 1 1
-1 -2
-1 1 -3";
-        let result = MatrixConnector::from_reader(data.as_bytes());
-
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_more_body() {
-        let data = "2 2
-0 0 0
-0 1 1
-1 0 1 -2
-1 1 -3";
-        let result = MatrixConnector::from_reader(data.as_bytes());
-
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_larger_matrix() {
-        let data = "65536 65536";
-        let result = MatrixConnector::from_reader(data.as_bytes());
-
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_larger_left_id() {
-        let data = "2 2
-0 0 0
-0 1 1
-1 2 -2
-1 1 -3";
-        let result = MatrixConnector::from_reader(data.as_bytes());
-
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_larger_right_id() {
-        let data = "2 2
-0 0 0
-0 1 1
-2 0 -2
-1 1 -3";
-        let result = MatrixConnector::from_reader(data.as_bytes());
-
-        assert!(result.is_err());
+    #[inline(always)]
+    unsafe fn cost_unchecked(&self, right_id: u16, left_id: u16) -> i32 {
+        self.cost(right_id, left_id)
     }
 }

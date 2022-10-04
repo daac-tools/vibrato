@@ -1,9 +1,10 @@
-mod builder;
-mod scorer;
+mod matrix_connector;
+mod raw_connector;
 
 use bincode::{Decode, Encode};
 
-use crate::dictionary::connector::scorer::Scorer;
+pub use crate::dictionary::connector::matrix_connector::MatrixConnector;
+pub use crate::dictionary::connector::raw_connector::RawConnector;
 use crate::dictionary::mapper::ConnIdMapper;
 
 pub trait Connector {
@@ -25,161 +26,6 @@ pub trait ConnectorCost: Connector {
 
     /// Gets the value of the connection matrix
     unsafe fn cost_unchecked(&self, right_id: u16, left_id: u16) -> i32;
-}
-
-/// Matrix of connection costs.
-#[derive(Decode, Encode)]
-pub struct MatrixConnector {
-    data: Vec<i16>,
-    num_right: usize,
-    num_left: usize,
-}
-
-impl MatrixConnector {
-    pub fn new(data: Vec<i16>, num_right: usize, num_left: usize) -> Self {
-        Self {
-            data,
-            num_right,
-            num_left,
-        }
-    }
-
-    #[inline(always)]
-    fn index(&self, right_id: u16, left_id: u16) -> usize {
-        debug_assert!(usize::from(right_id) < self.num_right);
-        debug_assert!(usize::from(left_id) < self.num_left);
-        let index = usize::from(left_id) * self.num_right + usize::from(right_id);
-        debug_assert!(index < self.data.len());
-        index
-    }
-}
-
-impl Connector for MatrixConnector {
-    #[inline(always)]
-    fn num_left(&self) -> usize {
-        self.num_left
-    }
-
-    #[inline(always)]
-    fn num_right(&self) -> usize {
-        self.num_right
-    }
-
-    fn do_mapping(&mut self, mapper: &ConnIdMapper) {
-        assert_eq!(mapper.num_left(), self.num_left);
-        assert_eq!(mapper.num_right(), self.num_right);
-
-        let mut mapped = vec![0; self.data.len()];
-        for right_id in 0..self.num_right {
-            let right_id = right_id as u16;
-            let new_right_id = mapper.right(right_id);
-            for left_id in 0..self.num_left {
-                let left_id = left_id as u16;
-                let new_left_id = mapper.left(left_id);
-                let index = self.index(right_id, left_id);
-                let new_index = self.index(new_right_id, new_left_id);
-                mapped[new_index] = self.data[index];
-            }
-        }
-        self.data = mapped;
-    }
-}
-
-impl ConnectorCost for MatrixConnector {
-    #[inline(always)]
-    fn cost(&self, right_id: u16, left_id: u16) -> i32 {
-        let index = self.index(right_id, left_id);
-        i32::from(self.data[index])
-    }
-
-    #[inline(always)]
-    unsafe fn cost_unchecked(&self, right_id: u16, left_id: u16) -> i32 {
-        let index = self.index(right_id, left_id);
-        // The tokenization time can be shortened by 5--10%.
-        i32::from(*self.data.get_unchecked(index))
-    }
-}
-
-#[derive(Decode, Encode)]
-pub struct RawConnector {
-    right_ids: Vec<u32>,
-    left_ids: Vec<u32>,
-    col_size: usize,
-    scorer: Scorer,
-}
-
-impl RawConnector {
-    pub fn new(right_ids: Vec<u32>, left_ids: Vec<u32>, col_size: usize, scorer: Scorer) -> Self {
-        Self {
-            right_ids,
-            left_ids,
-            col_size,
-            scorer,
-        }
-    }
-
-    #[inline(always)]
-    fn right_feature_ids(&self, right_id: u16) -> &[u32] {
-        &self.right_ids
-            [usize::from(right_id) * self.col_size..usize::from(right_id + 1) * self.col_size]
-    }
-
-    #[inline(always)]
-    fn left_feature_ids(&self, left_id: u16) -> &[u32] {
-        &self.left_ids
-            [usize::from(left_id) * self.col_size..usize::from(left_id + 1) * self.col_size]
-    }
-}
-
-impl Connector for RawConnector {
-    #[inline(always)]
-    fn num_left(&self) -> usize {
-        self.left_ids.len() / self.col_size
-    }
-
-    #[inline(always)]
-    fn num_right(&self) -> usize {
-        self.right_ids.len() / self.col_size
-    }
-
-    fn do_mapping(&mut self, mapper: &ConnIdMapper) {
-        assert_eq!(mapper.num_left(), self.num_left());
-        assert_eq!(mapper.num_right(), self.num_right());
-
-        let mut mapped = vec![0; self.right_ids.len()];
-        for right_id in 0..self.num_right() {
-            let new_right_id = usize::from(mapper.right(u16::try_from(right_id).unwrap()));
-            mapped[new_right_id * self.col_size..(new_right_id + 1) * self.col_size]
-                .copy_from_slice(
-                    &self.right_ids[right_id * self.col_size..(right_id + 1) * self.col_size],
-                );
-        }
-        self.right_ids = mapped;
-
-        let mut mapped = vec![0; self.left_ids.len()];
-        for left_id in 0..self.num_left() {
-            let new_left_id = usize::from(mapper.right(u16::try_from(left_id).unwrap()));
-            mapped[new_left_id * self.col_size..(new_left_id + 1) * self.col_size].copy_from_slice(
-                &self.left_ids[left_id * self.col_size..(left_id + 1) * self.col_size],
-            );
-        }
-        self.left_ids = mapped;
-    }
-}
-
-impl ConnectorCost for RawConnector {
-    #[inline(always)]
-    fn cost(&self, right_id: u16, left_id: u16) -> i32 {
-        self.scorer.calculate_score(
-            self.right_feature_ids(right_id),
-            self.left_feature_ids(left_id),
-        )
-    }
-
-    #[inline(always)]
-    unsafe fn cost_unchecked(&self, right_id: u16, left_id: u16) -> i32 {
-        self.cost(right_id, left_id)
-    }
 }
 
 #[derive(Decode, Encode)]

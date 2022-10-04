@@ -15,12 +15,12 @@ impl ScorerBuilder {
         Self { trie: vec![] }
     }
 
-    pub fn insert(&mut self, key1: u32, key2: u32, weight: i32) {
+    pub fn insert(&mut self, key1: u32, key2: u32, cost: i32) {
         let key1 = usize::from_u32(key1);
         if key1 >= self.trie.len() {
             self.trie.resize(key1 + 1, BTreeMap::new());
         }
-        self.trie[key1].insert(key2, weight);
+        self.trie[key1].insert(key2, cost);
     }
 
     #[inline(always)]
@@ -38,7 +38,7 @@ impl ScorerBuilder {
     pub fn build(self) -> Scorer {
         let mut bases = vec![0; self.trie.len()];
         let mut checks = vec![];
-        let mut weights = vec![];
+        let mut costs = vec![];
         let mut cand_first = 1;
         for (key1, hm) in self.trie.into_iter().enumerate() {
             if let Some(key2_head) = hm.keys().next() {
@@ -47,15 +47,15 @@ impl ScorerBuilder {
                     base += 1;
                 }
                 bases[key1] = base as u32;
-                for (key2, weight) in hm {
+                for (key2, cost) in hm {
                     let pos = (base + key2 as i32) as u32;
                     let pos = usize::from_u32(pos);
                     if pos >= checks.len() {
                         checks.resize(pos + 1, UNUSED_POS);
-                        weights.resize(pos + 1, 0);
+                        costs.resize(pos + 1, 0);
                     }
                     checks[pos] = u32::try_from(key1).unwrap();
-                    weights[pos] = weight;
+                    costs[pos] = cost;
                 }
                 while checks.get(cand_first).copied().unwrap_or(UNUSED_POS) != UNUSED_POS {
                     cand_first += 1;
@@ -65,7 +65,7 @@ impl ScorerBuilder {
         Scorer {
             bases,
             checks,
-            weights,
+            costs,
         }
     }
 }
@@ -74,17 +74,17 @@ impl ScorerBuilder {
 pub struct Scorer {
     bases: Vec<u32>,
     checks: Vec<u32>,
-    weights: Vec<i32>,
+    costs: Vec<i32>,
 }
 
 impl Scorer {
     #[inline(always)]
-    pub fn retrieve_weight(&self, key1: u32, key2: u32) -> Option<i32> {
+    pub fn retrieve_cost(&self, key1: u32, key2: u32) -> Option<i32> {
         if let Some(base) = self.bases.get(usize::from_u32(key1)) {
             let pos = usize::from_u32(base.wrapping_add(key2));
             if let Some(check) = self.checks.get(pos) {
                 if *check == key1 {
-                    return Some(self.weights[pos]);
+                    return Some(self.costs[pos]);
                 }
             }
         }
@@ -92,10 +92,10 @@ impl Scorer {
     }
 
     #[inline(always)]
-    pub fn calculate_score(&self, keys1: &[u32], keys2: &[u32]) -> i32 {
+    pub fn accumulate_cost(&self, keys1: &[u32], keys2: &[u32]) -> i32 {
         let mut score = 0;
         for (&key1, &key2) in keys1.iter().zip(keys2) {
-            if let Some(w) = self.retrieve_weight(key1, key2) {
+            if let Some(w) = self.retrieve_cost(key1, key2) {
                 score += w;
             }
         }
