@@ -47,6 +47,7 @@ impl Decode for TrainerConfig {
         })
     }
 }
+bincode::impl_borrow_decode!(TrainerConfig);
 
 impl Encode for TrainerConfig {
     fn encode<E: Encoder>(&self, encoder: &mut E) -> Result<(), EncodeError> {
