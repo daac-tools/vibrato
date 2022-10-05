@@ -279,7 +279,7 @@ $ cargo run --release -p prepare --bin system -- \
 ```
 
 The compact dictionary takes longer time than usual to analyze because it does not compute the bi-gram cost before hand.
-Compiling the `tokenize` command with the `target-feature=+avx` will reduce the analyzing time:
+Compiling the `tokenize` command with the `target-feature=+avx` option will reduce the analyzing time:
 ```
 RUSTFLAGS='-C target-feature=+avx2' cargo build --release -p tokenize
 ```
