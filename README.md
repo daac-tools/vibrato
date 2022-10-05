@@ -249,6 +249,41 @@ $ echo '本とカレーの街神保町へようこそ。' | cargo run --release 
 EOS
 ```
 
+# Smaller dictionary
+
+When analyzing texts, Vibrato usually retrieves pre-computed bi-gram costs from `matrix.def`, a dictionary that stores connection costs similar to MeCab.
+However, since the matrix is huge, Vibrato also supports the management of more compact dictionaries.
+
+To generate a compact dictionary, give `--conn-id-info-out` option to the `dictgen` command as follows:
+```
+$ cargo run --release -p dictgen -- \
+    -i ./modeldata.zst \
+    -l ./mydict/lex.csv \
+    -u ./mydict/unk.def \
+    -m ./mydict/matrix.def \
+    --conn-id-info-out ./mydict/bigram
+```
+
+This command generates three files: `./mydict/bigram.left`, `./mydict/bigram.right`, and `./mydict/bigram.cost`.
+
+Next, compile the dictionary. Run the `prepare/system` command with the `--bigram-*` options instead of the `-m` option as follows:
+```
+$ cargo run --release -p prepare --bin system -- \
+    -l ./mydict/lex.csv \
+    -u ./mydict/unk.def \
+    -c ./mydict/char.def \
+    --bigram-left-in ./mydict/bigram.left \
+    --bigram-right-in ./mydict/bigram.right \
+    --bigram-cost-in ./mydict/bigram.cost \
+    -o system-compact.dic
+```
+
+The compact dictionary takes longer time than usual to analyze because it does not compute the bi-gram cost before hand.
+Compiling the `tokenize` command with the `target-feature=+avx` will reduce the analyzing time:
+```
+RUSTFLAGS='-C target-feature=+avx2' cargo build --release -p tokenize
+```
+
 ## Benchmark
 
 You can measure the tokenization speed for sentences in `test.txt`.
