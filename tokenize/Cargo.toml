@@ -11,5 +11,4 @@ default = []
 [dependencies]
 atty = "0.2"  # MIT
 vibrato = { path = "../vibrato" }
-bincode = "2.0.0-rc.1"  # MIT
 clap = { version = "3.1", features = ["derive"] }  # MIT or Apache-2.0
