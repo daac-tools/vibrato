@@ -5,7 +5,7 @@ use std::io::{prelude::*, BufReader, Read};
 use bincode::{Decode, Encode};
 use hashbrown::HashMap;
 
-use crate::dictionary::connector::raw_connector::scorer::{Scorer, ScorerBuilder};
+use crate::dictionary::connector::raw_connector::scorer::{Scorer, ScorerBuilder, SIMD_SIZE};
 use crate::dictionary::connector::{Connector, ConnectorCost};
 use crate::dictionary::mapper::ConnIdMapper;
 use crate::errors::{Result, VibratoError};
@@ -82,6 +82,11 @@ impl RawConnector {
             }
             col_size = col_size.max(feature_ids.len());
             left_ids_tmp.push(feature_ids);
+        }
+
+        // Adjusts to a multiple of SIMD_SIZE for AVX2 compatibility.
+        if col_size != 0 {
+            col_size = ((col_size - 1) / SIMD_SIZE + 1) * SIMD_SIZE;
         }
 
         // Converts a vector of N vectors into a matrix of size (N+1)*M,
