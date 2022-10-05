@@ -53,6 +53,15 @@ jobs:
           command: test
           args: --release --all-features
 
+      - name: Run cargo test with AVX2
+        uses: actions-rs/cargo@v1
+        continue-on-error: ${{ matrix.rust == 'nightly' }}
+        env:
+          RUSTFLAGS: '-C target-feature=+avx2'
+        with:
+          command: test
+          args: --release --all-features
+
       - name: Run cargo doc
         uses: actions-rs/cargo@v1
         continue-on-error: ${{ matrix.rust == 'nightly' }}
