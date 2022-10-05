@@ -139,7 +139,6 @@ impl Scorer {
                 );
                 // base = bases[key1]
                 let base = x86_64::_mm256_mask_i32gather_epi32(
-                    //unused_base,
                     zeros,
                     self.bases.as_ptr(),
                     key1,
