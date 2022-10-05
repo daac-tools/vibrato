@@ -6,7 +6,7 @@ use std::time::Instant;
 
 use vibrato::dictionary::Dictionary;
 
-use clap::Parser;
+use clap::{CommandFactory, ErrorKind, Parser};
 
 #[derive(Parser, Debug)]
 #[clap(name = "main", about = "A program to compile the system dictionary.")]
@@ -16,8 +16,11 @@ struct Args {
     lexicon_in: PathBuf,
 
     /// Matrix definition file (matrix.def).
+    ///
+    /// If this argument is not specified, the compiler considers `--bigram-right-in`,
+    /// `--bigram-left-in`, and `--bigram-cost-in` arguments.
     #[clap(short = 'm', long)]
-    matrix_in: PathBuf,
+    matrix_in: Option<PathBuf>,
 
     /// Unknown word definition file (unk.def).
     #[clap(short = 'u', long)]
@@ -30,6 +33,18 @@ struct Args {
     /// File to which the binary dictionary is output.
     #[clap(short = 'o', long)]
     sysdic_out: PathBuf,
+
+    /// Bigram information associated with right connection IDs (bigram.right).
+    #[clap(long)]
+    bigram_right_in: Option<PathBuf>,
+
+    /// Bigram information associated with left connection IDs (bigram.right).
+    #[clap(long)]
+    bigram_left_in: Option<PathBuf>,
+
+    /// Bigram cost file (bigram.cost).
+    #[clap(long)]
+    bigram_cost_in: Option<PathBuf>,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -37,12 +52,34 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     eprintln!("Compiling the system dictionary...");
     let start = Instant::now();
-    let dict = Dictionary::from_readers(
-        File::open(args.lexicon_in)?,
-        File::open(args.matrix_in)?,
-        File::open(args.char_in)?,
-        File::open(args.unk_in)?,
-    )?;
+    let dict = if let Some(matrix_in) = args.matrix_in {
+        Dictionary::from_readers(
+            File::open(args.lexicon_in)?,
+            File::open(matrix_in)?,
+            File::open(args.char_in)?,
+            File::open(args.unk_in)?,
+        )?
+    } else if let (Some(bigram_right_in), Some(bigram_left_in), Some(bigram_cost_in)) = (
+        args.bigram_right_in,
+        args.bigram_left_in,
+        args.bigram_cost_in,
+    ) {
+        Dictionary::from_readers_with_bigram_info(
+            File::open(args.lexicon_in)?,
+            File::open(bigram_right_in)?,
+            File::open(bigram_left_in)?,
+            File::open(bigram_cost_in)?,
+            File::open(args.char_in)?,
+            File::open(args.unk_in)?,
+        )?
+    } else {
+        Args::command()
+            .error(
+                ErrorKind::InvalidValue,
+                "At least one of --matrin-in or --bigram-{right,left,cost}-in must be specified.",
+            )
+            .exit();
+    };
     eprintln!("{} seconds", start.elapsed().as_secs_f64());
 
     eprintln!("Writting the system dictionary...: {:?}", &args.sysdic_out);

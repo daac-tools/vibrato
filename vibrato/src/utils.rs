@@ -46,6 +46,7 @@ pub fn parse_csv_row(row: &str) -> Vec<String> {
         let end = match result {
             ReadFieldResult::InputEmpty => true,
             ReadFieldResult::Field { .. } => false,
+            ReadFieldResult::End => true,
             _ => unreachable!(),
         };
         features.push(std::str::from_utf8(&output[..nout]).unwrap().to_string());
@@ -56,6 +57,26 @@ pub fn parse_csv_row(row: &str) -> Vec<String> {
     }
     features
 }
+
+#[cfg(test)]
+macro_rules! hashmap {
+    ( $($k:expr => $v:expr,)* ) => {
+        {
+            #[allow(unused_mut)]
+            let mut h = hashbrown::HashMap::new();
+            $(
+                h.insert($k, $v);
+            )*
+            h
+        }
+    };
+    ( $($k:expr => $v:expr),* ) => {
+        hashmap![$( $k => $v, )*]
+    };
+}
+
+#[cfg(test)]
+pub(crate) use hashmap;
 
 #[cfg(test)]
 mod tests {

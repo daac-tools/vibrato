@@ -1,7 +1,10 @@
-mod builder;
+mod matrix_connector;
+mod raw_connector;
 
 use bincode::{Decode, Encode};
 
+pub use crate::dictionary::connector::matrix_connector::MatrixConnector;
+pub use crate::dictionary::connector::raw_connector::RawConnector;
 use crate::dictionary::mapper::ConnIdMapper;
 
 pub trait Connector {
@@ -25,82 +28,10 @@ pub trait ConnectorCost: Connector {
     unsafe fn cost_unchecked(&self, right_id: u16, left_id: u16) -> i32;
 }
 
-/// Matrix of connection costs.
-#[derive(Decode, Encode)]
-pub struct MatrixConnector {
-    data: Vec<i16>,
-    num_right: usize,
-    num_left: usize,
-}
-
-impl MatrixConnector {
-    pub fn new(data: Vec<i16>, num_right: usize, num_left: usize) -> Self {
-        Self {
-            data,
-            num_right,
-            num_left,
-        }
-    }
-
-    #[inline(always)]
-    fn index(&self, right_id: u16, left_id: u16) -> usize {
-        debug_assert!(usize::from(right_id) < self.num_right);
-        debug_assert!(usize::from(left_id) < self.num_left);
-        let index = usize::from(left_id) * self.num_right + usize::from(right_id);
-        debug_assert!(index < self.data.len());
-        index
-    }
-}
-
-impl Connector for MatrixConnector {
-    #[inline(always)]
-    fn num_left(&self) -> usize {
-        self.num_left
-    }
-
-    #[inline(always)]
-    fn num_right(&self) -> usize {
-        self.num_right
-    }
-
-    fn do_mapping(&mut self, mapper: &ConnIdMapper) {
-        assert_eq!(mapper.num_left(), self.num_left);
-        assert_eq!(mapper.num_right(), self.num_right);
-
-        let mut mapped = vec![0; self.data.len()];
-        for right_id in 0..self.num_right {
-            let right_id = right_id as u16;
-            let new_right_id = mapper.right(right_id);
-            for left_id in 0..self.num_left {
-                let left_id = left_id as u16;
-                let new_left_id = mapper.left(left_id);
-                let index = self.index(right_id, left_id);
-                let new_index = self.index(new_right_id, new_left_id);
-                mapped[new_index] = self.data[index];
-            }
-        }
-        self.data = mapped;
-    }
-}
-
-impl ConnectorCost for MatrixConnector {
-    #[inline(always)]
-    fn cost(&self, right_id: u16, left_id: u16) -> i32 {
-        let index = self.index(right_id, left_id);
-        i32::from(self.data[index])
-    }
-
-    #[inline(always)]
-    unsafe fn cost_unchecked(&self, right_id: u16, left_id: u16) -> i32 {
-        let index = self.index(right_id, left_id);
-        // The tokenization time can be shortened by 5--10%.
-        i32::from(*self.data.get_unchecked(index))
-    }
-}
-
 #[derive(Decode, Encode)]
 pub enum ConnectorWrapper {
     Matrix(MatrixConnector),
+    Raw(RawConnector),
 }
 
 impl Connector for ConnectorWrapper {
@@ -108,6 +39,7 @@ impl Connector for ConnectorWrapper {
     fn num_left(&self) -> usize {
         match self {
             Self::Matrix(c) => c.num_left(),
+            Self::Raw(c) => c.num_left(),
         }
     }
 
@@ -115,6 +47,7 @@ impl Connector for ConnectorWrapper {
     fn num_right(&self) -> usize {
         match self {
             Self::Matrix(c) => c.num_right(),
+            Self::Raw(c) => c.num_right(),
         }
     }
 
@@ -122,6 +55,7 @@ impl Connector for ConnectorWrapper {
     fn do_mapping(&mut self, mapper: &ConnIdMapper) {
         match self {
             Self::Matrix(c) => c.do_mapping(mapper),
+            Self::Raw(c) => c.do_mapping(mapper),
         }
     }
 }
