@@ -1,10 +1,15 @@
 use std::collections::BTreeMap;
 
+#[cfg(target_feature = "avx2")]
+use std::arch::x86_64::{self, __m256i};
+
 use bincode::{Decode, Encode};
 
 use crate::utils::FromU32;
 
-const UNUSED_POS: u32 = u32::MAX;
+const UNUSED_CHECK: u32 = u32::MAX;
+
+pub const SIMD_SIZE: usize = 8;
 
 pub struct ScorerBuilder {
     // Two-level trie mapping a pair of two keys into a cost, where
@@ -29,7 +34,7 @@ impl ScorerBuilder {
     fn check_base(base: i32, second_map: &BTreeMap<u32, i32>, checks: &[u32]) -> bool {
         for &key2 in second_map.keys() {
             if let Some(check) = checks.get((base + key2 as i32) as usize) {
-                if *check != UNUSED_POS {
+                if *check != UNUSED_CHECK {
                     return false;
                 }
             }
@@ -53,13 +58,13 @@ impl ScorerBuilder {
                     let pos = (base + key2 as i32) as u32;
                     let pos = usize::from_u32(pos);
                     if pos >= checks.len() {
-                        checks.resize(pos + 1, UNUSED_POS);
+                        checks.resize(pos + 1, UNUSED_CHECK);
                         costs.resize(pos + 1, 0);
                     }
                     checks[pos] = u32::try_from(key1).unwrap();
                     costs[pos] = cost;
                 }
-                while checks.get(cand_first).copied().unwrap_or(UNUSED_POS) != UNUSED_POS {
+                while checks.get(cand_first).copied().unwrap_or(UNUSED_CHECK) != UNUSED_CHECK {
                     cand_first += 1;
                 }
             }
@@ -80,6 +85,7 @@ pub struct Scorer {
 }
 
 impl Scorer {
+    #[cfg(not(target_feature = "avx2"))]
     #[inline(always)]
     fn retrieve_cost(&self, key1: u32, key2: u32) -> Option<i32> {
         if let Some(base) = self.bases.get(usize::from_u32(key1)) {
@@ -94,6 +100,7 @@ impl Scorer {
         None
     }
 
+    #[cfg(not(target_feature = "avx2"))]
     #[inline(always)]
     pub fn accumulate_cost(&self, keys1: &[u32], keys2: &[u32]) -> i32 {
         let mut score = 0;
@@ -104,12 +111,93 @@ impl Scorer {
         }
         score
     }
+
+    #[cfg(target_feature = "avx2")]
+    #[inline(always)]
+    pub fn accumulate_cost(&self, keys1: &[u32], keys2: &[u32]) -> i32 {
+        assert_eq!(keys1.len() % SIMD_SIZE, 0);
+        assert_eq!(keys2.len() % SIMD_SIZE, 0);
+        assert_eq!(self.costs.len(), self.checks.len());
+        unsafe {
+            let bases_len = x86_64::_mm256_set1_epi32(i32::try_from(self.bases.len()).unwrap());
+            let checks_len = x86_64::_mm256_set1_epi32(i32::try_from(self.checks.len()).unwrap());
+            let unused_check = x86_64::_mm256_set1_epi32(UNUSED_CHECK as i32);
+            let zeros = x86_64::_mm256_set1_epi32(0);
+            let neg1 = x86_64::_mm256_set1_epi32(-1);
+            let mut sums = x86_64::_mm256_set1_epi32(0);
+            for (key1, key2) in keys1
+                .chunks_exact(SIMD_SIZE)
+                .zip(keys2.chunks_exact(SIMD_SIZE))
+            {
+                let key1 = x86_64::_mm256_loadu_si256(key1.as_ptr() as *const __m256i);
+                let key2 = x86_64::_mm256_loadu_si256(key2.as_ptr() as *const __m256i);
+
+                // 0 <= key1 < bases.len() ?
+                let mask_valid_key1 = x86_64::_mm256_and_si256(
+                    x86_64::_mm256_cmpgt_epi32(bases_len, key1),
+                    x86_64::_mm256_cmpgt_epi32(key1, neg1),
+                );
+                // base = bases[key1]
+                let base = x86_64::_mm256_mask_i32gather_epi32(
+                    zeros,
+                    self.bases.as_ptr(),
+                    key1,
+                    mask_valid_key1,
+                    4,
+                );
+                // pos = base + key2
+                let pos = x86_64::_mm256_add_epi32(base, key2);
+                // 0 <= pos < checks.len() && 0 <= key1 < bases.len() ?
+                let mask_valid_pos = x86_64::_mm256_and_si256(
+                    x86_64::_mm256_and_si256(
+                        x86_64::_mm256_cmpgt_epi32(checks_len, pos),
+                        x86_64::_mm256_cmpgt_epi32(pos, neg1),
+                    ),
+                    mask_valid_key1,
+                );
+                // check = checks[pos]
+                let check = x86_64::_mm256_mask_i32gather_epi32(
+                    unused_check,
+                    self.checks.as_ptr() as *const i32,
+                    pos,
+                    mask_valid_pos,
+                    4,
+                );
+                // check == key1 && 0 <= pos < checks.len() && 0 <= key1 < bases.len() ?
+                let mask_checked = x86_64::_mm256_and_si256(
+                    x86_64::_mm256_cmpeq_epi32(check, key1),
+                    mask_valid_pos,
+                );
+                // returns costs[pos]
+                let costs = x86_64::_mm256_mask_i32gather_epi32(
+                    zeros,
+                    self.costs.as_ptr(),
+                    pos,
+                    mask_checked,
+                    4,
+                );
+
+                sums = x86_64::_mm256_add_epi32(sums, costs);
+            }
+            x86_64::_mm256_extract_epi32(sums, 0)
+                + x86_64::_mm256_extract_epi32(sums, 1)
+                + x86_64::_mm256_extract_epi32(sums, 2)
+                + x86_64::_mm256_extract_epi32(sums, 3)
+                + x86_64::_mm256_extract_epi32(sums, 4)
+                + x86_64::_mm256_extract_epi32(sums, 5)
+                + x86_64::_mm256_extract_epi32(sums, 6)
+                + x86_64::_mm256_extract_epi32(sums, 7)
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    use crate::dictionary::connector::raw_connector::INVALID_FEATURE_ID;
+
+    #[cfg(not(target_feature = "avx2"))]
     #[test]
     fn retrieve_cost_test() {
         let mut builder = ScorerBuilder::new();
@@ -170,10 +258,52 @@ mod tests {
 
         assert_eq!(
             scorer.accumulate_cost(
-                &[18, 17, 0, 8, 12, 19, 9, 0, 7, 17, 13, 0],
-                &[17, 0, 0, 6, 18, 5, 9, 19, 9, 4, 0, 18]
+                &[
+                    18,
+                    17,
+                    0,
+                    INVALID_FEATURE_ID,
+                    8,
+                    12,
+                    19,
+                    INVALID_FEATURE_ID,
+                    INVALID_FEATURE_ID,
+                    9,
+                    0,
+                    7,
+                    17,
+                    13,
+                    0,
+                    INVALID_FEATURE_ID,
+                ],
+                &[
+                    17,
+                    0,
+                    0,
+                    INVALID_FEATURE_ID,
+                    6,
+                    18,
+                    5,
+                    INVALID_FEATURE_ID,
+                    INVALID_FEATURE_ID,
+                    9,
+                    19,
+                    9,
+                    4,
+                    0,
+                    18,
+                    INVALID_FEATURE_ID,
+                ],
             ),
-            100
+            100,
         );
+    }
+
+    #[test]
+    fn accumulate_cost_empty_test() {
+        let builder = ScorerBuilder::new();
+        let scorer = builder.build();
+
+        assert_eq!(scorer.accumulate_cost(&[], &[]), 0);
     }
 }
