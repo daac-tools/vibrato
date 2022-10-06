@@ -274,7 +274,7 @@ mod tests {
                     17,
                     13,
                     0,
-                    INVALID_FEATURE_ID
+                    INVALID_FEATURE_ID,
                 ],
                 &[
                     17,
@@ -292,10 +292,21 @@ mod tests {
                     4,
                     0,
                     18,
-                    INVALID_FEATURE_ID
-                ]
+                    INVALID_FEATURE_ID,
+                ],
             ),
-            100
+            100,
+        );
+    }
+
+    #[test]
+    fn accumulate_cost_empty_test() {
+        let builder = ScorerBuilder::new();
+        let scorer = builder.build();
+
+        assert_eq!(
+            scorer.accumulate_cost(&[], &[]),
+            0,
         );
     }
 }
