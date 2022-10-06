@@ -1,5 +1,5 @@
 use bincode::{
-    de::Decoder,
+    de::{BorrowDecode, BorrowDecoder, Decoder},
     enc::Encoder,
     error::{DecodeError, EncodeError},
     Decode, Encode,
@@ -22,6 +22,14 @@ impl Decode for Trie {
     fn decode<D: Decoder>(decoder: &mut D) -> Result<Self, DecodeError> {
         let data: Vec<u8> = Decode::decode(decoder)?;
         let (da, _) = crawdad::Trie::deserialize_from_slice(&data);
+        Ok(Self { da })
+    }
+}
+
+impl<'de> BorrowDecode<'de> for Trie {
+    fn borrow_decode<D: BorrowDecoder<'de>>(decoder: &mut D) -> Result<Self, DecodeError> {
+        let data: &[u8] = BorrowDecode::borrow_decode(decoder)?;
+        let (da, _) = crawdad::Trie::deserialize_from_slice(data);
         Ok(Self { da })
     }
 }
