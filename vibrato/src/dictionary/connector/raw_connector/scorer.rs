@@ -304,9 +304,6 @@ mod tests {
         let builder = ScorerBuilder::new();
         let scorer = builder.build();
 
-        assert_eq!(
-            scorer.accumulate_cost(&[], &[]),
-            0,
-        );
+        assert_eq!(scorer.accumulate_cost(&[], &[]), 0);
     }
 }
