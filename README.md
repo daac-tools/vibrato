@@ -249,10 +249,10 @@ $ echo '本とカレーの街神保町へようこそ。' | cargo run --release 
 EOS
 ```
 
-# Smaller dictionary
+## Smaller dictionary
 
-When analyzing texts, Vibrato usually retrieves pre-computed bi-gram costs from `matrix.def`, a dictionary that stores connection costs similar to MeCab.
-However, since the matrix is huge, Vibrato also supports the management of more compact dictionaries.
+Vibrato provides an option to generate a smaller dictionary that stores connection costs in compressed space,
+while sacrificing tokenization speed.
 
 To generate a compact dictionary, give `--conn-id-info-out` option to the `dictgen` command as follows:
 ```
@@ -278,8 +278,11 @@ $ cargo run --release -p prepare --bin system -- \
     -o system-compact.dic
 ```
 
-The compact dictionary takes longer time than usual to analyze because it does not compute the bi-gram cost before hand.
-Compiling the `tokenize` command with the `target-feature=+avx` option will reduce the analyzing time:
+The compiled dictionary `system-compact.dic` can be used in place of the system dictionary `system.dic` described above.
+
+### SIMD acceleration
+
+Compiling the `tokenize` command with the `target-feature=+avx2` option enables a SIMD acceleration (if your machine supports it) and will reduce the analyzing time:
 ```
 $ RUSTFLAGS='-C target-feature=+avx2' cargo build --release -p tokenize
 ```
