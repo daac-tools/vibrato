@@ -132,7 +132,7 @@ Next, run the following commands to generate a set of dictionary files from the 
 
 ```
 $ mkdir mydict # Prepare the output directory
-$ cargo run --release -p dictgen -- \
+$ cargo run --release -p train --bin dictgen -- \
     -i ./modeldata.zst \
     -l ./mydict/lex.csv \
     -u ./mydict/unk.def \
@@ -150,7 +150,7 @@ following the [documentation](./prepare/README.md).
 To split the input corpus randomly and output train/validation/test files, run the following command:
 
 ```
-$ cargo run --release -p evaluate --bin split -- \
+$ cargo run --release -p train --bin split -- \
     -i ./dataset/corpus.txt \
     -t ./dataset/train.txt \
     -v ./dataset/valid.txt \
@@ -162,7 +162,7 @@ By default, 80% of the data is split into a training set, 10% into a validation 
 To evaluate the accuracy, run the following command:
 
 ```
-$ cargo run --release -p evaluate -- \
+$ cargo run --release -p train --bin evaluate -- \
     -i ./system.dic \
     -t ./dataset/valid.txt \
     --feature-indices 0,1,2,3,9
@@ -256,7 +256,7 @@ while sacrificing tokenization speed.
 
 To generate a compact dictionary, give `--conn-id-info-out` option to the `dictgen` command as follows:
 ```
-$ cargo run --release -p dictgen -- \
+$ cargo run --release -p train --bin dictgen -- \
     -i ./modeldata.zst \
     -l ./mydict/lex.csv \
     -u ./mydict/unk.def \
