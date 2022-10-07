@@ -3,7 +3,28 @@ name = "train"
 version = "0.1.0"
 edition = "2021"
 
+default-run = "train"
+
 [dependencies]
 clap = { version = "3.2.22", features = ["derive"] }  # MIT or Apache-2.0
+csv-core = "0.1.10"  # Unlicense or MIT
+rand = "0.8"  # MIT or Apache-2.0
+ruzstd = "0.3.0"  # MIT
 vibrato = { path = "../vibrato" }  # MIT or Apache-2.0
 zstd = "0.11.2"  # MIT
+
+[[bin]]
+name = "train"
+path = "src/train.rs"
+
+[[bin]]
+name = "dictgen"
+path = "src/dictgen.rs"
+
+[[bin]]
+name = "evaluate"
+path = "src/evaluate.rs"
+
+[[bin]]
+name = "split"
+path = "src/split.rs"
