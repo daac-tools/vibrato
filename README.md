@@ -61,7 +61,7 @@ $ ls resources_ipadic-mecab-2_7_0
 system.dic
 ```
 
-See the [document](./prepare/README.md) for preparation steps without these scripts.
+See the [document](./docs/prepare.md) for preparation steps without these scripts.
 
 ### 2. Tokenization
 
@@ -93,83 +93,6 @@ If you want to output tokens separated by spaces, specify `-O wakati`.
 $ echo '本とカレーの街神保町へようこそ。' | cargo run --release -p tokenize -- -i resources_ipadic-mecab-2_7_0/system.dic -O wakati
 本 と カレー の 街 神保 町 へ ようこそ 。
 ```
-
-### 3. Training
-
-Vibrato also supports training a dictionary.
-To train a dictionary, you must prepare at least the following six files.
-
-* `corpus.txt`: Corpus file to be trained. The format is the same as the output of the `tokenize` command of Vibrato.
-                The contents of the feature columns must match exactly with the columns of the lexicon file.
-                If it differs even slightly, it is considered an unknown word.
-* `train_lex.csv`: Lexicon file to be weighted. All connection IDs and weights must be set to 0.
-* `train_unk.def`: Unknown word file to be weighted. All connection IDs and weights must be set to 0.
-* `char.def`: Character definition file.
-* `rewrite.def`: Rewrite rule definition file.
-* `feature.def`: Feature definition file.
-
-The file formats follow those in MeCab (see the [official document](https://taku910.github.io/mecab/learn.html)).
-You can also find an example dataset [here](./vibrato/src/tests/resources).
-
-Execute the following command to start the training process (Replace file names with the actual ones):
-```
-$ cargo run --release -p train -- \
-    -t ./dataset/corpus.txt \
-    -l ./dataset/train_lex.csv \
-    -u ./dataset/train_unk.def \
-    -c ./dataset/char.def \
-    -f ./dataset/feature.def \
-    -r ./dataset/rewrite.def \
-    -o ./modeldata.zst
-```
-
-The training command supports multi-threading and changing some parameters.
-See the `--help` message for more details.
-
-When training is complete, the model is output to `./modeldata.zst`.
-
-Next, run the following commands to generate a set of dictionary files from the model:
-
-```
-$ mkdir mydict # Prepare the output directory
-$ cargo run --release -p dictgen -- \
-    -i ./modeldata.zst \
-    -l ./mydict/lex.csv \
-    -u ./mydict/unk.def \
-    -m ./mydict/matrix.def
-```
-
-Optionally, you can specify a user-defined dictionary to the `dictgen` command to automatically give connection IDs and weights.
-See the `--help` message for more details.
-
-After copying `dataset/char.def` under `mydict`, you can compile your system dictionary
-following the [documentation](./prepare/README.md).
-
-#### Accuracy evaluation
-
-To split the input corpus randomly and output train/validation/test files, run the following command:
-
-```
-$ cargo run --release -p evaluate --bin split -- \
-    -i ./dataset/corpus.txt \
-    -t ./dataset/train.txt \
-    -v ./dataset/valid.txt \
-    -e ./dataset/test.txt
-```
-
-By default, 80% of the data is split into a training set, 10% into a validation set, and 10% into a test set.
-
-To evaluate the accuracy, run the following command:
-
-```
-$ cargo run --release -p evaluate -- \
-    -i ./system.dic \
-    -t ./dataset/valid.txt \
-    --feature-indices 0,1,2,3,9
-```
-
-where `--feature-indices` is an option to specify features' indices to determine correctness.
-In this example, the 0th, 1st, 2nd, 3rd, and 9th features are considered.
 
 ## MeCab-compatible options
 
@@ -247,44 +170,6 @@ $ echo '本とカレーの街神保町へようこそ。' | cargo run --release 
 ようこそ	感動詞,ヨーコソ,Welcome,欢迎欢迎,Benvenuto,Willkommen
 。	記号,句点,*,*,*,*,。,。,。
 EOS
-```
-
-## Smaller dictionary
-
-Vibrato provides an option to generate a smaller dictionary that stores connection costs in compressed space,
-while sacrificing tokenization speed.
-
-To generate a compact dictionary, give `--conn-id-info-out` option to the `dictgen` command as follows:
-```
-$ cargo run --release -p dictgen -- \
-    -i ./modeldata.zst \
-    -l ./mydict/lex.csv \
-    -u ./mydict/unk.def \
-    -m ./mydict/matrix.def \
-    --conn-id-info-out ./mydict/bigram
-```
-
-This command generates three files: `./mydict/bigram.left`, `./mydict/bigram.right`, and `./mydict/bigram.cost`.
-
-Next, compile the dictionary. Run the `prepare/system` command with the `--bigram-*` options instead of the `-m` option as follows:
-```
-$ cargo run --release -p prepare --bin system -- \
-    -l ./mydict/lex.csv \
-    -u ./mydict/unk.def \
-    -c ./mydict/char.def \
-    --bigram-left-in ./mydict/bigram.left \
-    --bigram-right-in ./mydict/bigram.right \
-    --bigram-cost-in ./mydict/bigram.cost \
-    -o system-compact.dic
-```
-
-The compiled dictionary `system-compact.dic` can be used in place of the system dictionary `system.dic` described above.
-
-### SIMD acceleration
-
-Compiling the `tokenize` command with the `target-feature=+avx2` option enables a SIMD acceleration (if your machine supports it) and will reduce the analyzing time:
-```
-$ RUSTFLAGS='-C target-feature=+avx2' cargo build --release -p tokenize
 ```
 
 ## Benchmark
