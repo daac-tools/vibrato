@@ -53,9 +53,7 @@ impl Trie {
         debug_assert!(input.len() <= 0xFFFF);
         self.da
             .common_prefix_search(input.iter().cloned())
-            .map(move |(value, end_char)| {
-                TrieMatch::new(value, end_char)
-            })
+            .map(move |(value, end_char)| TrieMatch::new(value, end_char))
     }
 }
 
