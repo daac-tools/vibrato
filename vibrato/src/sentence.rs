@@ -35,17 +35,6 @@ impl Sentence {
 
     pub fn compile(&mut self, char_prop: &CharProperty) -> Result<()> {
         self.compute_basic();
-        #[allow(clippy::absurd_extreme_comparisons)]
-        if MAX_SENTENCE_LENGTH < self.chars().len() {
-            self.clear();
-            return Err(VibratoError::invalid_argument(
-                "input",
-                format!(
-                    "An input sentence must not have a length no more than {}",
-                    MAX_SENTENCE_LENGTH
-                ),
-            ));
-        }
         self.compute_categories(char_prop);
         self.compute_groupable();
         Ok(())
