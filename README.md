@@ -28,6 +28,11 @@ The detailed experimental settings and other results are available on [Wiki](htt
 
 Vibrato supports options for outputting tokenized results identical to MeCab, such as ignoring whitespace.
 
+### Training parameters
+
+Vibrato also supports training parameters (or costs) in dictionaries from your corpus.
+The detailed description can be found [here](./docs/train.md).
+
 ## Basic usage
 
 This software is implemented in Rust.
@@ -94,7 +99,9 @@ $ echo '本とカレーの街神保町へようこそ。' | cargo run --release 
 本 と カレー の 街 神保 町 へ ようこそ 。
 ```
 
-## MeCab-compatible options
+## Tokenization options
+
+### MeCab-compatible options
 
 Vibrato is a reimplementation of the MeCab algorithm,
 but with the default settings it can produce different tokens from MeCab.
@@ -134,12 +141,12 @@ EOS
 `-S` indicates if spaces are ignored.
 `-M` indicates the maximum grouping length for unknown words.
 
-### Notes
+#### Notes
 
 There are corner cases where tokenization results in different outcomes due to cost tiebreakers.
 However, this would be not an essential problem.
 
-## User dictionary
+### User dictionary
 
 You can use your user dictionary along with the system dictionary.
 The user dictionary must be in the CSV format.
@@ -172,16 +179,9 @@ $ echo '本とカレーの街神保町へようこそ。' | cargo run --release 
 EOS
 ```
 
-## Benchmark
+## More advanced usages
 
-You can measure the tokenization speed for sentences in `test.txt`.
-
-If you can guarantee that `system.dic` is exported from this library,
-you can specify `--features=unchecked` for faster tokenization.
-
-```
-$ cargo run --release -p benchmark --features=unchecked -- -i resources_ipadic-mecab-2_7_0/system.dic < test.txt
-```
+The directory [docs](./docs/) provides descriptions of more advanced usages such as training or benchmarking.
 
 ## License
 

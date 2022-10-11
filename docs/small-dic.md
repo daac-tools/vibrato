@@ -8,7 +8,7 @@ The following description assumes you are at the root directory of this reposito
 
 ## 1. Training
 
-To generate a smaller dictionary, you need to prepare a trained model file from your corpus following the step 1 in [this document](./train.md).
+To generate a smaller dictionary, you need to prepare a trained model file from your corpus following the step 1 in [this document](./train.md#1-training).
 
 ## 2. Generating dictionary files
 
