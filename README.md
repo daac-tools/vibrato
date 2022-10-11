@@ -30,7 +30,7 @@ Vibrato supports options for outputting tokenized results identical to MeCab, su
 
 ### Training parameters
 
-Vibrato also supports training parameters (or costs) in dictionaries from your corpus.
+Vibrato also supports training parameters (or costs) in dictionaries from your corpora.
 The detailed description can be found [here](./docs/train.md).
 
 ## Basic usage
