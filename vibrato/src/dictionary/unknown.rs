@@ -24,8 +24,8 @@ pub struct UnkEntry {
 
 #[derive(Default, Debug, Clone)]
 pub struct UnkWord {
-    start_char: u16,
-    end_char: u16,
+    start_char: usize,
+    end_char: usize,
     left_id: u16,
     right_id: u16,
     word_cost: i16,
@@ -34,12 +34,12 @@ pub struct UnkWord {
 
 impl UnkWord {
     #[inline(always)]
-    pub const fn start_char(&self) -> u16 {
+    pub const fn start_char(&self) -> usize {
         self.start_char
     }
 
     #[inline(always)]
-    pub const fn end_char(&self) -> u16 {
+    pub const fn end_char(&self) -> usize {
         self.end_char
     }
 
@@ -65,9 +65,9 @@ impl UnkHandler {
     pub fn gen_unk_words<F>(
         &self,
         sent: &Sentence,
-        start_char: u16,
+        start_char: usize,
         mut has_matched: bool,
-        max_grouping_len: Option<u16>,
+        max_grouping_len: Option<usize>,
         mut f: F,
     ) where
         F: FnMut(UnkWord),
@@ -93,7 +93,7 @@ impl UnkHandler {
             }
         }
 
-        for i in 1..=cinfo.length().min(groupable) {
+        for i in 1..=usize::from(cinfo.length()).min(groupable) {
             if grouped && i == groupable {
                 continue;
             }
@@ -112,7 +112,7 @@ impl UnkHandler {
     }
 
     #[inline(always)]
-    fn scan_entries<F>(&self, start_char: u16, end_char: u16, cinfo: CharInfo, mut f: F) -> F
+    fn scan_entries<F>(&self, start_char: usize, end_char: usize, cinfo: CharInfo, mut f: F) -> F
     where
         F: FnMut(UnkWord),
     {
@@ -138,8 +138,8 @@ impl UnkHandler {
     pub fn compatible_unk_index(
         &self,
         sent: &Sentence,
-        start_char: u16,
-        end_char: u16,
+        start_char: usize,
+        end_char: usize,
         feature: &str,
     ) -> Option<WordIdx> {
         let features = utils::parse_csv_row(feature);
@@ -148,7 +148,7 @@ impl UnkHandler {
 
         let groupable = sent.groupable(start_char);
 
-        if cinfo.group() || end_char - start_char <= cinfo.length().min(groupable) {
+        if cinfo.group() || end_char - start_char <= usize::from(cinfo.length()).min(groupable) {
             let start = self.offsets[usize::from_u32(cinfo.base_id())];
             let end = self.offsets[usize::from_u32(cinfo.base_id()) + 1];
             'a: for word_id in start..end {
@@ -246,7 +246,7 @@ NUMERIC,0,0,0,数字";
 
         let mut sent = Sentence::new();
         sent.set_sentence("変数var42を書き換えます");
-        sent.compile(&prop).unwrap();
+        sent.compile(&prop);
 
         let unk_index = unk
             .compatible_unk_index(&sent, 2, 7, "名詞,一般,変数,バーヨンジューニ")
@@ -261,7 +261,7 @@ NUMERIC,0,0,0,数字";
 
         let mut sent = Sentence::new();
         sent.set_sentence("変数var42を書き換えます");
-        sent.compile(&prop).unwrap();
+        sent.compile(&prop);
 
         let unk_index = unk
             .compatible_unk_index(&sent, 2, 7, "動詞,一般,変数,バーヨンジューニ")
@@ -276,7 +276,7 @@ NUMERIC,0,0,0,数字";
 
         let mut sent = Sentence::new();
         sent.set_sentence("変数var42を書き換えます");
-        sent.compile(&prop).unwrap();
+        sent.compile(&prop);
 
         let unk_index = unk
             .compatible_unk_index(&sent, 5, 7, "数字,一般,変数末尾,ヨンジューニ")
@@ -291,7 +291,7 @@ NUMERIC,0,0,0,数字";
 
         let mut sent = Sentence::new();
         sent.set_sentence("変数var42を書き換えます");
-        sent.compile(&prop).unwrap();
+        sent.compile(&prop);
 
         assert!(unk.compatible_unk_index(&sent, 2, 7, "形容詞").is_none());
     }
@@ -303,7 +303,7 @@ NUMERIC,0,0,0,数字";
 
         let mut sent = Sentence::new();
         sent.set_sentence("変数var42を書き換えます");
-        sent.compile(&prop).unwrap();
+        sent.compile(&prop);
 
         assert!(unk
             .compatible_unk_index(&sent, 5, 7, "名詞,一般,変数,バーヨンジューニ")

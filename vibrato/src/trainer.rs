@@ -60,7 +60,7 @@
 //! let tokenizer = Tokenizer::new(dict);
 //! let mut worker = tokenizer.new_worker();
 //!
-//! worker.reset_sentence("外国人参政権")?;
+//! worker.reset_sentence("外国人参政権");
 //! worker.tokenize();
 //! assert_eq!(worker.num_tokens(), 4); // 外国/人/参政/権
 //! # Ok(())
@@ -89,12 +89,10 @@ pub use crate::trainer::model::Model;
 use crate::trainer::model::ModelData;
 use crate::utils::{self, FromU32};
 
-use crate::common::MAX_SENTENCE_LENGTH;
-
 /// Trainer of morphological analyzer.
 pub struct Trainer {
     config: TrainerConfig,
-    max_grouping_len: Option<u16>,
+    max_grouping_len: Option<usize>,
     provider: FeatureProvider,
 
     // Assume a dictionary word W is associated with id X and feature string F.
@@ -250,9 +248,9 @@ impl Trainer {
     ///
     ///  * `max_grouping_len` - The maximum grouping length for unknown words.
     ///                         The default value is 0, indicating the infinity length.
-    pub fn max_grouping_len(mut self, max_grouping_len: usize) -> Self {
-        if max_grouping_len != 0 && max_grouping_len <= usize::from(MAX_SENTENCE_LENGTH) {
-            self.max_grouping_len = Some(max_grouping_len as u16);
+    pub const fn max_grouping_len(mut self, max_grouping_len: usize) -> Self {
+        if max_grouping_len != 0 {
+            self.max_grouping_len = Some(max_grouping_len);
         } else {
             self.max_grouping_len = None;
         }
@@ -285,12 +283,7 @@ impl Trainer {
                     self.config
                         .dict
                         .unk_handler()
-                        .compatible_unk_index(
-                            sentence,
-                            u16::try_from(pos).unwrap(),
-                            u16::try_from(pos + len).unwrap(),
-                            token.feature(),
-                        )
+                        .compatible_unk_index(sentence, pos, pos + len, token.feature())
                         .map_or_else(
                             || {
                                 eprintln!(
@@ -309,9 +302,9 @@ impl Trainer {
             edges.push((pos, Edge::new(pos + len, label_id)));
             pos += len;
         }
-        assert_eq!(pos, usize::from(input_len));
+        assert_eq!(pos, input_len);
 
-        let mut lattice = Lattice::new(usize::from(input_len)).unwrap();
+        let mut lattice = Lattice::new(input_len).unwrap();
 
         for (pos, edge) in edges {
             lattice.add_edge(pos, edge).unwrap();
@@ -321,7 +314,7 @@ impl Trainer {
         for start_word in 0..input_len {
             let mut has_matched = false;
 
-            let suffix = &input_chars[usize::from(start_word)..];
+            let suffix = &input_chars[start_word..];
 
             for m in self
                 .config
@@ -331,8 +324,8 @@ impl Trainer {
             {
                 has_matched = true;
                 let label_id = NonZeroU32::new(m.word_idx.word_id + 1).unwrap();
-                let pos = usize::from(start_word);
-                let target = pos + usize::from(m.end_char);
+                let pos = start_word;
+                let target = pos + m.end_char;
                 let edge = Edge::new(target, label_id);
                 // Skips adding if the edge is already added as a positive edge.
                 if let Some(first_edge) = lattice.nodes()[pos].edges().first() {
@@ -351,8 +344,8 @@ impl Trainer {
                 |w| {
                     let id_offset = u32::try_from(self.config.surfaces.len()).unwrap();
                     let label_id = NonZeroU32::new(id_offset + w.word_idx().word_id + 1).unwrap();
-                    let pos = usize::from(start_word);
-                    let target = usize::from(w.end_char());
+                    let pos = start_word;
+                    let target = w.end_char();
                     let edge = Edge::new(target, label_id);
                     // Skips adding if the edge is already added as a positive edge.
                     if let Some(first_edge) = lattice.nodes()[pos].edges().first() {
@@ -381,7 +374,7 @@ impl Trainer {
     pub fn train(mut self, mut corpus: Corpus) -> Result<Model> {
         let mut lattices = vec![];
         for example in &mut corpus.examples {
-            example.sentence.compile(self.config.dict.char_prop())?;
+            example.sentence.compile(self.config.dict.char_prop());
             lattices.push(self.build_lattice(example)?);
         }
 

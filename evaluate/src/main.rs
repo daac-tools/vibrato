@@ -105,7 +105,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             start += len;
         }
-        worker.reset_sentence(input_str)?;
+        worker.reset_sentence(input_str);
         worker.tokenize();
         for token in worker.token_iter() {
             let features = parse_csv_row(token.feature());

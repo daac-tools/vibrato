@@ -20,7 +20,7 @@ impl<'a> Token<'a> {
     #[inline(always)]
     pub fn range_char(&self) -> Range<usize> {
         let (end_word, node) = &self.worker.top_nodes[self.index];
-        usize::from(node.start_word)..usize::from(*end_word)
+        node.start_word..*end_word
     }
 
     /// Gets the position range of the token in bytes.
@@ -158,7 +158,7 @@ mod tests {
 
         let tokenizer = Tokenizer::new(dict);
         let mut worker = tokenizer.new_worker();
-        worker.reset_sentence("自然言語処理").unwrap();
+        worker.reset_sentence("自然言語処理");
         worker.tokenize();
         assert_eq!(worker.num_tokens(), 2);
 

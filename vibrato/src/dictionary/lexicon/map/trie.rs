@@ -53,22 +53,19 @@ impl Trie {
         debug_assert!(input.len() <= 0xFFFF);
         self.da
             .common_prefix_search(input.iter().cloned())
-            .map(move |(value, end_char)| {
-                // Safety: input.len() is no more than 0xFFFF.
-                TrieMatch::new(value, unsafe { u16::try_from(end_char).unwrap_unchecked() })
-            })
+            .map(move |(value, end_char)| TrieMatch::new(value, end_char))
     }
 }
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct TrieMatch {
     pub value: u32,
-    pub end_char: u16,
+    pub end_char: usize,
 }
 
 impl TrieMatch {
     #[inline(always)]
-    pub const fn new(value: u32, end_char: u16) -> Self {
+    pub const fn new(value: u32, end_char: usize) -> Self {
         Self { value, end_char }
     }
 }

@@ -1,6 +1,4 @@
-use crate::common::MAX_SENTENCE_LENGTH;
 use crate::dictionary::character::{CharInfo, CharProperty};
-use crate::errors::{Result, VibratoError};
 
 #[derive(Default, Clone, Debug)]
 pub struct Sentence {
@@ -8,7 +6,7 @@ pub struct Sentence {
     chars: Vec<char>,
     c2b: Vec<usize>,
     cinfos: Vec<CharInfo>,
-    groupable: Vec<u16>,
+    groupable: Vec<usize>,
 }
 
 impl Sentence {
@@ -33,21 +31,10 @@ impl Sentence {
         self.input.push_str(input.as_ref());
     }
 
-    pub fn compile(&mut self, char_prop: &CharProperty) -> Result<()> {
+    pub fn compile(&mut self, char_prop: &CharProperty) {
         self.compute_basic();
-        if usize::from(MAX_SENTENCE_LENGTH) < self.chars().len() {
-            self.clear();
-            return Err(VibratoError::invalid_argument(
-                "input",
-                format!(
-                    "An input sentence must not have a length no more than {}",
-                    MAX_SENTENCE_LENGTH
-                ),
-            ));
-        }
         self.compute_categories(char_prop);
         self.compute_groupable();
-        Ok(())
     }
 
     fn compute_basic(&mut self) {
@@ -94,24 +81,23 @@ impl Sentence {
     }
 
     #[inline(always)]
-    pub fn len_char(&self) -> u16 {
-        // Safety: self.chars.len() is always no more than MAX_SENTENCE_LENGTH.
-        unsafe { u16::try_from(self.chars.len()).unwrap_unchecked() }
+    pub fn len_char(&self) -> usize {
+        self.chars.len()
     }
 
     #[inline(always)]
-    pub fn byte_position(&self, pos_char: u16) -> usize {
-        self.c2b[usize::from(pos_char)]
+    pub fn byte_position(&self, pos_char: usize) -> usize {
+        self.c2b[pos_char]
     }
 
     #[inline(always)]
-    pub fn char_info(&self, pos_char: u16) -> CharInfo {
-        self.cinfos[usize::from(pos_char)]
+    pub fn char_info(&self, pos_char: usize) -> CharInfo {
+        self.cinfos[pos_char]
     }
 
     #[inline(always)]
-    pub fn groupable(&self, pos_char: u16) -> u16 {
-        self.groupable[usize::from(pos_char)]
+    pub fn groupable(&self, pos_char: usize) -> usize {
+        self.groupable[pos_char]
     }
 }
 

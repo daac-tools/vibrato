@@ -25,7 +25,7 @@
 //! let tokenizer = vibrato::Tokenizer::new(dict);
 //! let mut worker = tokenizer.new_worker();
 //!
-//! worker.reset_sentence("京都東京都").unwrap();
+//! worker.reset_sentence("京都東京都");
 //! worker.tokenize();
 //! assert_eq!(worker.num_tokens(), 2);
 //!

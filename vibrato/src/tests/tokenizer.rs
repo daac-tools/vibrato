@@ -19,7 +19,7 @@ fn test_tokenize_tokyo() {
 
     let tokenizer = Tokenizer::new(dict);
     let mut worker = tokenizer.new_worker();
-    worker.reset_sentence("東京都").unwrap();
+    worker.reset_sentence("東京都");
     worker.tokenize();
     assert_eq!(worker.num_tokens(), 1);
 
@@ -53,7 +53,7 @@ fn test_tokenize_kyotokyo() {
 
     let tokenizer = Tokenizer::new(dict);
     let mut worker = tokenizer.new_worker();
-    worker.reset_sentence("京都東京都京都").unwrap();
+    worker.reset_sentence("京都東京都京都");
     worker.tokenize();
     assert_eq!(worker.num_tokens(), 3);
 
@@ -117,7 +117,7 @@ fn test_tokenize_kyotokyo_with_user() {
 
     let tokenizer = Tokenizer::new(dict);
     let mut worker = tokenizer.new_worker();
-    worker.reset_sentence("京都東京都京都").unwrap();
+    worker.reset_sentence("京都東京都京都");
     worker.tokenize();
     assert_eq!(worker.num_tokens(), 2);
 
@@ -162,7 +162,7 @@ fn test_tokenize_tokyoto_with_space() {
 
     let tokenizer = Tokenizer::new(dict);
     let mut worker = tokenizer.new_worker();
-    worker.reset_sentence("東京 都").unwrap();
+    worker.reset_sentence("東京 都");
     worker.tokenize();
     assert_eq!(worker.num_tokens(), 3);
 
@@ -218,7 +218,7 @@ fn test_tokenize_tokyoto_with_space_ignored() {
 
     let tokenizer = Tokenizer::new(dict).ignore_space(true).unwrap();
     let mut worker = tokenizer.new_worker();
-    worker.reset_sentence("東京 都").unwrap();
+    worker.reset_sentence("東京 都");
     worker.tokenize();
     assert_eq!(worker.num_tokens(), 2);
 
@@ -263,7 +263,7 @@ fn test_tokenize_tokyoto_with_spaces_ignored() {
 
     let tokenizer = Tokenizer::new(dict).ignore_space(true).unwrap();
     let mut worker = tokenizer.new_worker();
-    worker.reset_sentence("東京   都").unwrap();
+    worker.reset_sentence("東京   都");
     worker.tokenize();
     assert_eq!(worker.num_tokens(), 2);
 
@@ -308,7 +308,7 @@ fn test_tokenize_tokyoto_startswith_spaces_ignored() {
 
     let tokenizer = Tokenizer::new(dict).ignore_space(true).unwrap();
     let mut worker = tokenizer.new_worker();
-    worker.reset_sentence("   東京都").unwrap();
+    worker.reset_sentence("   東京都");
     worker.tokenize();
     assert_eq!(worker.num_tokens(), 1);
 
@@ -342,7 +342,7 @@ fn test_tokenize_tokyoto_endswith_spaces_ignored() {
 
     let tokenizer = Tokenizer::new(dict).ignore_space(true).unwrap();
     let mut worker = tokenizer.new_worker();
-    worker.reset_sentence("東京都   ").unwrap();
+    worker.reset_sentence("東京都   ");
     worker.tokenize();
     assert_eq!(worker.num_tokens(), 1);
 
@@ -376,7 +376,7 @@ fn test_tokenize_kampersanda() {
 
     let tokenizer = Tokenizer::new(dict);
     let mut worker = tokenizer.new_worker();
-    worker.reset_sentence("kampersanda").unwrap();
+    worker.reset_sentence("kampersanda");
     worker.tokenize();
     assert_eq!(worker.num_tokens(), 1);
 
@@ -409,7 +409,7 @@ fn test_tokenize_kampersanda_with_user() {
 
     let tokenizer = Tokenizer::new(dict);
     let mut worker = tokenizer.new_worker();
-    worker.reset_sentence("kampersanda").unwrap();
+    worker.reset_sentence("kampersanda");
     worker.tokenize();
     assert_eq!(worker.num_tokens(), 1);
 
@@ -443,7 +443,7 @@ fn test_tokenize_kampersanda_with_max_grouping() {
         .unwrap()
         .max_grouping_len(9);
     let mut worker = tokenizer.new_worker();
-    worker.reset_sentence("kampersanda").unwrap();
+    worker.reset_sentence("kampersanda");
     worker.tokenize();
     assert_eq!(worker.num_tokens(), 2);
 
@@ -485,7 +485,7 @@ fn test_tokenize_tokyoken() {
 
     let tokenizer = Tokenizer::new(dict);
     let mut worker = tokenizer.new_worker();
-    worker.reset_sentence("東京県に行く").unwrap();
+    worker.reset_sentence("東京県に行く");
     worker.tokenize();
     assert_eq!(worker.num_tokens(), 4);
 }
@@ -503,7 +503,7 @@ fn test_tokenize_kanjinumeric() {
 
     let tokenizer = Tokenizer::new(dict);
     let mut worker = tokenizer.new_worker();
-    worker.reset_sentence("一橋大学大学院").unwrap();
+    worker.reset_sentence("一橋大学大学院");
     worker.tokenize();
     assert_eq!(worker.num_tokens(), 1);
 
@@ -528,7 +528,7 @@ fn test_tokenize_empty() {
 
     let tokenizer = Tokenizer::new(dict);
     let mut worker = tokenizer.new_worker();
-    worker.reset_sentence("").unwrap();
+    worker.reset_sentence("");
     worker.tokenize();
     assert_eq!(worker.num_tokens(), 0);
 }
@@ -546,19 +546,19 @@ fn test_tokenize_repeat() {
     let tokenizer = Tokenizer::new(dict);
     let mut worker = tokenizer.new_worker();
 
-    worker.reset_sentence("東京に行く").unwrap();
+    worker.reset_sentence("東京に行く");
     worker.tokenize();
     assert_eq!(worker.num_tokens(), 3);
 
-    worker.reset_sentence("一橋大学大学院").unwrap();
+    worker.reset_sentence("一橋大学大学院");
     worker.tokenize();
     assert_eq!(worker.num_tokens(), 1);
 
-    worker.reset_sentence("").unwrap();
+    worker.reset_sentence("");
     worker.tokenize();
     assert_eq!(worker.num_tokens(), 0);
 
-    worker.reset_sentence("kampersanda").unwrap();
+    worker.reset_sentence("kampersanda");
     worker.tokenize();
     assert_eq!(worker.num_tokens(), 1);
 }

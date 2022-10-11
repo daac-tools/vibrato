@@ -9,14 +9,12 @@ use crate::sentence::Sentence;
 use crate::tokenizer::lattice::Lattice;
 use crate::tokenizer::worker::Worker;
 
-use crate::common::MAX_SENTENCE_LENGTH;
-
 /// Tokenizer.
 pub struct Tokenizer {
     dict: Dictionary,
     // For the MeCab compatibility
     space_cateset: Option<u32>,
-    max_grouping_len: Option<u16>,
+    max_grouping_len: Option<usize>,
 }
 
 impl Tokenizer {
@@ -66,9 +64,9 @@ impl Tokenizer {
     ///
     ///  - `max_grouping_len`: The maximum grouping length for unknown words.
     ///                        The default value is 0, indicating the infinity length.
-    pub fn max_grouping_len(mut self, max_grouping_len: usize) -> Self {
-        if max_grouping_len != 0 && max_grouping_len <= usize::from(MAX_SENTENCE_LENGTH) {
-            self.max_grouping_len = Some(max_grouping_len as u16);
+    pub const fn max_grouping_len(mut self, max_grouping_len: usize) -> Self {
+        if max_grouping_len != 0 {
+            self.max_grouping_len = Some(max_grouping_len);
         } else {
             self.max_grouping_len = None;
         }
@@ -157,8 +155,8 @@ impl Tokenizer {
         &self,
         sent: &Sentence,
         lattice: &mut Lattice,
-        start_node: u16,
-        start_word: u16,
+        start_node: usize,
+        start_word: usize,
         connector: &C,
     ) where
         C: ConnectorCost,
@@ -167,7 +165,7 @@ impl Tokenizer {
 
         // Safety: `start_word < sent.len_char()` is already checked in `build_lattice()`.
         debug_assert!(start_word < sent.len_char());
-        let suffix = unsafe { sent.chars().get_unchecked(usize::from(start_word)..) };
+        let suffix = unsafe { sent.chars().get_unchecked(start_word..) };
 
         if let Some(user_lexicon) = self.dict.user_lexicon() {
             for m in user_lexicon.common_prefix_iterator(suffix) {
@@ -219,8 +217,8 @@ impl Tokenizer {
         &self,
         sent: &Sentence,
         lattice: &mut Lattice,
-        start_node: u16,
-        start_word: u16,
+        start_node: usize,
+        start_word: usize,
         connector: &C,
     ) where
         C: ConnectorCost,
@@ -229,7 +227,7 @@ impl Tokenizer {
 
         // Safety: `start_word < sent.len_char()` is already checked in `build_lattice()`.
         debug_assert!(start_word < sent.len_char());
-        let suffix = sent.chars().get_unchecked(usize::from(start_word)..);
+        let suffix = sent.chars().get_unchecked(start_word..);
 
         if let Some(user_lexicon) = self.dict.user_lexicon() {
             for m in user_lexicon.common_prefix_iterator_unchecked(suffix) {
@@ -307,7 +305,7 @@ mod tests {
 
         let tokenizer = Tokenizer::new(dict);
         let mut worker = tokenizer.new_worker();
-        worker.reset_sentence("自然言語処理").unwrap();
+        worker.reset_sentence("自然言語処理");
         worker.tokenize();
         assert_eq!(worker.num_tokens(), 2);
 
@@ -350,7 +348,7 @@ mod tests {
 
         let tokenizer = Tokenizer::new(dict);
         let mut worker = tokenizer.new_worker();
-        worker.reset_sentence("自然日本語処理").unwrap();
+        worker.reset_sentence("自然日本語処理");
         worker.tokenize();
         assert_eq!(worker.num_tokens(), 2);
 
@@ -393,7 +391,7 @@ mod tests {
 
         let tokenizer = Tokenizer::new(dict);
         let mut worker = tokenizer.new_worker();
-        worker.reset_sentence("不自然言語処理").unwrap();
+        worker.reset_sentence("不自然言語処理");
         worker.tokenize();
         assert_eq!(worker.num_tokens(), 2);
 
@@ -436,7 +434,7 @@ mod tests {
 
         let tokenizer = Tokenizer::new(dict);
         let mut worker = tokenizer.new_worker();
-        worker.reset_sentence("").unwrap();
+        worker.reset_sentence("");
         worker.tokenize();
         assert_eq!(worker.num_tokens(), 0);
     }
