@@ -99,12 +99,12 @@ impl Lexicon {
 pub struct LexMatch {
     pub word_idx: WordIdx,
     pub word_param: WordParam,
-    pub end_char: u16,
+    pub end_char: usize,
 }
 
 impl LexMatch {
     #[inline(always)]
-    pub const fn new(word_idx: WordIdx, word_param: WordParam, end_char: u16) -> Self {
+    pub const fn new(word_idx: WordIdx, word_param: WordParam, end_char: usize) -> Self {
         Self {
             word_idx,
             word_param,

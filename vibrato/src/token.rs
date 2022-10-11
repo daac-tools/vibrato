@@ -20,7 +20,7 @@ impl<'a> Token<'a> {
     #[inline(always)]
     pub fn range_char(&self) -> Range<usize> {
         let (end_word, node) = &self.worker.top_nodes[self.index];
-        usize::from(node.start_word)..usize::from(*end_word)
+        node.start_word..*end_word
     }
 
     /// Gets the position range of the token in bytes.

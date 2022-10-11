@@ -15,7 +15,7 @@ pub struct Worker<'a> {
     pub(crate) tokenizer: &'a Tokenizer,
     pub(crate) sent: Sentence,
     pub(crate) lattice: Lattice,
-    pub(crate) top_nodes: Vec<(u16, Node)>,
+    pub(crate) top_nodes: Vec<(usize, Node)>,
     pub(crate) counter: Option<ConnIdCounter>,
 }
 
