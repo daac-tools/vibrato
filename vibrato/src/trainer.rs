@@ -89,8 +89,6 @@ pub use crate::trainer::model::Model;
 use crate::trainer::model::ModelData;
 use crate::utils::{self, FromU32};
 
-use crate::common::MAX_SENTENCE_LENGTH;
-
 /// Trainer of morphological analyzer.
 pub struct Trainer {
     config: TrainerConfig,
@@ -251,8 +249,7 @@ impl Trainer {
     ///  * `max_grouping_len` - The maximum grouping length for unknown words.
     ///                         The default value is 0, indicating the infinity length.
     pub const fn max_grouping_len(mut self, max_grouping_len: usize) -> Self {
-        #[allow(clippy::absurd_extreme_comparisons)]
-        if max_grouping_len != 0 && max_grouping_len <= MAX_SENTENCE_LENGTH {
+        if max_grouping_len != 0 {
             self.max_grouping_len = Some(max_grouping_len);
         } else {
             self.max_grouping_len = None;
