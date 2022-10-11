@@ -54,7 +54,6 @@ impl Trie {
         self.da
             .common_prefix_search(input.iter().cloned())
             .map(move |(value, end_char)| {
-                // Safety: input.len() is no more than 0xFFFF.
                 TrieMatch::new(value, end_char)
             })
     }

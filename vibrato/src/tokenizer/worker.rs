@@ -31,12 +31,6 @@ impl<'a> Worker<'a> {
     }
 
     /// Resets the input sentence to be tokenized.
-    ///
-    /// # Errors
-    ///
-    /// When the input sentence includes characters more than
-    /// [`MAX_SENTENCE_LENGTH`](crate::common::MAX_SENTENCE_LENGTH),
-    /// an error will be returned.
     pub fn reset_sentence<S>(&mut self, input: S)
     where
         S: AsRef<str>,
