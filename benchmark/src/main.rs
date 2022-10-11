@@ -51,7 +51,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         for _ in 0..RUNS {
             t.start();
             for line in &lines {
-                worker.reset_sentence(line).unwrap();
+                worker.reset_sentence(line);
                 worker.tokenize();
                 n_words += worker.num_tokens();
             }

@@ -305,7 +305,7 @@ mod tests {
 
         let tokenizer = Tokenizer::new(dict);
         let mut worker = tokenizer.new_worker();
-        worker.reset_sentence("自然言語処理").unwrap();
+        worker.reset_sentence("自然言語処理");
         worker.tokenize();
         assert_eq!(worker.num_tokens(), 2);
 
@@ -348,7 +348,7 @@ mod tests {
 
         let tokenizer = Tokenizer::new(dict);
         let mut worker = tokenizer.new_worker();
-        worker.reset_sentence("自然日本語処理").unwrap();
+        worker.reset_sentence("自然日本語処理");
         worker.tokenize();
         assert_eq!(worker.num_tokens(), 2);
 
@@ -391,7 +391,7 @@ mod tests {
 
         let tokenizer = Tokenizer::new(dict);
         let mut worker = tokenizer.new_worker();
-        worker.reset_sentence("不自然言語処理").unwrap();
+        worker.reset_sentence("不自然言語処理");
         worker.tokenize();
         assert_eq!(worker.num_tokens(), 2);
 
@@ -434,7 +434,7 @@ mod tests {
 
         let tokenizer = Tokenizer::new(dict);
         let mut worker = tokenizer.new_worker();
-        worker.reset_sentence("").unwrap();
+        worker.reset_sentence("");
         worker.tokenize();
         assert_eq!(worker.num_tokens(), 0);
     }

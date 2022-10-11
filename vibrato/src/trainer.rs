@@ -60,7 +60,7 @@
 //! let tokenizer = Tokenizer::new(dict);
 //! let mut worker = tokenizer.new_worker();
 //!
-//! worker.reset_sentence("外国人参政権")?;
+//! worker.reset_sentence("外国人参政権");
 //! worker.tokenize();
 //! assert_eq!(worker.num_tokens(), 4); // 外国/人/参政/権
 //! # Ok(())
@@ -374,7 +374,7 @@ impl Trainer {
     pub fn train(mut self, mut corpus: Corpus) -> Result<Model> {
         let mut lattices = vec![];
         for example in &mut corpus.examples {
-            example.sentence.compile(self.config.dict.char_prop())?;
+            example.sentence.compile(self.config.dict.char_prop());
             lattices.push(self.build_lattice(example)?);
         }
 

@@ -1,7 +1,6 @@
 //! Provider of a routine for tokenization.
 use crate::dictionary::connector::Connector;
 use crate::dictionary::mapper::{ConnIdCounter, ConnIdProbs};
-use crate::errors::Result;
 use crate::sentence::Sentence;
 use crate::token::{Token, TokenIter};
 use crate::tokenizer::lattice::{Lattice, Node};
@@ -38,7 +37,7 @@ impl<'a> Worker<'a> {
     /// When the input sentence includes characters more than
     /// [`MAX_SENTENCE_LENGTH`](crate::common::MAX_SENTENCE_LENGTH),
     /// an error will be returned.
-    pub fn reset_sentence<S>(&mut self, input: S) -> Result<()>
+    pub fn reset_sentence<S>(&mut self, input: S)
     where
         S: AsRef<str>,
     {
@@ -47,9 +46,8 @@ impl<'a> Worker<'a> {
         let input = input.as_ref();
         if !input.is_empty() {
             self.sent.set_sentence(input);
-            self.sent.compile(self.tokenizer.dictionary().char_prop())?;
+            self.sent.compile(self.tokenizer.dictionary().char_prop());
         }
-        Ok(())
     }
 
     /// Tokenizes the input sentence set in `state`,

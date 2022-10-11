@@ -246,7 +246,7 @@ NUMERIC,0,0,0,数字";
 
         let mut sent = Sentence::new();
         sent.set_sentence("変数var42を書き換えます");
-        sent.compile(&prop).unwrap();
+        sent.compile(&prop);
 
         let unk_index = unk
             .compatible_unk_index(&sent, 2, 7, "名詞,一般,変数,バーヨンジューニ")
@@ -261,7 +261,7 @@ NUMERIC,0,0,0,数字";
 
         let mut sent = Sentence::new();
         sent.set_sentence("変数var42を書き換えます");
-        sent.compile(&prop).unwrap();
+        sent.compile(&prop);
 
         let unk_index = unk
             .compatible_unk_index(&sent, 2, 7, "動詞,一般,変数,バーヨンジューニ")
@@ -276,7 +276,7 @@ NUMERIC,0,0,0,数字";
 
         let mut sent = Sentence::new();
         sent.set_sentence("変数var42を書き換えます");
-        sent.compile(&prop).unwrap();
+        sent.compile(&prop);
 
         let unk_index = unk
             .compatible_unk_index(&sent, 5, 7, "数字,一般,変数末尾,ヨンジューニ")
@@ -291,7 +291,7 @@ NUMERIC,0,0,0,数字";
 
         let mut sent = Sentence::new();
         sent.set_sentence("変数var42を書き換えます");
-        sent.compile(&prop).unwrap();
+        sent.compile(&prop);
 
         assert!(unk.compatible_unk_index(&sent, 2, 7, "形容詞").is_none());
     }
@@ -303,7 +303,7 @@ NUMERIC,0,0,0,数字";
 
         let mut sent = Sentence::new();
         sent.set_sentence("変数var42を書き換えます");
-        sent.compile(&prop).unwrap();
+        sent.compile(&prop);
 
         assert!(unk
             .compatible_unk_index(&sent, 5, 7, "名詞,一般,変数,バーヨンジューニ")

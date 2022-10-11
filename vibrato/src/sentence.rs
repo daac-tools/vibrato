@@ -1,6 +1,4 @@
-use crate::common::MAX_SENTENCE_LENGTH;
 use crate::dictionary::character::{CharInfo, CharProperty};
-use crate::errors::{Result, VibratoError};
 
 #[derive(Default, Clone, Debug)]
 pub struct Sentence {
@@ -33,11 +31,10 @@ impl Sentence {
         self.input.push_str(input.as_ref());
     }
 
-    pub fn compile(&mut self, char_prop: &CharProperty) -> Result<()> {
+    pub fn compile(&mut self, char_prop: &CharProperty) {
         self.compute_basic();
         self.compute_categories(char_prop);
         self.compute_groupable();
-        Ok(())
     }
 
     fn compute_basic(&mut self) {

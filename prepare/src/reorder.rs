@@ -36,7 +36,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     #[allow(clippy::significant_drop_in_scrutinee)]
     for line in std::io::stdin().lock().lines() {
         let line = line?;
-        worker.reset_sentence(line)?;
+        worker.reset_sentence(line);
         worker.tokenize();
         worker.update_connid_counts();
     }
