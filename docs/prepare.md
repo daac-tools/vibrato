@@ -1,6 +1,8 @@
-# vibrato/prepare
+# Preparation of Vibrato's dictionaries
 
-This workspace provides several tools to compile Vibrato's dictionaries.
+This document describes steps to compile Vibrato's system dictionaries.
+
+The following description assumes you are at the root directory of this repository.
 
 ## 1. Compiling system dictionary
 
@@ -18,7 +20,7 @@ To compile the system dictionary from the resource,
 run the following command.
 
 ```
-$ cargo run --release --bin system -- \
+$ cargo run --release -p prepare --bin system -- \
     -l unidic-mecab-2.1.2_src/lex.csv \
     -m unidic-mecab-2.1.2_src/matrix.def \
     -u unidic-mecab-2.1.2_src/unk.def \
@@ -39,7 +41,7 @@ To produce the reordered mapping from sentences in `train.txt`,
 run the following command.
 
 ```
-$ cargo run --release --bin reorder -- -i system.dic -o reordered < train.txt
+$ cargo run --release -p prepare --bin reorder -- -i system.dic -o reordered < train.txt
 ```
 
 The two files, `reordered.lmap` and `reordered.rmap`, will be produced.
@@ -50,8 +52,8 @@ To edit a system dictionary with the reordered mapping,
 run the following command.
 
 ```
-$ cargo run --release --bin map -- -i system.dic -m reordered -o system.mapped.dic
+$ cargo run --release -p prepare --bin map -- -i system.dic -m reordered -o system.mapped.dic
 ```
 
 When the matrix data is large,
-`system.mapped.dic` will provide faster tokenization then `system.dic`.
+`system.mapped.dic` will provide faster tokenization than `system.dic`.
