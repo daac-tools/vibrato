@@ -1,6 +1,6 @@
 # Preparation of Vibrato's dictionaries
 
-This documentation describes steps to compile Vibrato's system dictionaries.
+This document describes steps to compile Vibrato's system dictionaries.
 
 The following description assumes you are at the root directory of this repository.
 

@@ -2,7 +2,7 @@
 
 Vibrato provides an option to generate smaller a dictionary that stores connection costs in compressed space,
 while sacrificing tokenization speed.
-This documentation describes the generation steps. 
+This document describes the generation steps. 
 
 The following description assumes you are at the root directory of this repository.
 

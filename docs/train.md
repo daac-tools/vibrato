@@ -1,6 +1,6 @@
 # Training dictionaries
 
-This documentation describes steps to train dictionaries using Vibrato.
+This document describes steps to train dictionaries using Vibrato.
 
 The following description assumes you are at the root directory of this repository.
 
