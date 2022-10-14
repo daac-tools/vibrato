@@ -12,7 +12,7 @@ use crate::utils;
 
 #[derive(Decode, Encode)]
 pub struct DualConnector {
-    matrix_connector: MatrixConnector,
+    matrix_connector: MatrixConnector<i32>,
     raw_connector: RawConnector,
     left_id_map: Vec<u16>,
     right_id_map: Vec<u16>,
@@ -124,7 +124,7 @@ impl DualConnector {
             for (left_features, lid) in &left_features_map {
                 let cost = scorer.accumulate_cost(right_features, left_features);
                 let index = *lid * right_features_map.len() + *rid;
-                matrix[index] = i16::try_from(cost).unwrap_or(i16::MAX);
+                matrix[index] = cost;
             }
         }
         let matrix_connector =

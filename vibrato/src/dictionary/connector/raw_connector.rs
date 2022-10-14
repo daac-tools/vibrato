@@ -372,10 +372,12 @@ impl ConnectorCost for RawConnector {
         )
     }
 
-    /// TODO: Implement unchecked optimization.
     #[inline(always)]
     unsafe fn cost_unchecked(&self, right_id: u16, left_id: u16) -> i32 {
-        self.cost(right_id, left_id)
+        self.scorer.accumulate_cost_unchecked(
+            self.right_feature_ids(right_id),
+            self.left_feature_ids(left_id),
+        )
     }
 }
 

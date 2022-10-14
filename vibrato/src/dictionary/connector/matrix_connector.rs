@@ -8,14 +8,14 @@ use crate::errors::{Result, VibratoError};
 
 /// Matrix of connection costs.
 #[derive(Decode, Encode)]
-pub struct MatrixConnector {
-    data: Vec<i16>,
+pub struct MatrixConnector<T> {
+    data: Vec<T>,
     num_right: usize,
     num_left: usize,
 }
 
-impl MatrixConnector {
-    pub fn new(data: Vec<i16>, num_right: usize, num_left: usize) -> Self {
+impl<T> MatrixConnector<T> {
+    pub fn new(data: Vec<T>, num_right: usize, num_left: usize) -> Self {
         Self {
             data,
             num_right,
@@ -23,6 +23,17 @@ impl MatrixConnector {
         }
     }
 
+    #[inline(always)]
+    fn index(&self, right_id: u16, left_id: u16) -> usize {
+        debug_assert!(usize::from(right_id) < self.num_right);
+        debug_assert!(usize::from(left_id) < self.num_left);
+        let index = usize::from(left_id) * self.num_right + usize::from(right_id);
+        debug_assert!(index < self.data.len());
+        index
+    }
+}
+
+impl MatrixConnector<i16> {
     /// Creates a new instance from `matrix.def`.
     pub fn from_reader<R>(rdr: R) -> Result<Self>
     where
@@ -74,18 +85,12 @@ impl MatrixConnector {
             Ok((cols[0].parse()?, cols[1].parse()?, cols[2].parse()?))
         }
     }
-
-    #[inline(always)]
-    fn index(&self, right_id: u16, left_id: u16) -> usize {
-        debug_assert!(usize::from(right_id) < self.num_right);
-        debug_assert!(usize::from(left_id) < self.num_left);
-        let index = usize::from(left_id) * self.num_right + usize::from(right_id);
-        debug_assert!(index < self.data.len());
-        index
-    }
 }
 
-impl Connector for MatrixConnector {
+impl<T> Connector for MatrixConnector<T>
+where
+    T: Copy + Default,
+{
     #[inline(always)]
     fn num_left(&self) -> usize {
         self.num_left
@@ -100,7 +105,7 @@ impl Connector for MatrixConnector {
         assert_eq!(mapper.num_left(), self.num_left);
         assert_eq!(mapper.num_right(), self.num_right);
 
-        let mut mapped = vec![0; self.data.len()];
+        let mut mapped = vec![T::default(); self.data.len()];
         for right_id in 0..self.num_right {
             let right_id = right_id as u16;
             let new_right_id = mapper.right(right_id);
@@ -116,7 +121,11 @@ impl Connector for MatrixConnector {
     }
 }
 
-impl ConnectorCost for MatrixConnector {
+impl<T> ConnectorCost for MatrixConnector<T>
+where
+    i32: From<T>,
+    T: Copy + Default,
+{
     #[inline(always)]
     fn cost(&self, right_id: u16, left_id: u16) -> i32 {
         let index = self.index(right_id, left_id);

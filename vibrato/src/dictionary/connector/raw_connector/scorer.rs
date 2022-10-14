@@ -102,10 +102,37 @@ impl Scorer {
 
     #[cfg(not(target_feature = "avx2"))]
     #[inline(always)]
+    unsafe fn retrieve_cost_unchecked(&self, key1: u32, key2: u32) -> Option<i32> {
+        if let Some(base) = self.bases.get(usize::from_u32(key1)) {
+            let pos = (base + key2 as i32) as u32;
+            let pos = usize::from_u32(pos);
+            if let Some(check) = self.checks.get(pos) {
+                if *check == key1 {
+                    return Some(*self.costs.get_unchecked(pos));
+                }
+            }
+        }
+        None
+    }
+
+    #[cfg(not(target_feature = "avx2"))]
+    #[inline(always)]
     pub fn accumulate_cost(&self, keys1: &[u32], keys2: &[u32]) -> i32 {
         let mut score = 0;
         for (&key1, &key2) in keys1.iter().zip(keys2) {
             if let Some(w) = self.retrieve_cost(key1, key2) {
+                score += w;
+            }
+        }
+        score
+    }
+
+    #[cfg(not(target_feature = "avx2"))]
+    #[inline(always)]
+    pub unsafe fn accumulate_cost_unchecked(&self, keys1: &[u32], keys2: &[u32]) -> i32 {
+        let mut score = 0;
+        for (&key1, &key2) in keys1.iter().zip(keys2) {
+            if let Some(w) = self.retrieve_cost_unchecked(key1, key2) {
                 score += w;
             }
         }
@@ -188,6 +215,12 @@ impl Scorer {
                 + x86_64::_mm256_extract_epi32(sums, 6)
                 + x86_64::_mm256_extract_epi32(sums, 7)
         }
+    }
+
+    #[cfg(target_feature = "avx2")]
+    #[inline(always)]
+    pub fn accumulate_cost_unchecked(&self, keys1: &[u32], keys2: &[u32]) -> i32 {
+        self.accumulate_cost(keys1, keys2)
     }
 }
 

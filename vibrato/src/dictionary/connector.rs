@@ -32,7 +32,7 @@ pub trait ConnectorCost: Connector {
 
 #[derive(Decode, Encode)]
 pub enum ConnectorWrapper {
-    Matrix(MatrixConnector),
+    Matrix(MatrixConnector<i16>),
     Raw(RawConnector),
     Dual(DualConnector),
 }
