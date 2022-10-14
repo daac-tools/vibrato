@@ -135,12 +135,12 @@ impl DualConnector {
         let mut left_ids = vec![];
         for right_features in &right_ids_tmp {
             for &raw_id in &raw_ids {
-                right_ids.push(right_features[raw_id]);
+                right_ids.push(*right_features.get(raw_id).unwrap_or(&INVALID_FEATURE_ID));
             }
         }
         for left_features in &left_ids_tmp {
             for &raw_id in &raw_ids {
-                left_ids.push(left_features[raw_id]);
+                left_ids.push(*left_features.get(raw_id).unwrap_or(&INVALID_FEATURE_ID));
             }
         }
         let right_used_features: HashSet<_> = right_ids.iter().cloned().collect();
