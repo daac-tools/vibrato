@@ -4,7 +4,7 @@ use bincode::{Decode, Encode};
 use hashbrown::{HashMap, HashSet};
 
 use crate::dictionary::connector::raw_connector::scorer::{Scorer, ScorerBuilder, SIMD_SIZE};
-use crate::dictionary::connector::raw_connector::RawConnectorBuilder;
+use crate::dictionary::connector::raw_connector::{RawConnectorBuilder, INVALID_FEATURE_ID};
 use crate::dictionary::connector::{Connector, ConnectorCost, MatrixConnector, RawConnector};
 use crate::dictionary::mapper::ConnIdMapper;
 use crate::errors::{Result, VibratoError};
@@ -100,7 +100,7 @@ impl DualConnector {
         for right_features in &right_ids_tmp {
             let mut right_feature_ids = vec![];
             for &raw_id in &matrix_ids {
-                right_feature_ids.push(right_features[raw_id]);
+                right_feature_ids.push(*right_features.get(raw_id).unwrap_or(&INVALID_FEATURE_ID));
             }
             let right_new_id = right_features_map.len();
             let right_id = *right_features_map
@@ -111,7 +111,7 @@ impl DualConnector {
         for left_features in &left_ids_tmp {
             let mut left_feature_ids = vec![];
             for &raw_id in &matrix_ids {
-                left_feature_ids.push(left_features[raw_id]);
+                left_feature_ids.push(*left_features.get(raw_id).unwrap_or(&INVALID_FEATURE_ID));
             }
             let left_new_id = left_features_map.len();
             let left_id = *left_features_map

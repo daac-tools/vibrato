@@ -11,7 +11,7 @@ use crate::dictionary::mapper::ConnIdMapper;
 use crate::errors::{Result, VibratoError};
 use crate::utils;
 
-const INVALID_FEATURE_ID: u32 = u32::MAX;
+pub const INVALID_FEATURE_ID: u32 = u32::MAX;
 
 pub struct RawConnectorBuilder {
     pub right_ids_tmp: Vec<Vec<u32>>,
