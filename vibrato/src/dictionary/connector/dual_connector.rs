@@ -93,10 +93,12 @@ impl DualConnector {
         }
 
         // Creates a MatrixConnector
-        let mut right_id_map = vec![];
-        let mut left_id_map = vec![];
+        let mut right_id_map = vec![0];
+        let mut left_id_map = vec![0];
         let mut right_features_map = HashMap::new();
         let mut left_features_map = HashMap::new();
+        right_features_map.insert(vec![0; col_size - SIMD_SIZE], 0);
+        left_features_map.insert(vec![0; col_size - SIMD_SIZE], 0);
         for right_features in &right_ids_tmp {
             let mut right_feature_ids = vec![];
             for &raw_id in &matrix_ids {
@@ -131,8 +133,8 @@ impl DualConnector {
             MatrixConnector::new(matrix, right_features_map.len(), left_features_map.len());
 
         // Creates a RawConnector from the removed feature templates.
-        let mut right_ids = vec![];
-        let mut left_ids = vec![];
+        let mut right_ids = vec![0; SIMD_SIZE];
+        let mut left_ids = vec![0; SIMD_SIZE];
         for right_features in &right_ids_tmp {
             for &raw_id in &raw_ids {
                 right_ids.push(*right_features.get(raw_id).unwrap_or(&INVALID_FEATURE_ID));
