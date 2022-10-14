@@ -14,7 +14,7 @@ pub const SIMD_SIZE: usize = 8;
 pub struct ScorerBuilder {
     // Two-level trie mapping a pair of two keys into a cost, where
     // the first level stores the first key, and the second level stores the second key.
-    trie: Vec<BTreeMap<u32, i32>>,
+    pub trie: Vec<BTreeMap<u32, i32>>,
 }
 
 impl ScorerBuilder {
@@ -42,19 +42,19 @@ impl ScorerBuilder {
         true
     }
 
-    pub fn build(self) -> Scorer {
+    pub fn build(&self) -> Scorer {
         let mut bases = vec![0; self.trie.len()];
         let mut checks = vec![];
         let mut costs = vec![];
         let mut cand_first = 1;
-        for (key1, second_map) in self.trie.into_iter().enumerate() {
+        for (key1, second_map) in self.trie.iter().enumerate() {
             if let Some(key2_head) = second_map.keys().next() {
                 let mut base = cand_first as i32 - *key2_head as i32;
                 while !Self::check_base(base, &second_map, &checks) {
                     base += 1;
                 }
                 bases[key1] = base;
-                for (key2, cost) in second_map {
+                for (&key2, &cost) in second_map {
                     let pos = (base + key2 as i32) as u32;
                     let pos = usize::from_u32(pos);
                     if pos >= checks.len() {

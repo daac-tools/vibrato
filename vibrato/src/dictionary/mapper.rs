@@ -10,6 +10,10 @@ pub struct ConnIdMapper {
 }
 
 impl ConnIdMapper {
+    pub fn new(left: Vec<u16>, right: Vec<u16>) -> Self {
+        Self { left, right }
+    }
+
     #[inline(always)]
     pub fn num_left(&self) -> usize {
         self.left.len()
