@@ -229,7 +229,7 @@ impl Connector for RawConnector {
 
         let mut mapped = vec![0; self.left_ids.len()];
         for left_id in 0..self.num_left() {
-            let new_left_id = usize::from(mapper.right(u16::try_from(left_id).unwrap()));
+            let new_left_id = usize::from(mapper.left(u16::try_from(left_id).unwrap()));
             mapped[new_left_id * self.col_size..(new_left_id + 1) * self.col_size].copy_from_slice(
                 &self.left_ids[left_id * self.col_size..(left_id + 1) * self.col_size],
             );
