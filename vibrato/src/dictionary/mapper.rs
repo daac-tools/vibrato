@@ -11,10 +11,7 @@ pub struct ConnIdMapper {
 
 impl ConnIdMapper {
     pub fn new(left: Vec<u16>, right: Vec<u16>) -> Self {
-        Self {
-            left,
-            right,
-        }
+        Self { left, right }
     }
 
     #[inline(always)]
