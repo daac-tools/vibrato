@@ -11,7 +11,7 @@ impl ConnIdMapper {
     {
         let left = Self::parse(lmap)?;
         let right = Self::parse(rmap)?;
-        Ok(Self { left, right })
+        Ok(Self::new(left, right))
     }
 
     fn parse<I>(map: I) -> Result<Vec<u16>>

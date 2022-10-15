@@ -404,4 +404,28 @@ POS-SURF:代名詞/は\t-300"
 
         assert_eq!(conn.cost(1, 2), -200);
     }
+
+    #[test]
+    fn mapping_test() {
+        let right_rdr = "\
+1\tSURF-SURF:これ,*,SURF-POS:これ,POS-SURF:代名詞,*
+2\tSURF-SURF:テスト,*,SURF-POS:テスト,POS-SURF:名詞,*"
+            .as_bytes();
+        let left_rdr = "\
+1\tです,*,助動詞,です,*
+2\tは,*,助詞,は,*"
+            .as_bytes();
+        let cost_rdr = "\
+SURF-SURF:これ/は\t-100
+SURF-POS:これ/助詞\t200
+POS-SURF:代名詞/は\t-300"
+            .as_bytes();
+
+        let mut conn = RawConnector::from_readers(right_rdr, left_rdr, cost_rdr).unwrap();
+
+        let mapper = ConnIdMapper::new(vec![1, 2, 0], vec![2, 0, 1]);
+        conn.do_mapping(&mapper);
+
+        assert_eq!(conn.cost(0, 0), -200);
+    }
 }
