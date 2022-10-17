@@ -23,7 +23,6 @@ pub struct U31Array([u32; SIMD_SIZE]);
 pub struct U31Array(__m256i);
 
 impl U31Array {
-    #[cfg(not(target_feature = "avx2"))]
     pub fn to_simd_vec(data: &[u32]) -> Vec<Self> {
         let mut result = vec![];
         for xs in data.chunks(SIMD_SIZE) {
