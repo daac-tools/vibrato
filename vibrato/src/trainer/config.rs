@@ -11,7 +11,7 @@ use crate::dictionary::character::CharProperty;
 use crate::dictionary::connector::{ConnectorWrapper, MatrixConnector};
 use crate::dictionary::lexicon::Lexicon;
 use crate::dictionary::unknown::UnkHandler;
-use crate::dictionary::Dictionary;
+use crate::dictionary::{Dictionary, SystemDictionaryBuilder};
 use crate::errors::{Result, VibratoError};
 use crate::trainer::feature_extractor::FeatureExtractor;
 use crate::trainer::feature_rewriter::{FeatureRewriter, FeatureRewriterBuilder};
@@ -198,7 +198,7 @@ impl TrainerConfig {
         let char_prop = CharProperty::from_reader(char_prop_rdr)?;
         let unk_handler = UnkHandler::from_reader(unk_handler_rdr, &char_prop)?;
 
-        let dict = Dictionary::new(
+        let dict = SystemDictionaryBuilder::new(
             &lex_entries,
             ConnectorWrapper::Matrix(connector),
             char_prop,

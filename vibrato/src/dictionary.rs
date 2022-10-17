@@ -1,5 +1,5 @@
 //! Dictionary for tokenization.
-pub(crate) mod builder;
+pub mod builder;
 pub(crate) mod character;
 pub(crate) mod connector;
 pub(crate) mod lexicon;
@@ -18,7 +18,9 @@ use crate::dictionary::lexicon::Lexicon;
 use crate::dictionary::mapper::ConnIdMapper;
 use crate::dictionary::unknown::UnkHandler;
 use crate::dictionary::word_idx::WordIdx;
-use crate::errors::Result;
+use crate::errors::{Result, VibratoError};
+
+pub use crate::dictionary::builder::SystemDictionaryBuilder;
 
 pub(crate) use crate::dictionary::lexicon::WordParam;
 
@@ -164,5 +166,67 @@ impl Dictionary {
             data,
             need_check: false,
         })
+    }
+
+    /// Resets the user dictionary from a reader.
+    ///
+    /// # Arguments
+    ///
+    ///  - `user_lexicon_rdr`: A reader of a lexicon file `*.csv` in the MeCab format.
+    ///                        If `None`, clear the current user dictionary.
+    ///
+    /// # Errors
+    ///
+    /// [`VibratoError`] is returned when an input format is invalid.
+    pub fn user_lexicon_from_reader<R>(mut self, user_lexicon_rdr: Option<R>) -> Result<Dictionary>
+    where
+        R: Read,
+    {
+        if let Some(user_lexicon_rdr) = user_lexicon_rdr {
+            let mut user_lexicon = Lexicon::from_reader(user_lexicon_rdr, LexType::User)?;
+            if let Some(mapper) = self.data.mapper.as_ref() {
+                user_lexicon.do_mapping(mapper);
+            }
+            if !user_lexicon.verify(self.connector()) {
+                return Err(VibratoError::invalid_argument(
+                    "user_lexicon_rdr",
+                    "user_lexicon_rdr includes invalid connection ids.",
+                ));
+            }
+            self.data.user_lexicon = Some(user_lexicon);
+        } else {
+            self.data.user_lexicon = None;
+        }
+        Ok(self)
+    }
+
+    /// Edits connection ids with the given mappings.
+    ///
+    /// # Arguments
+    ///
+    ///  - `lmap/rmap`: An iterator of mappings of left/right ids, where
+    ///                 the `i`-th item (1-origin) indicates a new id mapped from id `i`.
+    ///
+    /// # Errors
+    ///
+    /// [`VibratoError`] is returned when
+    ///  - a new id of [`BOS_EOS_CONNECTION_ID`](crate::common::BOS_EOS_CONNECTION_ID)
+    ///    is included,
+    ///  - new ids are duplicated, or
+    ///  - the set of new ids are not same as that of old ids.
+    pub fn mapping_from_iter<L, R>(mut self, lmap: L, rmap: R) -> Result<Self>
+    where
+        L: IntoIterator<Item = u16>,
+        R: IntoIterator<Item = u16>,
+    {
+        let mapper = ConnIdMapper::from_iter(lmap, rmap)?;
+        self.data.system_lexicon.do_mapping(&mapper);
+        if let Some(user_lexicon) = self.data.user_lexicon.as_mut() {
+            user_lexicon.do_mapping(&mapper);
+        }
+        self.data.connector.do_mapping(&mapper);
+        self.data.unk_handler.do_mapping(&mapper);
+        self.data.mapper = Some(mapper);
+        Ok(self)
     }
 }
