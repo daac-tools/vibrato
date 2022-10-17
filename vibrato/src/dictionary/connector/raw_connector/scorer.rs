@@ -25,6 +25,9 @@ pub struct U31Array(__m256i);
 impl U31Array {
     pub fn to_simd_vec(data: &[u32]) -> Vec<Self> {
         let mut result = vec![];
+        for &x in data {
+            assert!(x <= i32::MAX as u32);
+        }
         for xs in data.chunks(SIMD_SIZE) {
             let mut array = [0; SIMD_SIZE];
             array[..xs.len()].copy_from_slice(xs);
@@ -296,6 +299,7 @@ impl Scorer {
             4,
         );
         // pos = base ^ key2
+        // (base >= 0 && key2 >= 0 ==> pos >= 0)
         let pos = x86_64::_mm256_xor_si256(base, key2);
         // pos < checks.len() && key1 < bases.len() ?
         let mask_valid_pos = x86_64::_mm256_and_si256(
@@ -313,7 +317,7 @@ impl Scorer {
         // check == key1 && pos < checks.len() && key1 < bases.len() ?
         let mask_checked =
             x86_64::_mm256_and_si256(x86_64::_mm256_cmpeq_epi32(check, key1), mask_valid_pos);
-        // returns costs[pos]
+
         x86_64::_mm256_mask_i32gather_epi32(
             x86_64::_mm256_set1_epi32(0),
             self.costs.as_ptr(),
@@ -323,6 +327,13 @@ impl Scorer {
         )
     }
 
+    /// # Safety
+    ///
+    /// Arguments must satisfy the following constraints.
+    ///
+    /// * 0 <= key1
+    /// * 0 <= key2
+    /// * self.costs.len() == self.checks.len()
     #[cfg(target_feature = "avx2")]
     #[inline(always)]
     pub fn accumulate_cost(&self, keys1: &[U31Array], keys2: &[U31Array]) -> i32 {
