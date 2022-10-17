@@ -8,6 +8,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  CARGO_UNSTABLE_SPARSE_REGISTRY: true
 
 jobs:
   build:
@@ -18,7 +19,6 @@ jobs:
         rust:
           - stable
           - beta
-          - nightly
     steps:
       - uses: actions/checkout@v2
       - name: Install latest stable
@@ -41,21 +41,18 @@ jobs:
 
       - name: Run cargo clippy
         uses: actions-rs/cargo@v1
-        continue-on-error: ${{ matrix.rust == 'nightly' }}
         with:
           command: clippy
           args: -- -D warnings -W clippy::nursery
 
       - name: Run cargo test
         uses: actions-rs/cargo@v1
-        continue-on-error: ${{ matrix.rust == 'nightly' }}
         with:
           command: test
           args: --release --all-features
 
       - name: Run cargo test with AVX2
         uses: actions-rs/cargo@v1
-        continue-on-error: ${{ matrix.rust == 'nightly' }}
         env:
           RUSTFLAGS: '-C target-feature=+avx2'
         with:
@@ -64,7 +61,6 @@ jobs:
 
       - name: Run cargo doc
         uses: actions-rs/cargo@v1
-        continue-on-error: ${{ matrix.rust == 'nightly' }}
         with:
           command: doc
           args: --no-deps
