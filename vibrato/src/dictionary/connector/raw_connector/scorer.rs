@@ -43,6 +43,7 @@ impl U31Array {
 }
 
 impl Default for U31Array {
+    #[cfg(not(target_feature = "avx2"))]
     fn default() -> Self {
         Self([0; SIMD_SIZE])
     }
