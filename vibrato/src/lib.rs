@@ -10,10 +10,10 @@
 //! use std::fs::File;
 //! use std::io::{BufRead, BufReader};
 //!
-//! use vibrato::{Dictionary, Tokenizer};
+//! use vibrato::{SystemDictionaryBuilder, Tokenizer};
 //!
 //! // Loads a set of raw dictionary files
-//! let dict = Dictionary::from_readers(
+//! let dict = SystemDictionaryBuilder::from_readers(
 //!     File::open("src/tests/resources/lex.csv")?,
 //!     File::open("src/tests/resources/matrix.def")?,
 //!     File::open("src/tests/resources/char.def")?,
@@ -62,5 +62,5 @@ mod test_utils;
 #[cfg(test)]
 mod tests;
 
-pub use dictionary::Dictionary;
+pub use dictionary::{Dictionary, SystemDictionaryBuilder};
 pub use tokenizer::Tokenizer;

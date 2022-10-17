@@ -6,7 +6,7 @@
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use std::fs::File;
 //! use vibrato::trainer::{Corpus, Trainer, TrainerConfig};
-//! use vibrato::{Dictionary, Tokenizer};
+//! use vibrato::{SystemDictionaryBuilder, Tokenizer};
 //!
 //! // Loads configurations
 //! let lexicon_rdr = File::open("src/tests/resources/train_lex.csv")?;
@@ -50,7 +50,7 @@
 //!
 //! // Loads trained model
 //! let char_prop_rdr = File::open("src/tests/resources/char.def")?;
-//! let dict = Dictionary::from_readers(
+//! let dict = SystemDictionaryBuilder::from_readers(
 //!     &*lexicon_trained,
 //!     &*connector_trained,
 //!     char_prop_rdr,

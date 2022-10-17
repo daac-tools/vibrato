@@ -148,7 +148,7 @@ mod tests {
         let char_def = "DEFAULT 0 1 0";
         let unk_def = "DEFAULT,0,0,100,*";
 
-        let dict = Dictionary::from_readers(
+        let dict = SystemDictionaryBuilder::from_readers(
             lexicon_csv.as_bytes(),
             matrix_def.as_bytes(),
             char_def.as_bytes(),

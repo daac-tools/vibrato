@@ -4,7 +4,7 @@ use std::io::BufWriter;
 use std::path::PathBuf;
 use std::time::Instant;
 
-use vibrato::dictionary::Dictionary;
+use vibrato::dictionary::SystemDictionaryBuilder;
 
 use clap::{CommandFactory, ErrorKind, Parser};
 
@@ -53,7 +53,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     eprintln!("Compiling the system dictionary...");
     let start = Instant::now();
     let dict = if let Some(matrix_in) = args.matrix_in {
-        Dictionary::from_readers(
+        SystemDictionaryBuilder::from_readers(
             File::open(args.lexicon_in)?,
             File::open(matrix_in)?,
             File::open(args.char_in)?,
@@ -64,7 +64,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         args.bigram_left_in,
         args.bigram_cost_in,
     ) {
-        Dictionary::from_readers_with_bigram_info(
+        SystemDictionaryBuilder::from_readers_with_bigram_info(
             File::open(args.lexicon_in)?,
             File::open(bigram_right_in)?,
             File::open(bigram_left_in)?,
