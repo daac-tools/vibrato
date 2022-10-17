@@ -60,7 +60,7 @@ impl Decode for U31Array {
         let (a, b, c, d, e, f, g, h) = Decode::decode(decoder)?;
         let data = [a, b, c, d, e, f, g, h];
         for x in data {
-            if x >= i32::MAX as u32 {
+            if x > i32::MAX as u32 {
                 return Err(DecodeError::UnexpectedVariant {
                     type_name: "U31Array",
                     allowed: &AllowedEnumVariants::Range {
