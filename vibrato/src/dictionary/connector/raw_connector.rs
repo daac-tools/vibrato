@@ -5,24 +5,33 @@ use std::io::{prelude::*, BufReader, Read};
 use bincode::{Decode, Encode};
 use hashbrown::HashMap;
 
-use crate::dictionary::connector::raw_connector::scorer::{Scorer, ScorerBuilder, SIMD_SIZE};
+use crate::dictionary::connector::raw_connector::scorer::{
+    Scorer, ScorerBuilder, U31Array, SIMD_SIZE,
+};
 use crate::dictionary::connector::{Connector, ConnectorCost};
 use crate::dictionary::mapper::ConnIdMapper;
 use crate::errors::{Result, VibratoError};
 use crate::utils;
 
-const INVALID_FEATURE_ID: u32 = u32::MAX;
+/// Since only signed integers exist for vector types, the invalid feature id is set to i32::MAX so
+/// that the value does not become a negative value.
+const INVALID_FEATURE_ID: u32 = i32::MAX as u32;
 
 #[derive(Decode, Encode)]
 pub struct RawConnector {
-    right_ids: Vec<u32>,
-    left_ids: Vec<u32>,
+    right_ids: Vec<U31Array>,
+    left_ids: Vec<U31Array>,
     col_size: usize,
     scorer: Scorer,
 }
 
 impl RawConnector {
-    pub fn new(right_ids: Vec<u32>, left_ids: Vec<u32>, col_size: usize, scorer: Scorer) -> Self {
+    pub fn new(
+        right_ids: Vec<U31Array>,
+        left_ids: Vec<U31Array>,
+        col_size: usize,
+        scorer: Scorer,
+    ) -> Self {
         Self {
             right_ids,
             left_ids,
@@ -110,7 +119,12 @@ impl RawConnector {
             trg[..src.len()].copy_from_slice(src);
         }
 
-        Ok(Self::new(right_ids, left_ids, col_size, scorer))
+        Ok(Self::new(
+            U31Array::to_simd_vec(&right_ids),
+            U31Array::to_simd_vec(&left_ids),
+            col_size / SIMD_SIZE,
+            scorer,
+        ))
     }
 
     /// Parses a line in file `bigram.right/left`, returning the entry id and a sequence of feature
@@ -190,13 +204,13 @@ impl RawConnector {
     }
 
     #[inline(always)]
-    fn right_feature_ids(&self, right_id: u16) -> &[u32] {
+    fn right_feature_ids(&self, right_id: u16) -> &[U31Array] {
         &self.right_ids
             [usize::from(right_id) * self.col_size..usize::from(right_id + 1) * self.col_size]
     }
 
     #[inline(always)]
-    fn left_feature_ids(&self, left_id: u16) -> &[u32] {
+    fn left_feature_ids(&self, left_id: u16) -> &[U31Array] {
         &self.left_ids
             [usize::from(left_id) * self.col_size..usize::from(left_id + 1) * self.col_size]
     }
@@ -217,7 +231,7 @@ impl Connector for RawConnector {
         assert_eq!(mapper.num_left(), self.num_left());
         assert_eq!(mapper.num_right(), self.num_right());
 
-        let mut mapped = vec![0; self.right_ids.len()];
+        let mut mapped = vec![U31Array::default(); self.right_ids.len()];
         for right_id in 0..self.num_right() {
             let new_right_id = usize::from(mapper.right(u16::try_from(right_id).unwrap()));
             mapped[new_right_id * self.col_size..(new_right_id + 1) * self.col_size]
@@ -227,7 +241,7 @@ impl Connector for RawConnector {
         }
         self.right_ids = mapped;
 
-        let mut mapped = vec![0; self.left_ids.len()];
+        let mut mapped = vec![U31Array::default(); self.left_ids.len()];
         for left_id in 0..self.num_left() {
             let new_left_id = usize::from(mapper.right(u16::try_from(left_id).unwrap()));
             mapped[new_left_id * self.col_size..(new_left_id + 1) * self.col_size].copy_from_slice(
