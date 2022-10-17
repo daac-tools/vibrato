@@ -190,7 +190,7 @@ impl Dictionary {
             if !user_lexicon.verify(self.connector()) {
                 return Err(VibratoError::invalid_argument(
                     "user_lexicon_rdr",
-                    "user_lexicon_rdr includes invalid connection ids.",
+                    "includes invalid connection ids.",
                 ));
             }
             self.data.user_lexicon = Some(user_lexicon);
