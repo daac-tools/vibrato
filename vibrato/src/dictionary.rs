@@ -178,7 +178,7 @@ impl Dictionary {
     /// # Errors
     ///
     /// [`VibratoError`] is returned when an input format is invalid.
-    pub fn user_lexicon_from_reader<R>(mut self, user_lexicon_rdr: Option<R>) -> Result<Dictionary>
+    pub fn user_lexicon_from_reader<R>(mut self, user_lexicon_rdr: Option<R>) -> Result<Self>
     where
         R: Read,
     {

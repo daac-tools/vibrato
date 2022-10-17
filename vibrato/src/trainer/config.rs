@@ -198,7 +198,7 @@ impl TrainerConfig {
         let char_prop = CharProperty::from_reader(char_prop_rdr)?;
         let unk_handler = UnkHandler::from_reader(unk_handler_rdr, &char_prop)?;
 
-        let dict = SystemDictionaryBuilder::new(
+        let dict = SystemDictionaryBuilder::build(
             &lex_entries,
             ConnectorWrapper::Matrix(connector),
             char_prop,

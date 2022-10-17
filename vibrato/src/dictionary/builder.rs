@@ -13,7 +13,7 @@ use super::lexicon::RawWordEntry;
 pub struct SystemDictionaryBuilder {}
 
 impl SystemDictionaryBuilder {
-    pub(crate) fn new(
+    pub(crate) fn build(
         system_word_entries: &[RawWordEntry],
         connector: ConnectorWrapper,
         char_prop: CharProperty,
@@ -78,7 +78,7 @@ impl SystemDictionaryBuilder {
         let char_prop = CharProperty::from_reader(char_prop_rdr)?;
         let unk_handler = UnkHandler::from_reader(unk_handler_rdr, &char_prop)?;
 
-        Self::new(
+        Self::build(
             &system_word_entries,
             ConnectorWrapper::Matrix(connector),
             char_prop,
@@ -125,7 +125,7 @@ impl SystemDictionaryBuilder {
         let char_prop = CharProperty::from_reader(char_prop_rdr)?;
         let unk_handler = UnkHandler::from_reader(unk_handler_rdr, &char_prop)?;
 
-        Self::new(
+        Self::build(
             &system_word_entries,
             ConnectorWrapper::Raw(connector),
             char_prop,
