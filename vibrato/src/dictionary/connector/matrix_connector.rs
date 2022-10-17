@@ -168,6 +168,28 @@ mod tests {
     }
 
     #[test]
+    fn test_mapping() {
+        let data = "2 3
+0 0 0
+0 1 1
+0 2 2
+1 0 -3
+1 1 -4
+1 2 -5";
+        let mut conn = MatrixConnector::from_reader(data.as_bytes()).unwrap();
+
+        let mapper = ConnIdMapper::new(vec![2, 0, 1], vec![1, 0]);
+        conn.do_mapping(&mapper);
+
+        assert_eq!(conn.cost(0, 0), -4);
+        assert_eq!(conn.cost(0, 1), -5);
+        assert_eq!(conn.cost(0, 2), -3);
+        assert_eq!(conn.cost(1, 0), 1);
+        assert_eq!(conn.cost(1, 1), 2);
+        assert_eq!(conn.cost(1, 2), 0);
+    }
+
+    #[test]
     fn test_less_header() {
         let data = "2
 0 0 0

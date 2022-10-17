@@ -229,7 +229,7 @@ impl Connector for RawConnector {
 
         let mut mapped = vec![0; self.left_ids.len()];
         for left_id in 0..self.num_left() {
-            let new_left_id = usize::from(mapper.right(u16::try_from(left_id).unwrap()));
+            let new_left_id = usize::from(mapper.left(u16::try_from(left_id).unwrap()));
             mapped[new_left_id * self.col_size..(new_left_id + 1) * self.col_size].copy_from_slice(
                 &self.left_ids[left_id * self.col_size..(left_id + 1) * self.col_size],
             );
@@ -403,5 +403,29 @@ POS-SURF:代名詞/は\t-300"
         let conn = RawConnector::from_readers(right_rdr, left_rdr, cost_rdr).unwrap();
 
         assert_eq!(conn.cost(1, 2), -200);
+    }
+
+    #[test]
+    fn mapping_test() {
+        let right_rdr = "\
+1\tSURF-SURF:これ,*,SURF-POS:これ,POS-SURF:代名詞,*
+2\tSURF-SURF:テスト,*,SURF-POS:テスト,POS-SURF:名詞,*"
+            .as_bytes();
+        let left_rdr = "\
+1\tです,*,助動詞,です,*
+2\tは,*,助詞,は,*"
+            .as_bytes();
+        let cost_rdr = "\
+SURF-SURF:これ/は\t-100
+SURF-POS:これ/助詞\t200
+POS-SURF:代名詞/は\t-300"
+            .as_bytes();
+
+        let mut conn = RawConnector::from_readers(right_rdr, left_rdr, cost_rdr).unwrap();
+
+        let mapper = ConnIdMapper::new(vec![1, 2, 0], vec![2, 0, 1]);
+        conn.do_mapping(&mapper);
+
+        assert_eq!(conn.cost(0, 0), -200);
     }
 }
