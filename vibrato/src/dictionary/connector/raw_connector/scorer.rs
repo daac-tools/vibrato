@@ -33,9 +33,11 @@ impl U31Array {
             result.push(Self(array));
 
             #[cfg(target_feature = "avx2")]
-            result.push(Self(x86_64::_mm256_loadu_si256(
-                array.as_ptr() as *const __m256i
-            )));
+            unsafe {
+                result.push(Self(x86_64::_mm256_loadu_si256(
+                    array.as_ptr() as *const __m256i
+                )));
+            }
         }
         result
     }
@@ -71,7 +73,7 @@ impl Decode for U31Array {
         }
 
         #[cfg(target_feature = "avx2")]
-        let data = x86_64::_mm256_loadu_si256(data.as_ptr() as *const __m256i);
+        let data = unsafe { x86_64::_mm256_loadu_si256(data.as_ptr() as *const __m256i) };
 
         Ok(Self(data))
     }
