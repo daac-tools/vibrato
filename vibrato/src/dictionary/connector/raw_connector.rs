@@ -228,7 +228,7 @@ impl Connector for RawConnector {
         self.right_ids.len() / self.col_size
     }
 
-    fn do_mapping(&mut self, mapper: &ConnIdMapper) {
+    fn map_connection_ids(&mut self, mapper: &ConnIdMapper) {
         assert_eq!(mapper.num_left(), self.num_left());
         assert_eq!(mapper.num_right(), self.num_right());
 
@@ -448,7 +448,7 @@ POS-SURF:代名詞/は\t-300"
         let mut conn = RawConnector::from_readers(right_rdr, left_rdr, cost_rdr).unwrap();
 
         let mapper = ConnIdMapper::new(vec![1, 2, 0], vec![2, 0, 1]);
-        conn.do_mapping(&mapper);
+        conn.map_connection_ids(&mapper);
 
         assert_eq!(conn.cost(0, 0), -200);
     }

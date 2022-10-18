@@ -196,7 +196,7 @@ impl UnkHandler {
     /// Do NOT make this function public to maintain consistency in
     /// the connection-id mapping among members of `Dictionary`.
     /// The consistency is managed in `Dictionary`.
-    pub fn do_mapping(&mut self, mapper: &ConnIdMapper) {
+    pub fn map_connection_ids(&mut self, mapper: &ConnIdMapper) {
         for e in &mut self.entries {
             e.left_id = mapper.left(e.left_id);
             e.right_id = mapper.right(e.right_id);

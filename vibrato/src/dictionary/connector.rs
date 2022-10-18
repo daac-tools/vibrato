@@ -17,7 +17,7 @@ pub trait Connector {
     /// Do NOT make this function public to maintain consistency in
     /// the connection-id mapping among members of `Dictionary`.
     /// The consistency is managed in `Dictionary`.
-    fn do_mapping(&mut self, mapper: &ConnIdMapper);
+    fn map_connection_ids(&mut self, mapper: &ConnIdMapper);
 }
 
 pub trait ConnectorCost: Connector {
@@ -52,10 +52,10 @@ impl Connector for ConnectorWrapper {
     }
 
     #[inline(always)]
-    fn do_mapping(&mut self, mapper: &ConnIdMapper) {
+    fn map_connection_ids(&mut self, mapper: &ConnIdMapper) {
         match self {
-            Self::Matrix(c) => c.do_mapping(mapper),
-            Self::Raw(c) => c.do_mapping(mapper),
+            Self::Matrix(c) => c.map_connection_ids(mapper),
+            Self::Raw(c) => c.map_connection_ids(mapper),
         }
     }
 }

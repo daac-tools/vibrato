@@ -185,7 +185,7 @@ impl Dictionary {
         if let Some(user_lexicon_rdr) = user_lexicon_rdr {
             let mut user_lexicon = Lexicon::from_reader(user_lexicon_rdr, LexType::User)?;
             if let Some(mapper) = self.data.mapper.as_ref() {
-                user_lexicon.do_mapping(mapper);
+                user_lexicon.map_connection_ids(mapper);
             }
             if !user_lexicon.verify(self.connector()) {
                 return Err(VibratoError::invalid_argument(
@@ -220,12 +220,12 @@ impl Dictionary {
         R: IntoIterator<Item = u16>,
     {
         let mapper = ConnIdMapper::from_iter(lmap, rmap)?;
-        self.data.system_lexicon.do_mapping(&mapper);
+        self.data.system_lexicon.map_connection_ids(&mapper);
         if let Some(user_lexicon) = self.data.user_lexicon.as_mut() {
-            user_lexicon.do_mapping(&mapper);
+            user_lexicon.map_connection_ids(&mapper);
         }
-        self.data.connector.do_mapping(&mapper);
-        self.data.unk_handler.do_mapping(&mapper);
+        self.data.connector.map_connection_ids(&mapper);
+        self.data.unk_handler.map_connection_ids(&mapper);
         self.data.mapper = Some(mapper);
         Ok(self)
     }

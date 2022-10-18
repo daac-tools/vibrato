@@ -45,7 +45,7 @@ impl WordParams {
         self.params.len()
     }
 
-    pub fn do_mapping(&mut self, mapper: &ConnIdMapper) {
+    pub fn map_connection_ids(&mut self, mapper: &ConnIdMapper) {
         for p in &mut self.params {
             p.left_id = mapper.left(p.left_id);
             p.right_id = mapper.right(p.right_id);

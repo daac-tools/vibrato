@@ -61,8 +61,8 @@ impl Lexicon {
     /// Do NOT make this function public to maintain consistency in
     /// the connection-id mapping among members of `Dictionary`.
     /// The consistency is managed in `Dictionary`.
-    pub fn do_mapping(&mut self, mapper: &ConnIdMapper) {
-        self.params.do_mapping(mapper);
+    pub fn map_connection_ids(&mut self, mapper: &ConnIdMapper) {
+        self.params.map_connection_ids(mapper);
     }
 
     #[inline(always)]
