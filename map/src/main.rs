@@ -9,7 +9,7 @@ use clap::Parser;
 
 #[derive(Parser, Debug)]
 #[clap(
-    name = "main",
+    name = "map",
     about = "A program to edit connection ids with the reordered mapping."
 )]
 struct Args {

@@ -54,7 +54,7 @@ Optionally, you can specify a user-defined dictionary to the `dictgen` command t
 See the `--help` message for more details.
 
 After copying `dataset/char.def` under `mydict`, you can compile your system dictionary
-following the [documentation](./prepare.md).
+following the [documentation](./compile.md).
 
 ## 3. Accuracy evaluation
 

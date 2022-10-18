@@ -9,7 +9,10 @@ use vibrato::dictionary::SystemDictionaryBuilder;
 use clap::{CommandFactory, ErrorKind, Parser};
 
 #[derive(Parser, Debug)]
-#[clap(name = "main", about = "A program to compile the system dictionary.")]
+#[clap(
+    name = "compile",
+    about = "A program to compile the system dictionary."
+)]
 struct Args {
     /// System lexicon file (lex.csv).
     #[clap(short = 'l', long)]

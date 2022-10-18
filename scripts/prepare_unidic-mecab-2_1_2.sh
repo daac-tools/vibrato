@@ -32,7 +32,7 @@ mv unidic-mecab-2.1.2_src/matrix.def ${resources_dir}/matrix.def
 rm -rf unidic-mecab-2.1.2_src
 rm -f unidic-mecab-2.1.2_src.zip
 
-cargo run --release -p prepare --bin system -- -l ${resources_dir}/lex.csv -m ${resources_dir}/matrix.def -u ${resources_dir}/unk.def -c ${resources_dir}/char.def -o ${resources_dir}/system.dic
+cargo run --release -p compile -- -l ${resources_dir}/lex.csv -m ${resources_dir}/matrix.def -u ${resources_dir}/unk.def -c ${resources_dir}/char.def -o ${resources_dir}/system.dic
 
 # Trains the mapping
 if [ ! -e kftt-data-1.0.tar.gz ]; then
@@ -52,11 +52,11 @@ if [ "${tmp_hash}" != "0e1f5a9dc993b7d74ca6a0521232d17ce94c8cb4" ]; then
 fi
 
 tar -xzf kftt-data-1.0.tar.gz
-cargo run --release -p prepare --bin reorder -- -i ${resources_dir}/system.dic -o ${resources_dir}/kftt < kftt-data-1.0/data/orig/kyoto-train.ja
+cargo run --release -p map --bin reorder -- -i ${resources_dir}/system.dic -o ${resources_dir}/kftt < kftt-data-1.0/data/orig/kyoto-train.ja
 rm -rf kftt-data-1.0
 
 # Maps ids
-cargo run --release -p prepare --bin map -- -i ${resources_dir}/system.dic -m ${resources_dir}/kftt -o ${resources_dir}/system.dic
+cargo run --release -p map -- -i ${resources_dir}/system.dic -m ${resources_dir}/kftt -o ${resources_dir}/system.dic
 
 # Removes unnecessary data
 rm -f ${resources_dir}/lex.csv ${resources_dir}/char.def ${resources_dir}/unk.def ${resources_dir}/matrix.def ${resources_dir}/kftt.lmap ${resources_dir}/kftt.rmap
