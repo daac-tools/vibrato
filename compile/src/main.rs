@@ -6,7 +6,7 @@ use std::time::Instant;
 
 use vibrato::dictionary::SystemDictionaryBuilder;
 
-use clap::{CommandFactory, ErrorKind, Parser};
+use clap::{error::ErrorKind, CommandFactory, Parser};
 
 #[derive(Parser, Debug)]
 #[clap(

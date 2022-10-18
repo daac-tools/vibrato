@@ -1,13 +1,13 @@
 use std::path::PathBuf;
 
-use clap::{CommandFactory, ErrorKind, Parser};
+use clap::{error::ErrorKind, CommandFactory, Parser};
 use rand::seq::SliceRandom;
 use vibrato::trainer::Corpus;
 
-fn validate_ratio(val: &str) -> Result<(), String> {
+fn parse_ratio(val: &str) -> Result<f64, String> {
     let val = val.parse::<f64>().map_err(|e| e.to_string())?;
     if (0.0..=1.0).contains(&val) {
-        Ok(())
+        Ok(val)
     } else {
         Err(format!("{val} is not in 0.0..=1.0"))
     }
@@ -36,11 +36,11 @@ struct Args {
     test_out: PathBuf,
 
     /// Ratio of validation data. (0.0 to 1.0)
-    #[clap(long, default_value = "0.1", validator = validate_ratio)]
+    #[clap(long, default_value = "0.1", value_parser = parse_ratio)]
     valid_ratio: f64,
 
     /// Ratio of testing data. (0.0 to 1.0)
-    #[clap(long, default_value = "0.1", validator = validate_ratio)]
+    #[clap(long, default_value = "0.1", value_parser = parse_ratio)]
     test_ratio: f64,
 }
 
