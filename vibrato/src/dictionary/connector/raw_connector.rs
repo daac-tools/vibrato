@@ -6,29 +6,30 @@ use bincode::{Decode, Encode};
 use hashbrown::HashMap;
 
 use crate::dictionary::connector::raw_connector::scorer::{
-    Scorer, ScorerBuilder, U31Array, SIMD_SIZE,
+    Scorer, ScorerBuilder, U31x8, SIMD_SIZE,
 };
 use crate::dictionary::connector::{Connector, ConnectorCost};
 use crate::dictionary::mapper::ConnIdMapper;
 use crate::errors::{Result, VibratoError};
+use crate::num::U31;
 use crate::utils;
 
-/// Since only signed integers exist for vector types, the invalid feature id is set to i32::MAX so
+/// Since only signed integers exist for vector types, the invalid feature id is set to U31::MAX so
 /// that the value does not become a negative value.
-const INVALID_FEATURE_ID: u32 = i32::MAX as u32;
+const INVALID_FEATURE_ID: U31 = U31::MAX;
 
 #[derive(Decode, Encode)]
 pub struct RawConnector {
-    right_ids: Vec<U31Array>,
-    left_ids: Vec<U31Array>,
+    right_ids: Vec<U31x8>,
+    left_ids: Vec<U31x8>,
     col_size: usize,
     scorer: Scorer,
 }
 
 impl RawConnector {
     pub fn new(
-        right_ids: Vec<U31Array>,
-        left_ids: Vec<U31Array>,
+        right_ids: Vec<U31x8>,
+        left_ids: Vec<U31x8>,
         col_size: usize,
         scorer: Scorer,
     ) -> Self {
@@ -49,8 +50,8 @@ impl RawConnector {
     {
         let mut right_id_map = HashMap::new();
         let mut left_id_map = HashMap::new();
-        right_id_map.insert(String::new(), 0);
-        left_id_map.insert(String::new(), 0);
+        right_id_map.insert(String::new(), U31::default());
+        left_id_map.insert(String::new(), U31::default());
         let mut scorer_builder = ScorerBuilder::new();
 
         let cost_rdr = BufReader::new(cost_rdr);
@@ -106,8 +107,8 @@ impl RawConnector {
         let mut left_ids = vec![INVALID_FEATURE_ID; (left_ids_tmp.len() + 1) * col_size];
 
         // The first row reserved for BOS/EOS is always an empty row with zero values.
-        right_ids[..col_size].fill(0);
-        left_ids[..col_size].fill(0);
+        right_ids[..col_size].fill(U31::default());
+        left_ids[..col_size].fill(U31::default());
 
         for (trg, src) in right_ids[col_size..]
             .chunks_mut(col_size)
@@ -120,8 +121,8 @@ impl RawConnector {
         }
 
         Ok(Self::new(
-            U31Array::to_simd_vec(&right_ids),
-            U31Array::to_simd_vec(&left_ids),
+            U31x8::to_simd_vec(&right_ids),
+            U31x8::to_simd_vec(&left_ids),
             col_size / SIMD_SIZE,
             scorer,
         ))
@@ -132,9 +133,9 @@ impl RawConnector {
     /// feature id.
     fn parse_features(
         line: &str,
-        id_map: &HashMap<String, u32>,
+        id_map: &HashMap<String, U31>,
         name: &'static str,
-    ) -> Result<(usize, Vec<u32>)> {
+    ) -> Result<(usize, Vec<U31>)> {
         let mut spl = line.split('\t');
         let id_str = spl.next();
         let features_str = spl.next();
@@ -170,9 +171,9 @@ impl RawConnector {
     ///   * `left_id_map = {"名詞,普通名詞,一般": 0, "名詞,普通名詞,サ変可能": 1}`
     fn parse_cost(
         line: &str,
-        right_id_map: &mut HashMap<String, u32>,
-        left_id_map: &mut HashMap<String, u32>,
-    ) -> Result<(u32, u32, i32)> {
+        right_id_map: &mut HashMap<String, U31>,
+        left_id_map: &mut HashMap<String, U31>,
+    ) -> Result<(U31, U31, i32)> {
         let mut spl = line.split('\t');
         let feature_str = spl.next();
         let cost_str = spl.next();
@@ -188,13 +189,13 @@ impl RawConnector {
                 let right_id = *right_id_map
                     .raw_entry_mut()
                     .from_key(right_str)
-                    .or_insert_with(|| (right_str.to_string(), new_right_id))
+                    .or_insert_with(|| (right_str.to_string(), U31::new(new_right_id).unwrap()))
                     .1;
                 let new_left_id = u32::try_from(left_id_map.len()).unwrap();
                 let left_id = *left_id_map
                     .raw_entry_mut()
                     .from_key(left_str)
-                    .or_insert_with(|| (left_str.to_string(), new_left_id))
+                    .or_insert_with(|| (left_str.to_string(), U31::new(new_left_id).unwrap()))
                     .1;
                 return Ok((right_id, left_id, cost));
             }
@@ -204,13 +205,13 @@ impl RawConnector {
     }
 
     #[inline(always)]
-    fn right_feature_ids(&self, right_id: u16) -> &[U31Array] {
+    fn right_feature_ids(&self, right_id: u16) -> &[U31x8] {
         &self.right_ids
             [usize::from(right_id) * self.col_size..usize::from(right_id + 1) * self.col_size]
     }
 
     #[inline(always)]
-    fn left_feature_ids(&self, left_id: u16) -> &[U31Array] {
+    fn left_feature_ids(&self, left_id: u16) -> &[U31x8] {
         &self.left_ids
             [usize::from(left_id) * self.col_size..usize::from(left_id + 1) * self.col_size]
     }
@@ -231,7 +232,7 @@ impl Connector for RawConnector {
         assert_eq!(mapper.num_left(), self.num_left());
         assert_eq!(mapper.num_right(), self.num_right());
 
-        let mut mapped = vec![U31Array::default(); self.right_ids.len()];
+        let mut mapped = vec![U31x8::default(); self.right_ids.len()];
         for right_id in 0..self.num_right() {
             let new_right_id = usize::from(mapper.right(u16::try_from(right_id).unwrap()));
             mapped[new_right_id * self.col_size..(new_right_id + 1) * self.col_size]
@@ -241,7 +242,7 @@ impl Connector for RawConnector {
         }
         self.right_ids = mapped;
 
-        let mut mapped = vec![U31Array::default(); self.left_ids.len()];
+        let mut mapped = vec![U31x8::default(); self.left_ids.len()];
         for left_id in 0..self.num_left() {
             let new_left_id = usize::from(mapper.right(u16::try_from(left_id).unwrap()));
             mapped[new_left_id * self.col_size..(new_left_id + 1) * self.col_size].copy_from_slice(
@@ -286,7 +287,7 @@ mod tests {
                 &mut left_id_map
             )
             .unwrap(),
-            (0, 0, -100),
+            (U31::new(0).unwrap(), U31::new(0).unwrap(), -100),
         );
         assert_eq!(
             RawConnector::parse_cost(
@@ -295,7 +296,7 @@ mod tests {
                 &mut left_id_map
             )
             .unwrap(),
-            (1, 1, 200),
+            (U31::new(1).unwrap(), U31::new(1).unwrap(), 200),
         );
         assert_eq!(
             RawConnector::parse_cost(
@@ -304,21 +305,21 @@ mod tests {
                 &mut left_id_map
             )
             .unwrap(),
-            (2, 0, -300),
+            (U31::new(2).unwrap(), U31::new(0).unwrap(), -300),
         );
 
         assert_eq!(
             hashmap![
-                "SURF-SURF:これ".to_string() => 0,
-                "SURF-POS:これ".to_string() => 1,
-                "POS-SURF:代名詞".to_string() => 2,
+                "SURF-SURF:これ".to_string() => U31::new(0).unwrap(),
+                "SURF-POS:これ".to_string() => U31::new(1).unwrap(),
+                "POS-SURF:代名詞".to_string() => U31::new(2).unwrap(),
             ],
             right_id_map,
         );
         assert_eq!(
             hashmap![
-                "は".to_string() => 0,
-                "助詞".to_string() => 1,
+                "は".to_string() => U31::new(0).unwrap(),
+                "助詞".to_string() => U31::new(1).unwrap(),
             ],
             left_id_map,
         );
@@ -366,28 +367,37 @@ mod tests {
     #[test]
     fn parse_feature_test() {
         let id_map = hashmap![
-            "これ".to_string() => 0,
-            "助詞".to_string() => 1,
-            "コレ".to_string() => 2,
-            "これ,助詞".to_string() => 3,
-            "これ,コレ".to_string() => 4,
+            "これ".to_string() => U31::new(0).unwrap(),
+            "助詞".to_string() => U31::new(1).unwrap(),
+            "コレ".to_string() => U31::new(2).unwrap(),
+            "これ,助詞".to_string() => U31::new(3).unwrap(),
+            "これ,コレ".to_string() => U31::new(4).unwrap(),
         ];
 
         assert_eq!(
             RawConnector::parse_features("2\tこれ,*,コレ,\"これ,助詞\",*", &id_map, "bigram.left",)
                 .unwrap(),
-            (2, vec![0, INVALID_FEATURE_ID, 2, 3, INVALID_FEATURE_ID]),
+            (
+                2,
+                vec![
+                    U31::new(0).unwrap(),
+                    INVALID_FEATURE_ID,
+                    U31::new(2).unwrap(),
+                    U31::new(3).unwrap(),
+                    INVALID_FEATURE_ID
+                ]
+            ),
         );
     }
 
     #[test]
     fn parse_feature_invalid_id_test() {
         let id_map = hashmap![
-            "これ".to_string() => 0,
-            "助詞".to_string() => 1,
-            "コレ".to_string() => 2,
-            "これ,助詞".to_string() => 3,
-            "これ,コレ".to_string() => 4,
+            "これ".to_string() => U31::new(0).unwrap(),
+            "助詞".to_string() => U31::new(1).unwrap(),
+            "コレ".to_string() => U31::new(2).unwrap(),
+            "これ,助詞".to_string() => U31::new(3).unwrap(),
+            "これ,コレ".to_string() => U31::new(4).unwrap(),
         ];
 
         assert!(RawConnector::parse_features(
