@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use std::fmt;
 use std::io::{BufRead, BufReader, Read};
 
@@ -140,8 +140,8 @@ impl CharProperty {
     where
         R: Read,
     {
-        let mut cate2info = BTreeMap::new();
-        let mut cate_map = BTreeMap::new(); // Name -> Id
+        let mut cate2info = HashMap::new();
+        let mut cate_map = HashMap::new(); // Name -> Id
         let mut char_ranges = vec![];
 
         cate_map.insert("DEFAULT".to_string(), 0);
@@ -191,8 +191,8 @@ impl CharProperty {
 
     fn encode_cate_info<S>(
         targets: &[S],
-        cate2info: &BTreeMap<u32, CharInfo>,
-        cate_map: &BTreeMap<String, u32>,
+        cate2info: &HashMap<u32, CharInfo>,
+        cate_map: &HashMap<String, u32>,
     ) -> Result<CharInfo>
     where
         S: AsRef<str>,
