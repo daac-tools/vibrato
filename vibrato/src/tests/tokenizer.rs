@@ -112,7 +112,7 @@ fn test_tokenize_kyotokyo_with_user() {
         UNK_DEF.as_bytes(),
     )
     .unwrap()
-    .user_lexicon_from_reader(Some(USER_CSV.as_bytes()))
+    .reset_user_lexicon_from_reader(Some(USER_CSV.as_bytes()))
     .unwrap();
 
     let tokenizer = Tokenizer::new(dict);
@@ -404,7 +404,7 @@ fn test_tokenize_kampersanda_with_user() {
         UNK_DEF.as_bytes(),
     )
     .unwrap()
-    .user_lexicon_from_reader(Some(USER_CSV.as_bytes()))
+    .reset_user_lexicon_from_reader(Some(USER_CSV.as_bytes()))
     .unwrap();
 
     let tokenizer = Tokenizer::new(dict);

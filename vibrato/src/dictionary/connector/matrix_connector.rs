@@ -96,7 +96,7 @@ impl Connector for MatrixConnector {
         self.num_right
     }
 
-    fn do_mapping(&mut self, mapper: &ConnIdMapper) {
+    fn map_connection_ids(&mut self, mapper: &ConnIdMapper) {
         assert_eq!(mapper.num_left(), self.num_left);
         assert_eq!(mapper.num_right(), self.num_right);
 
@@ -179,7 +179,7 @@ mod tests {
         let mut conn = MatrixConnector::from_reader(data.as_bytes()).unwrap();
 
         let mapper = ConnIdMapper::new(vec![2, 0, 1], vec![1, 0]);
-        conn.do_mapping(&mapper);
+        conn.map_connection_ids(&mapper);
 
         assert_eq!(conn.cost(0, 0), -4);
         assert_eq!(conn.cost(0, 1), -5);

@@ -178,14 +178,14 @@ impl Dictionary {
     /// # Errors
     ///
     /// [`VibratoError`] is returned when an input format is invalid.
-    pub fn user_lexicon_from_reader<R>(mut self, user_lexicon_rdr: Option<R>) -> Result<Self>
+    pub fn reset_user_lexicon_from_reader<R>(mut self, user_lexicon_rdr: Option<R>) -> Result<Self>
     where
         R: Read,
     {
         if let Some(user_lexicon_rdr) = user_lexicon_rdr {
             let mut user_lexicon = Lexicon::from_reader(user_lexicon_rdr, LexType::User)?;
             if let Some(mapper) = self.data.mapper.as_ref() {
-                user_lexicon.do_mapping(mapper);
+                user_lexicon.map_connection_ids(mapper);
             }
             if !user_lexicon.verify(self.connector()) {
                 return Err(VibratoError::invalid_argument(
@@ -214,18 +214,18 @@ impl Dictionary {
     ///    is included,
     ///  - new ids are duplicated, or
     ///  - the set of new ids are not same as that of old ids.
-    pub fn mapping_from_iter<L, R>(mut self, lmap: L, rmap: R) -> Result<Self>
+    pub fn map_connection_ids_from_iter<L, R>(mut self, lmap: L, rmap: R) -> Result<Self>
     where
         L: IntoIterator<Item = u16>,
         R: IntoIterator<Item = u16>,
     {
         let mapper = ConnIdMapper::from_iter(lmap, rmap)?;
-        self.data.system_lexicon.do_mapping(&mapper);
+        self.data.system_lexicon.map_connection_ids(&mapper);
         if let Some(user_lexicon) = self.data.user_lexicon.as_mut() {
-            user_lexicon.do_mapping(&mapper);
+            user_lexicon.map_connection_ids(&mapper);
         }
-        self.data.connector.do_mapping(&mapper);
-        self.data.unk_handler.do_mapping(&mapper);
+        self.data.connector.map_connection_ids(&mapper);
+        self.data.unk_handler.map_connection_ids(&mapper);
         self.data.mapper = Some(mapper);
         Ok(self)
     }

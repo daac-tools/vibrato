@@ -67,7 +67,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut dict = Dictionary::read(reader)?;
 
     if let Some(userlex_csv_in) = args.userlex_csv_in {
-        dict = dict.user_lexicon_from_reader(Some(File::open(userlex_csv_in)?))?;
+        dict = dict.reset_user_lexicon_from_reader(Some(File::open(userlex_csv_in)?))?;
     }
 
     let tokenizer = Tokenizer::new(dict).max_grouping_len(args.max_grouping_len.unwrap_or(0));
