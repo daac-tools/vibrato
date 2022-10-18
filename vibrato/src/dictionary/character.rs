@@ -285,7 +285,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_basic() {
+    fn test_from_reader_basic() {
         let data = "DEFAULT 0 1 0\nSPACE 0 1 0\n0x0020 SPACE";
         let prop = CharProperty::from_reader(data.as_bytes()).unwrap();
         assert_eq!(prop.chr2inf[0x0020].cate_idset(), 0b10);
@@ -296,69 +296,69 @@ mod tests {
     }
 
     #[test]
-    fn test_invalid_cate() {
+    fn test_from_reader_invalid_cate() {
         let data = "DEFAULT 0 1 0\n0x0..0xFFFF INVALID";
         let result = CharProperty::from_reader(data.as_bytes());
         assert!(result.is_err());
     }
 
     #[test]
-    fn test_no_default_cate() {
+    fn test_from_reader_no_default_cate() {
         let data = "USER_DEFINED 0 1 0";
         let result = CharProperty::from_reader(data.as_bytes());
         assert!(result.is_err());
     }
 
     #[test]
-    fn test_invalid_invoke() {
+    fn test_from_reader_invalid_invoke() {
         let data = "DEFAULT 2 1 0";
         let result = CharProperty::from_reader(data.as_bytes());
         assert!(result.is_err());
     }
 
     #[test]
-    fn test_invalid_group() {
+    fn test_from_reader_invalid_group() {
         let data = "DEFAULT 0 2 0";
         let result = CharProperty::from_reader(data.as_bytes());
         assert!(result.is_err());
     }
 
     #[test]
-    fn test_invalid_length() {
+    fn test_from_reader_invalid_length() {
         let data = "DEFAULT 0 2 -1";
         let result = CharProperty::from_reader(data.as_bytes());
         assert!(result.is_err());
     }
 
     #[test]
-    fn test_few_cols() {
+    fn test_from_reader_few_cols() {
         let data = "DEFAULT 0 2";
         let result = CharProperty::from_reader(data.as_bytes());
         assert!(result.is_err());
     }
 
     #[test]
-    fn test_char_range_1() {
+    fn test_from_reader_char_range_1() {
         let data = "DEFAULT 0 1 0\n0x10000 DEFAULT";
         let result = CharProperty::from_reader(data.as_bytes());
         assert!(result.is_err());
     }
 
     #[test]
-    fn test_char_range_2() {
+    fn test_from_reader_char_range_2() {
         let data = "DEFAULT 0 1 0\n0x0..0xFFFF DEFAULT";
         CharProperty::from_reader(data.as_bytes()).unwrap();
     }
 
     #[test]
-    fn test_char_range_3() {
+    fn test_from_reader_char_range_3() {
         let data = "DEFAULT 0 1 0\n0x0..0x10000 DEFAULT";
         let result = CharProperty::from_reader(data.as_bytes());
         assert!(result.is_err());
     }
 
     #[test]
-    fn test_char_range_4() {
+    fn test_from_reader_char_range_4() {
         let data = "DEFAULT 0 1 0\n0x0020..0x0019 DEFAULT";
         let result = CharProperty::from_reader(data.as_bytes());
         assert!(result.is_err());
