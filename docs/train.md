@@ -1,10 +1,9 @@
 # Training dictionaries
 
-This document describes steps to train dictionaries using Vibrato.
+This document describes steps to train dictionaries using Vibrato,
+assuming you are in the root directory of this repository.
 
-The following description assumes you are at the root directory of this repository.
-
-## 1. Training
+## 1. Training dictionary
 
 To train a dictionary, you must prepare at least the following six files.
 
@@ -57,6 +56,8 @@ After copying `dataset/char.def` under `mydict`, you can compile your system dic
 following the [documentation](./compile.md).
 
 ## 3. Accuracy evaluation
+
+You can evaluate the accuracy when using the trained dictionary. 
 
 To split the input corpus randomly and output train/validation/test files, run the following command:
 

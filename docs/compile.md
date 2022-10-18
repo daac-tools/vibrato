@@ -1,7 +1,7 @@
-# Compiling Vibrato's system dictionaries
+# Compiling system dictionaries
 
-This document describes how to compile Vibrato's system dictionaries,
-assuming you are at the root directory of this repository.
+This document describes how to compile system dictionaries,
+assuming you are in the root directory of this repository.
 
 You can compile system dictionaries from language resources in the [MeCab format](https://taku910.github.io/mecab/).
 The simplest way is using publicly-available resources such as UniDic or IPADIC.
@@ -25,12 +25,12 @@ $ cargo run --release -p compile -- \
     -o system.dic
 ```
 
-Instead of using publicly available trained resources,
+Instead of using publicly-available trained resources,
 you can manually train parameters from your own corpus
 in the manner described in [train.md](./train.md).
 
 ## Accelerating your dictionaries
 
-Vibrato supports to edit your dictionary to achieve faster tokenization.
+Vibrato supports editing your dictionary to achieve faster tokenization.
 See [map.md](./map.md).
 
