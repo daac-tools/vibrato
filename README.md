@@ -66,7 +66,7 @@ $ ls resources_ipadic-mecab-2_7_0
 system.dic
 ```
 
-See the [document](./docs/prepare.md) for preparation steps without these scripts.
+See the [document](./docs/compile.md) for preparation steps without these scripts.
 
 ### 2. Tokenization
 
