@@ -1,5 +1,5 @@
 [package]
-name = "prepare"
+name = "compile"
 version = "0.1.0"
 edition = "2021"
 
@@ -11,15 +11,3 @@ default = []
 [dependencies]
 vibrato = { path = "../vibrato" }
 clap = { version = "3.1", features = ["derive"] }  # MIT or Apache-2.0
-
-[[bin]]
-name = "system"
-path = "src/system.rs"
-
-[[bin]]
-name = "map"
-path = "src/map.rs"
-
-[[bin]]
-name = "reorder"
-path = "src/reorder.rs"

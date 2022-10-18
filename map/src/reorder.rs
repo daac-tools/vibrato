@@ -9,7 +9,7 @@ use vibrato::Tokenizer;
 use clap::Parser;
 
 #[derive(Parser, Debug)]
-#[clap(name = "main", about = "A program to produce reordered mapping.")]
+#[clap(name = "reorder", about = "A program to produce reordered mapping.")]
 struct Args {
     /// System dictionary in binary.
     #[clap(short = 'i', long)]
