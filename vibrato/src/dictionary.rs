@@ -178,7 +178,7 @@ impl Dictionary {
     /// # Errors
     ///
     /// [`VibratoError`] is returned when an input format is invalid.
-    pub fn user_lexicon_from_reader<R>(mut self, user_lexicon_rdr: Option<R>) -> Result<Self>
+    pub fn reset_user_lexicon_from_reader<R>(mut self, user_lexicon_rdr: Option<R>) -> Result<Self>
     where
         R: Read,
     {
@@ -214,7 +214,7 @@ impl Dictionary {
     ///    is included,
     ///  - new ids are duplicated, or
     ///  - the set of new ids are not same as that of old ids.
-    pub fn mapping_from_iter<L, R>(mut self, lmap: L, rmap: R) -> Result<Self>
+    pub fn map_connection_ids_from_iter<L, R>(mut self, lmap: L, rmap: R) -> Result<Self>
     where
         L: IntoIterator<Item = u16>,
         R: IntoIterator<Item = u16>,

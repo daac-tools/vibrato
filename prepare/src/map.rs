@@ -48,7 +48,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         filename.set_extension("rmap");
         load_mapping(File::open(filename)?)?
     };
-    let dict = dict.mapping_from_iter(lmap, rmap)?;
+    let dict = dict.map_connection_ids_from_iter(lmap, rmap)?;
 
     eprintln!(
         "Writting the mapped system dictionary...: {:?}",

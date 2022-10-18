@@ -60,7 +60,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut dict = Dictionary::read(reader)?;
 
     if let Some(userlex_csv) = args.userlex_csv {
-        dict = dict.user_lexicon_from_reader(Some(File::open(userlex_csv)?))?;
+        dict = dict.reset_user_lexicon_from_reader(Some(File::open(userlex_csv)?))?;
     }
 
     let tokenizer = Tokenizer::new(dict)
