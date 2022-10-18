@@ -5,6 +5,9 @@ use bincode::{
     Decode, Encode,
 };
 
+/// Represents an integer from 0 to 2^31 - 1.
+///
+/// This type guarantees that the sign bit of a 32-bit integer is always zero.
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, PartialOrd, Ord)]
 #[repr(transparent)]
 pub struct U31(u32);
