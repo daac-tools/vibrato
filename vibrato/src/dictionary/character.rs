@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 use std::fmt;
-use std::io::{prelude::*, BufReader, Read};
+use std::io::{BufRead, BufReader, Read};
 
 use bincode::{Decode, Encode};
 
