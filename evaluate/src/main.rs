@@ -34,7 +34,7 @@ struct Args {
     ///
     /// Specify comma-separated indices starting from 0.
     /// If empty, all features are used.
-    #[clap(long, use_value_delimiter(true))]
+    #[clap(long, value_delimiter(','))]
     feature_indices: Vec<usize>,
 }
 
