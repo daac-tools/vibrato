@@ -87,6 +87,7 @@ impl Tokenizer {
         match self.dict.connector() {
             ConnectorWrapper::Matrix(c) => self.build_lattice_inner(sent, lattice, c),
             ConnectorWrapper::Raw(c) => self.build_lattice_inner(sent, lattice, c),
+            ConnectorWrapper::Dual(c) => self.build_lattice_inner(sent, lattice, c),
         }
     }
 

@@ -1,8 +1,10 @@
+mod dual_connector;
 mod matrix_connector;
 mod raw_connector;
 
 use bincode::{Decode, Encode};
 
+pub use crate::dictionary::connector::dual_connector::DualConnector;
 pub use crate::dictionary::connector::matrix_connector::MatrixConnector;
 pub use crate::dictionary::connector::raw_connector::RawConnector;
 use crate::dictionary::mapper::ConnIdMapper;
@@ -32,6 +34,7 @@ pub trait ConnectorCost: Connector {
 pub enum ConnectorWrapper {
     Matrix(MatrixConnector),
     Raw(RawConnector),
+    Dual(DualConnector),
 }
 
 impl Connector for ConnectorWrapper {
@@ -40,6 +43,7 @@ impl Connector for ConnectorWrapper {
         match self {
             Self::Matrix(c) => c.num_left(),
             Self::Raw(c) => c.num_left(),
+            Self::Dual(c) => c.num_left(),
         }
     }
 
@@ -48,6 +52,7 @@ impl Connector for ConnectorWrapper {
         match self {
             Self::Matrix(c) => c.num_right(),
             Self::Raw(c) => c.num_right(),
+            Self::Dual(c) => c.num_right(),
         }
     }
 
@@ -56,6 +61,7 @@ impl Connector for ConnectorWrapper {
         match self {
             Self::Matrix(c) => c.map_connection_ids(mapper),
             Self::Raw(c) => c.map_connection_ids(mapper),
+            Self::Dual(c) => c.map_connection_ids(mapper),
         }
     }
 }

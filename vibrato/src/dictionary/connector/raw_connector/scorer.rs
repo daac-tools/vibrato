@@ -103,7 +103,7 @@ impl Encode for U31x8 {
 pub struct ScorerBuilder {
     // Two-level trie mapping a pair of two keys into a cost, where
     // the first level stores the first key, and the second level stores the second key.
-    trie: Vec<BTreeMap<U31, i32>>,
+    pub trie: Vec<BTreeMap<U31, i32>>,
 }
 
 impl ScorerBuilder {
@@ -131,11 +131,11 @@ impl ScorerBuilder {
         true
     }
 
-    pub fn build(self) -> Scorer {
+    pub fn build(&self) -> Scorer {
         let mut bases = vec![0; self.trie.len()];
         let mut checks = vec![];
         let mut costs = vec![];
-        for (key1, second_map) in self.trie.into_iter().enumerate() {
+        for (key1, second_map) in self.trie.iter().enumerate() {
             let mut base = 0;
             while !Self::check_base(base, &second_map, &checks) {
                 base += 1;
@@ -149,7 +149,7 @@ impl ScorerBuilder {
                     costs.resize(pos + 1, 0);
                 }
                 checks[pos] = u32::try_from(key1).unwrap();
-                costs[pos] = cost;
+                costs[pos] = *cost;
             }
         }
 
