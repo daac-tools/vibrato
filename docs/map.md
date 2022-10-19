@@ -12,7 +12,7 @@ The mapping steps consist of
 
 ## 1. Reordering mapping of connection ids
 
-To produce the reordered mapping from sentences in `train.txt`,
+To produce a reordered mapping from sentences in `train.txt`,
 run the following command.
 
 ```
@@ -23,7 +23,7 @@ The two files, `reordered.lmap` and `reordered.rmap`, will be produced.
 
 ## 2. Editing dictionary with mapping
 
-To edit a system dictionary with the reordered mapping,
+To edit the system dictionary with the reordered mapping,
 run the following command.
 
 ```
