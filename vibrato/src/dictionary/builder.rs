@@ -47,11 +47,10 @@ impl SystemDictionaryBuilder {
         })
     }
 
-    /// Creates a new [`Dictionary`] with a matrix connector from readers of system entries in the
-    /// MeCab format.
+    /// Creates a new [`Dictionary`] from readers of system entries in the MeCab format.
     ///
-    /// Analysis using this dictionary is the fastest, but the dictionary is the largest and
-    /// consumes the most memory.
+    /// Consider to use [`from_readers_with_bigram_info()`](Self::from_readers_with_bigram_info)
+    /// if you want to store a dictionary with smaller memory.
     ///
     /// # Arguments
     ///
