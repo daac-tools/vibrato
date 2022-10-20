@@ -198,61 +198,53 @@ impl Connector for DualConnector {
     fn map_connection_ids(&mut self, mapper: &ConnIdMapper) {
         assert_eq!(mapper.num_left(), self.num_left());
         assert_eq!(mapper.num_right(), self.num_right());
-        {
-            let mut mapped = vec![U31x8::default(); self.raw_right_ids.len()];
-            for right_id in 0..self.num_right() {
-                let new_right_id = usize::from(mapper.right(u16::try_from(right_id).unwrap()));
-                mapped[new_right_id] = self.raw_right_ids[right_id];
-            }
-            self.raw_right_ids = mapped;
 
-            let mut mapped = vec![U31x8::default(); self.raw_left_ids.len()];
-            for left_id in 0..self.num_left() {
-                let new_left_id = usize::from(mapper.left(u16::try_from(left_id).unwrap()));
-                mapped[new_left_id] = self.raw_left_ids[left_id];
-            }
-            self.raw_left_ids = mapped;
+        let mut new_raw_right_ids = vec![U31x8::default(); self.raw_right_ids.len()];
+        let mut new_right_id_map = vec![0; self.right_id_map.len()];
+        for right_id in 0..self.num_right() {
+            let new_id = usize::from(mapper.right(u16::try_from(right_id).unwrap()));
+            new_raw_right_ids[new_id] = self.raw_right_ids[right_id];
+            new_right_id_map[new_id] = self.right_id_map[right_id];
         }
-        {
-            let mut new_left_id_map = vec![0; self.left_id_map.len()];
-            let mut new_right_id_map = vec![0; self.right_id_map.len()];
-            for id in 0..self.left_id_map.len() {
-                let new_id = mapper.left(u16::try_from(id).unwrap());
-                new_left_id_map[usize::from(new_id)] = self.left_id_map[id];
-            }
-            self.left_id_map = new_left_id_map;
-            for id in 0..self.right_id_map.len() {
-                let new_id = mapper.right(u16::try_from(id).unwrap());
-                new_right_id_map[usize::from(new_id)] = self.right_id_map[id];
-            }
-            self.right_id_map = new_right_id_map;
-            let mut matrix_mapper_left = vec![u16::MAX; self.matrix_connector.num_left()];
-            let mut matrix_mapper_right = vec![u16::MAX; self.matrix_connector.num_right()];
-            let mut left_id = 0;
-            let mut right_id = 0;
-            for i in &mut self.left_id_map {
-                let map = &mut matrix_mapper_left[usize::from(*i)];
-                if *map != u16::MAX {
-                    *i = *map;
-                    continue;
-                }
-                *map = left_id;
-                *i = left_id;
-                left_id += 1;
-            }
-            for i in &mut self.right_id_map {
-                let map = &mut matrix_mapper_right[usize::from(*i)];
-                if *map != u16::MAX {
-                    *i = *map;
-                    continue;
-                }
-                *map = right_id;
-                *i = right_id;
-                right_id += 1;
-            }
-            let matrix_mapper = ConnIdMapper::new(matrix_mapper_left, matrix_mapper_right);
-            self.matrix_connector.map_connection_ids(&matrix_mapper);
+        self.raw_right_ids = new_raw_right_ids;
+        self.right_id_map = new_right_id_map;
+
+        let mut new_raw_left_ids = vec![U31x8::default(); self.raw_left_ids.len()];
+        let mut new_left_id_map = vec![0; self.left_id_map.len()];
+        for left_id in 0..self.num_left() {
+            let new_id = usize::from(mapper.left(u16::try_from(left_id).unwrap()));
+            new_raw_left_ids[new_id] = self.raw_left_ids[left_id];
+            new_left_id_map[new_id] = self.left_id_map[left_id];
         }
+        self.raw_left_ids = new_raw_left_ids;
+        self.left_id_map = new_left_id_map;
+
+        let mut matrix_mapper_left = vec![u16::MAX; self.matrix_connector.num_left()];
+        let mut matrix_mapper_right = vec![u16::MAX; self.matrix_connector.num_right()];
+        let mut left_id = 0;
+        let mut right_id = 0;
+        for i in &mut self.left_id_map {
+            let map = &mut matrix_mapper_left[usize::from(*i)];
+            if *map != u16::MAX {
+                *i = *map;
+                continue;
+            }
+            *map = left_id;
+            *i = left_id;
+            left_id += 1;
+        }
+        for i in &mut self.right_id_map {
+            let map = &mut matrix_mapper_right[usize::from(*i)];
+            if *map != u16::MAX {
+                *i = *map;
+                continue;
+            }
+            *map = right_id;
+            *i = right_id;
+            right_id += 1;
+        }
+        let matrix_mapper = ConnIdMapper::new(matrix_mapper_left, matrix_mapper_right);
+        self.matrix_connector.map_connection_ids(&matrix_mapper);
     }
 }
 
