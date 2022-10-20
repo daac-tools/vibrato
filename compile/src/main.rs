@@ -71,25 +71,15 @@ fn main() -> Result<(), Box<dyn Error>> {
         args.bigram_left_in,
         args.bigram_cost_in,
     ) {
-        if args.dual_connector {
-            SystemDictionaryBuilder::dual_connector_from_readers(
-                File::open(args.lexicon_in)?,
-                File::open(bigram_right_in)?,
-                File::open(bigram_left_in)?,
-                File::open(bigram_cost_in)?,
-                File::open(args.char_in)?,
-                File::open(args.unk_in)?,
-            )?
-        } else {
-            SystemDictionaryBuilder::raw_connector_from_readers(
-                File::open(args.lexicon_in)?,
-                File::open(bigram_right_in)?,
-                File::open(bigram_left_in)?,
-                File::open(bigram_cost_in)?,
-                File::open(args.char_in)?,
-                File::open(args.unk_in)?,
-            )?
-        }
+        SystemDictionaryBuilder::from_readers_with_bigram_info(
+            File::open(args.lexicon_in)?,
+            File::open(bigram_right_in)?,
+            File::open(bigram_left_in)?,
+            File::open(bigram_cost_in)?,
+            File::open(args.char_in)?,
+            File::open(args.unk_in)?,
+            args.dual_connector,
+        )?
     } else {
         Args::command()
             .error(
