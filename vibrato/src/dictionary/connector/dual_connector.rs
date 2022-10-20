@@ -42,7 +42,9 @@ impl DualConnector {
                     let mut new_right_features = vec![];
                     for &i in &ids {
                         if i != trial_idx {
-                            new_right_features.push(right_features[i]);
+                            if let Some(f) = right_features.get(i) {
+                                new_right_features.push(f);
+                            }
                         }
                     }
                     *right_map.entry(new_right_features).or_insert(0) += 1;
@@ -51,7 +53,9 @@ impl DualConnector {
                     let mut new_left_features = vec![];
                     for &i in &ids {
                         if i != trial_idx {
-                            new_left_features.push(left_features[i]);
+                            if let Some(f) = left_features.get(i) {
+                                new_left_features.push(f);
+                            }
                         }
                     }
                     *left_map.entry(new_left_features).or_insert(0) += 1;
