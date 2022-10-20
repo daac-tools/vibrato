@@ -21,6 +21,55 @@ pub struct DualConnector {
 }
 
 impl DualConnector {
+    /// Removes feature templates so that the matrix size is smaller using greedy search
+    /// and returns a set of rest IDs.
+    pub fn greedy_remover(
+        size: usize,
+        left_ids: &[Vec<U31>],
+        right_ids: &[Vec<U31>],
+        col_size: usize,
+    ) -> HashSet<usize> {
+        let mut ids: HashSet<usize> = (0..col_size).collect();
+        eprintln!("Initial matrix size: {}", left_ids.len() * right_ids.len());
+        for _ in 0..size {
+            let mut candidate_idx = 0;
+            let mut min_matrix_size = left_ids.len() * right_ids.len();
+            for &trial_idx in &ids {
+                let mut right_map = HashMap::new();
+                let mut left_map = HashMap::new();
+
+                for right_features in right_ids {
+                    let mut new_right_features = vec![];
+                    for &i in &ids {
+                        if i != trial_idx {
+                            new_right_features.push(right_features[i]);
+                        }
+                    }
+                    *right_map.entry(new_right_features).or_insert(0) += 1;
+                }
+                for left_features in left_ids {
+                    let mut new_left_features = vec![];
+                    for &i in &ids {
+                        if i != trial_idx {
+                            new_left_features.push(left_features[i]);
+                        }
+                    }
+                    *left_map.entry(new_left_features).or_insert(0) += 1;
+                }
+                if right_map.len() * left_map.len() < min_matrix_size {
+                    min_matrix_size = right_map.len() * left_map.len();
+                    candidate_idx = trial_idx;
+                }
+            }
+            eprintln!(
+                "Removed feature template: #{}, matrix size: {}",
+                candidate_idx, min_matrix_size
+            );
+            ids.remove(&candidate_idx);
+        }
+        ids
+    }
+
     /// Creates a new instance from `bigram.right`, `bigram.left`, and `bigram.cost`.
     pub fn from_readers<R, L, C>(right_rdr: R, left_rdr: L, cost_rdr: C) -> Result<Self>
     where
@@ -37,60 +86,15 @@ impl DualConnector {
         let scorer = scorer_builder.build();
 
         // Split features into RawConnector and MatrixConnector
-        //
-        // Removes feature templates so that the matrix size is smaller using greedy search.
-        let mut raw_set = HashSet::new();
-        eprintln!(
-            "Initial matrix size: {}",
-            left_ids_tmp.len() * right_ids_tmp.len()
-        );
-        for _ in 0..SIMD_SIZE {
-            let mut candidate_idx = 0;
-            let mut min_matrix_size = left_ids_tmp.len() * right_ids_tmp.len();
-            for trial_idx in 0..col_size {
-                if raw_set.contains(&trial_idx) {
-                    continue;
-                }
-                let mut right_map = HashMap::new();
-                let mut left_map = HashMap::new();
-
-                for right_features in &right_ids_tmp {
-                    let mut new_right_features = vec![];
-                    for (i, right) in right_features.iter().enumerate() {
-                        if !raw_set.contains(&i) && i != trial_idx {
-                            new_right_features.push(*right);
-                        }
-                    }
-                    *right_map.entry(new_right_features).or_insert(0) += 1;
-                }
-                for left_features in &left_ids_tmp {
-                    let mut new_left_features = vec![];
-                    for (i, left) in left_features.iter().enumerate() {
-                        if !raw_set.contains(&i) && i != trial_idx {
-                            new_left_features.push(*left);
-                        }
-                    }
-                    *left_map.entry(new_left_features).or_insert(0) += 1;
-                }
-                if right_map.len() * left_map.len() < min_matrix_size {
-                    min_matrix_size = right_map.len() * left_map.len();
-                    candidate_idx = trial_idx;
-                }
-            }
-            eprintln!(
-                "Removed feature template: #{}, matrix size: {}",
-                candidate_idx, min_matrix_size
-            );
-            raw_set.insert(candidate_idx);
-        }
-
+        let matrix_ids_set =
+            Self::greedy_remover(SIMD_SIZE, &left_ids_tmp, &right_ids_tmp, col_size);
         let mut raw_ids = vec![];
         let mut matrix_ids = vec![];
         for i in 0..col_size {
-            if raw_set.contains(&i) {
-                raw_ids.push(i);
-            } else {
+            if matrix_ids_set.contains(&i) {
                 matrix_ids.push(i);
+            } else {
+                raw_ids.push(i);
             }
         }
 
@@ -127,17 +131,11 @@ impl DualConnector {
         for (right_features, rid) in &right_features_map {
             for (left_features, lid) in &left_features_map {
                 let cost = scorer.accumulate_cost(
-                    &U31x8::to_simd_vec(&right_features),
-                    &U31x8::to_simd_vec(&left_features),
+                    &U31x8::to_simd_vec(right_features),
+                    &U31x8::to_simd_vec(left_features),
                 );
                 let index = *lid * right_features_map.len() + *rid;
-                matrix[index] = if cost > i16::MAX as i32 {
-                    i16::MAX
-                } else if cost < i16::MIN as i32 {
-                    i16::MIN
-                } else {
-                    cost as i16
-                };
+                matrix[index] = cost.min(i16::MAX as i32).max(i16::MIN as i32) as i16;
             }
         }
         let matrix_connector =
@@ -218,15 +216,17 @@ impl Connector for DualConnector {
                 let new_id = mapper.left(u16::try_from(id).unwrap());
                 new_left_id_map[usize::from(new_id)] = self.left_id_map[id];
             }
+            self.left_id_map = new_left_id_map;
             for id in 0..self.right_id_map.len() {
                 let new_id = mapper.right(u16::try_from(id).unwrap());
                 new_right_id_map[usize::from(new_id)] = self.right_id_map[id];
             }
+            self.right_id_map = new_right_id_map;
             let mut matrix_mapper_left = vec![u16::MAX; self.matrix_connector.num_left()];
             let mut matrix_mapper_right = vec![u16::MAX; self.matrix_connector.num_right()];
             let mut left_id = 0;
             let mut right_id = 0;
-            for i in &mut new_left_id_map {
+            for i in &mut self.left_id_map {
                 let map = &mut matrix_mapper_left[usize::from(*i)];
                 if *map != u16::MAX {
                     *i = *map;
@@ -236,7 +236,7 @@ impl Connector for DualConnector {
                 *i = left_id;
                 left_id += 1;
             }
-            for i in &mut new_right_id_map {
+            for i in &mut self.right_id_map {
                 let map = &mut matrix_mapper_right[usize::from(*i)];
                 if *map != u16::MAX {
                     *i = *map;

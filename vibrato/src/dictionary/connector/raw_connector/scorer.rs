@@ -137,7 +137,7 @@ impl ScorerBuilder {
         let mut costs = vec![];
         for (key1, second_map) in self.trie.iter().enumerate() {
             let mut base = 0;
-            while !Self::check_base(base, &second_map, &checks) {
+            while !Self::check_base(base, second_map, &checks) {
                 base += 1;
             }
             bases[key1] = base;
