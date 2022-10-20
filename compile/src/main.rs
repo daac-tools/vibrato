@@ -48,6 +48,10 @@ struct Args {
     /// Bigram cost file (bigram.cost).
     #[clap(long)]
     bigram_cost_in: Option<PathBuf>,
+
+    /// Use dual connector.
+    #[clap(long)]
+    dual_connector: bool,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -67,14 +71,25 @@ fn main() -> Result<(), Box<dyn Error>> {
         args.bigram_left_in,
         args.bigram_cost_in,
     ) {
-        SystemDictionaryBuilder::raw_connector_from_readers(
-            File::open(args.lexicon_in)?,
-            File::open(bigram_right_in)?,
-            File::open(bigram_left_in)?,
-            File::open(bigram_cost_in)?,
-            File::open(args.char_in)?,
-            File::open(args.unk_in)?,
-        )?
+        if args.dual_connector {
+            SystemDictionaryBuilder::dual_connector_from_readers(
+                File::open(args.lexicon_in)?,
+                File::open(bigram_right_in)?,
+                File::open(bigram_left_in)?,
+                File::open(bigram_cost_in)?,
+                File::open(args.char_in)?,
+                File::open(args.unk_in)?,
+            )?
+        } else {
+            SystemDictionaryBuilder::raw_connector_from_readers(
+                File::open(args.lexicon_in)?,
+                File::open(bigram_right_in)?,
+                File::open(bigram_left_in)?,
+                File::open(bigram_cost_in)?,
+                File::open(args.char_in)?,
+                File::open(args.unk_in)?,
+            )?
+        }
     } else {
         Args::command()
             .error(
