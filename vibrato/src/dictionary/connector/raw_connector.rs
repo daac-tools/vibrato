@@ -154,6 +154,7 @@ impl ConnectorCost for RawConnector {
     }
 }
 
+/// Builder for components of [`RawConnector`] using simple data structures.
 pub struct RawConnectorBuilder {
     pub right_ids_tmp: Vec<Vec<U31>>,
     pub left_ids_tmp: Vec<Vec<U31>>,
