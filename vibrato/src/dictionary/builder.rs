@@ -104,8 +104,7 @@ impl SystemDictionaryBuilder {
     ///  - `bigram_cost_rdr`: A reader of a bi-gram cost file `bigram.cost`.
     ///  - `char_prop_rdr`: A reader of character definition file `char.def`.
     ///  - `unk_handler`: A reader of unknown definition file `unk.def`.
-    ///  - `dual_connector`: If `true`, the model uses raw and matrix connectors together to
-    ///                      control speed reduction.
+    ///  - `dual_connector`: If `true`, the dictionary controls speed reduction.
     ///
     /// # Errors
     ///
