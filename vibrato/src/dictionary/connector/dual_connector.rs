@@ -39,7 +39,6 @@ impl DualConnector {
             for &trial_idx in &matrix_ids {
                 let mut right_map = HashMap::new();
                 let mut left_map = HashMap::new();
-
                 for right_features in right_ids {
                     let mut new_right_features = vec![];
                     for &i in &matrix_ids {
