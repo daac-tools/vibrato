@@ -140,7 +140,6 @@ impl DualConnector {
                 left_map.clear();
             }
         }
-
         (right_ids, left_ids)
     }
 
