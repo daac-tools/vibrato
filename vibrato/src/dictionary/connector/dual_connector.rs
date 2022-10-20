@@ -37,32 +37,25 @@ impl DualConnector {
             let mut candidate_idx = 0;
             let mut min_matrix_size = left_ids.len() * right_ids.len();
             for &trial_idx in &matrix_ids {
-                let mut right_map = HashMap::new();
-                let mut left_map = HashMap::new();
-                for right_features in right_ids {
-                    let mut new_right_features = vec![];
-                    for &i in &matrix_ids {
-                        if i != trial_idx {
-                            if let Some(f) = right_features.get(i) {
-                                new_right_features.push(f);
+                let calculate_num_ids = |ids: &[Vec<U31>]| {
+                    let mut map = HashMap::new();
+                    for features in ids {
+                        let mut new_features = vec![];
+                        for &i in &matrix_ids {
+                            if i != trial_idx {
+                                if let Some(f) = features.get(i) {
+                                    new_features.push(f);
+                                }
                             }
                         }
+                        *map.entry(new_features).or_insert(0) += 1;
                     }
-                    *right_map.entry(new_right_features).or_insert(0) += 1;
-                }
-                for left_features in left_ids {
-                    let mut new_left_features = vec![];
-                    for &i in &matrix_ids {
-                        if i != trial_idx {
-                            if let Some(f) = left_features.get(i) {
-                                new_left_features.push(f);
-                            }
-                        }
-                    }
-                    *left_map.entry(new_left_features).or_insert(0) += 1;
-                }
-                if right_map.len() * left_map.len() < min_matrix_size {
-                    min_matrix_size = right_map.len() * left_map.len();
+                    map.len()
+                };
+                let right_num_ids = calculate_num_ids(right_ids);
+                let left_num_ids = calculate_num_ids(left_ids);
+                if right_num_ids * left_num_ids < min_matrix_size {
+                    min_matrix_size = right_num_ids * left_num_ids;
                     candidate_idx = trial_idx;
                 }
             }
@@ -82,34 +75,23 @@ impl DualConnector {
         col_size: usize,
         scorer: &Scorer,
     ) -> (MatrixConnector, Vec<u16>, Vec<u16>) {
-        let mut right_id_map = vec![0];
-        let mut left_id_map = vec![0];
-        let mut right_features_map = HashMap::new();
-        let mut left_features_map = HashMap::new();
-        right_features_map.insert(vec![U31::default(); col_size - SIMD_SIZE], 0);
-        left_features_map.insert(vec![U31::default(); col_size - SIMD_SIZE], 0);
-        for right_features in right_ids_tmp {
-            let mut right_feature_ids = vec![];
-            for &idx in matrix_indices {
-                right_feature_ids.push(*right_features.get(idx).unwrap_or(&INVALID_FEATURE_ID));
+        let generate_feature_map = |ids_tmp: &[Vec<U31>]| {
+            let mut id_map = vec![0];
+            let mut features_map = HashMap::new();
+            features_map.insert(vec![U31::default(); col_size - SIMD_SIZE], 0);
+            for features in ids_tmp {
+                let mut feature_ids = vec![];
+                for &idx in matrix_indices {
+                    feature_ids.push(*features.get(idx).unwrap_or(&INVALID_FEATURE_ID));
+                }
+                let new_id = features_map.len();
+                let right_id = *features_map.entry(feature_ids).or_insert(new_id);
+                id_map.push(u16::try_from(right_id).unwrap());
             }
-            let right_new_id = right_features_map.len();
-            let right_id = *right_features_map
-                .entry(right_feature_ids)
-                .or_insert(right_new_id);
-            right_id_map.push(u16::try_from(right_id).unwrap());
-        }
-        for left_features in left_ids_tmp {
-            let mut left_feature_ids = vec![];
-            for &idx in matrix_indices {
-                left_feature_ids.push(*left_features.get(idx).unwrap_or(&INVALID_FEATURE_ID));
-            }
-            let left_new_id = left_features_map.len();
-            let left_id = *left_features_map
-                .entry(left_feature_ids)
-                .or_insert(left_new_id);
-            left_id_map.push(u16::try_from(left_id).unwrap());
-        }
+            (id_map, features_map)
+        };
+        let (right_id_map, right_features_map) = generate_feature_map(right_ids_tmp);
+        let (left_id_map, left_features_map) = generate_feature_map(left_ids_tmp);
         let mut matrix = vec![0; right_features_map.len() * left_features_map.len()];
         for (right_features, rid) in &right_features_map {
             for (left_features, lid) in &left_features_map {
@@ -123,7 +105,6 @@ impl DualConnector {
         }
         let matrix_connector =
             MatrixConnector::new(matrix, right_features_map.len(), left_features_map.len());
-
         (matrix_connector, right_id_map, left_id_map)
     }
 
