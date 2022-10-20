@@ -67,7 +67,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         args.bigram_left_in,
         args.bigram_cost_in,
     ) {
-        SystemDictionaryBuilder::from_readers_with_bigram_info(
+        SystemDictionaryBuilder::raw_connector_from_readers(
             File::open(args.lexicon_in)?,
             File::open(bigram_right_in)?,
             File::open(bigram_left_in)?,

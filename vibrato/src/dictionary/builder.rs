@@ -1,7 +1,7 @@
 //! Builders for [`Dictionary`].
 use std::io::Read;
 
-use crate::dictionary::connector::{DualConnector, MatrixConnector};
+use crate::dictionary::connector::{DualConnector, MatrixConnector, RawConnector};
 use crate::dictionary::{
     CharProperty, ConnectorWrapper, Dictionary, DictionaryInner, LexType, Lexicon, UnkHandler,
 };
@@ -47,7 +47,11 @@ impl SystemDictionaryBuilder {
         })
     }
 
-    /// Creates a new [`Dictionary`] from readers of system entries in the MeCab format.
+    /// Creates a new [`Dictionary`] with a matrix connector from readers of system entries in the
+    /// MeCab format.
+    ///
+    /// Analysis using this dictionary is the fastest, but the dictionary is the largest and
+    /// consumes the most memory.
     ///
     /// # Arguments
     ///
@@ -86,8 +90,11 @@ impl SystemDictionaryBuilder {
         )
     }
 
-    /// Creates a new [`Dictionary`] from readers of system entries
-    /// with the detailed bi-gram information.
+    /// Creates a new [`Dictionary`] with a raw connector from readers of system entries.
+    ///
+    /// This function generates a dictionary without converting the bi-gram costs into a connection
+    /// matrix. Analysis using this dictionary is the slowest, but the dictionary is the smallest and
+    /// consumes the least memory.
     ///
     /// # Arguments
     ///
@@ -101,7 +108,7 @@ impl SystemDictionaryBuilder {
     /// # Errors
     ///
     /// [`VibratoError`] is returned when an input format is invalid.
-    pub fn from_readers_with_bigram_info<S, R, L, C, P, U>(
+    pub fn raw_connector_from_readers<S, R, L, C, P, U>(
         mut system_lexicon_rdr: S,
         bigram_right_rdr: R,
         bigram_left_rdr: L,
@@ -121,7 +128,56 @@ impl SystemDictionaryBuilder {
         system_lexicon_rdr.read_to_end(&mut system_lexicon_buf)?;
         let system_word_entries = Lexicon::parse_csv(&system_lexicon_buf, "lex.csv")?;
         let connector =
-            //RawConnector::from_readers(bigram_right_rdr, bigram_left_rdr, bigram_cost_rdr)?;
+            RawConnector::from_readers(bigram_right_rdr, bigram_left_rdr, bigram_cost_rdr)?;
+        let char_prop = CharProperty::from_reader(char_prop_rdr)?;
+        let unk_handler = UnkHandler::from_reader(unk_handler_rdr, &char_prop)?;
+
+        Self::build(
+            &system_word_entries,
+            ConnectorWrapper::Raw(connector),
+            char_prop,
+            unk_handler,
+        )
+    }
+
+    /// Creates a new [`Dictionary`] with a dual connector from readers of system entries
+    ///
+    /// This function generates a dictionary with splitting connector into a raw connector and a
+    /// matrix connector. Analysis using this dictionary is not as slow as the raw connector and
+    /// reduces memory consumption.
+    ///
+    /// # Arguments
+    ///
+    ///  - `system_lexicon_rdr`: A reader of a lexicon file `*.csv`.
+    ///  - `bigram_right_rdr`: A reader of bi-gram info associated with right IDs `bigram.right`.
+    ///  - `bigram_left_rdr`: A reader of bi-gram info associated with left IDs `bigram.left`.
+    ///  - `bigram_cost_rdr`: A reader of a bi-gram cost file `bigram.cost`.
+    ///  - `char_prop_rdr`: A reader of character definition file `char.def`.
+    ///  - `unk_handler`: A reader of unknown definition file `unk.def`.
+    ///
+    /// # Errors
+    ///
+    /// [`VibratoError`] is returned when an input format is invalid.
+    pub fn dual_connector_from_readers<S, R, L, C, P, U>(
+        mut system_lexicon_rdr: S,
+        bigram_right_rdr: R,
+        bigram_left_rdr: L,
+        bigram_cost_rdr: C,
+        char_prop_rdr: P,
+        unk_handler_rdr: U,
+    ) -> Result<Dictionary>
+    where
+        S: Read,
+        R: Read,
+        L: Read,
+        C: Read,
+        P: Read,
+        U: Read,
+    {
+        let mut system_lexicon_buf = vec![];
+        system_lexicon_rdr.read_to_end(&mut system_lexicon_buf)?;
+        let system_word_entries = Lexicon::parse_csv(&system_lexicon_buf, "lex.csv")?;
+        let connector =
             DualConnector::from_readers(bigram_right_rdr, bigram_left_rdr, bigram_cost_rdr)?;
         let char_prop = CharProperty::from_reader(char_prop_rdr)?;
         let unk_handler = UnkHandler::from_reader(unk_handler_rdr, &char_prop)?;
