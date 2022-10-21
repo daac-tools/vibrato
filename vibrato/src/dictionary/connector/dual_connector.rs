@@ -15,10 +15,10 @@ use crate::num::U31;
 #[derive(Decode, Encode)]
 pub struct DualConnector {
     matrix_connector: MatrixConnector,
-    matrix_left_id_map: Vec<u16>,
-    matrix_right_id_map: Vec<u16>,
-    raw_right_ids: Vec<U31x8>,
-    raw_left_ids: Vec<U31x8>,
+    right_conn_id_map: Vec<u16>,
+    left_conn_id_map: Vec<u16>,
+    right_feat_ids: Vec<U31x8>,
+    left_feat_ids: Vec<U31x8>,
     raw_scorer: Scorer,
 }
 
@@ -26,36 +26,39 @@ impl DualConnector {
     /// Removes feature templates so that the matrix size is smaller using greedy search
     /// and returns a set of rest IDs.
     pub fn remove_feature_templates_greedy(
-        raw_id_size: usize,
-        left_ids: &[Vec<U31>],
-        right_ids: &[Vec<U31>],
-        col_size: usize,
+        raw_feat_template_size: usize,
+        right_feat_ids_tmp: &[Vec<U31>],
+        left_feat_ids_tmp: &[Vec<U31>],
+        total_feat_template_size: usize,
     ) -> HashSet<usize> {
-        let mut matrix_ids: HashSet<usize> = (0..col_size).collect();
-        eprintln!("Initial matrix size: {}", left_ids.len() * right_ids.len());
-        for _ in 0..raw_id_size {
+        let mut matrix_indices: HashSet<usize> = (0..total_feat_template_size).collect();
+        eprintln!(
+            "Initial matrix size: {}",
+            left_feat_ids_tmp.len() * right_feat_ids_tmp.len()
+        );
+        for _ in 0..raw_feat_template_size {
             let mut candidate_idx = 0;
-            let mut min_matrix_size = left_ids.len() * right_ids.len();
-            for &trial_idx in &matrix_ids {
-                let calculate_num_ids = |ids: &[Vec<U31>]| {
+            let mut min_matrix_size = left_feat_ids_tmp.len() * right_feat_ids_tmp.len();
+            for &trial_idx in &matrix_indices {
+                let calculate_num_conn_ids = |feat_ids_tmp: &[Vec<U31>]| {
                     let mut map = HashMap::new();
-                    for features in ids {
-                        let mut new_features = vec![];
-                        for &i in &matrix_ids {
+                    for row in feat_ids_tmp {
+                        let mut new_feats = vec![];
+                        for &i in &matrix_indices {
                             if i != trial_idx {
-                                if let Some(f) = features.get(i) {
-                                    new_features.push(f);
+                                if let Some(f) = row.get(i) {
+                                    new_feats.push(f);
                                 }
                             }
                         }
-                        *map.entry(new_features).or_insert(0) += 1;
+                        *map.entry(new_feats).or_insert(0) += 1;
                     }
                     map.len()
                 };
-                let right_num_ids = calculate_num_ids(right_ids);
-                let left_num_ids = calculate_num_ids(left_ids);
-                if right_num_ids * left_num_ids < min_matrix_size {
-                    min_matrix_size = right_num_ids * left_num_ids;
+                let right_num_conn_ids = calculate_num_conn_ids(right_feat_ids_tmp);
+                let left_num_conn_ids = calculate_num_conn_ids(left_feat_ids_tmp);
+                if right_num_conn_ids * left_num_conn_ids < min_matrix_size {
+                    min_matrix_size = right_num_conn_ids * left_num_conn_ids;
                     candidate_idx = trial_idx;
                 }
             }
@@ -63,76 +66,76 @@ impl DualConnector {
                 "Removed feature template: #{}, matrix size: {}",
                 candidate_idx, min_matrix_size
             );
-            matrix_ids.remove(&candidate_idx);
+            matrix_indices.remove(&candidate_idx);
         }
-        matrix_ids
+        matrix_indices
     }
 
     fn create_matrix_connector(
-        right_ids_tmp: &[Vec<U31>],
-        left_ids_tmp: &[Vec<U31>],
+        right_feat_ids_tmp: &[Vec<U31>],
+        left_feat_ids_tmp: &[Vec<U31>],
         matrix_indices: &[usize],
-        col_size: usize,
+        feat_template_size: usize,
         scorer: &Scorer,
     ) -> (MatrixConnector, Vec<u16>, Vec<u16>) {
-        let generate_feature_map = |ids_tmp: &[Vec<U31>]| {
-            let mut id_map = vec![0];
-            let mut features_map = HashMap::new();
-            features_map.insert(vec![U31::default(); col_size - SIMD_SIZE], 0);
-            for features in ids_tmp {
-                let mut feature_ids = vec![];
+        let generate_feature_map = |feat_ids_tmp: &[Vec<U31>]| {
+            let mut conn_id_map = vec![0];
+            let mut feats_map = HashMap::new();
+            feats_map.insert(vec![U31::default(); feat_template_size - SIMD_SIZE], 0);
+            for row in feat_ids_tmp {
+                let mut feat_ids = vec![];
                 for &idx in matrix_indices {
-                    feature_ids.push(*features.get(idx).unwrap_or(&INVALID_FEATURE_ID));
+                    feat_ids.push(*row.get(idx).unwrap_or(&INVALID_FEATURE_ID));
                 }
-                let new_id = features_map.len();
-                let right_id = *features_map.entry(feature_ids).or_insert(new_id);
-                id_map.push(u16::try_from(right_id).unwrap());
+                let new_id = feats_map.len();
+                let right_id = *feats_map.entry(feat_ids).or_insert(new_id);
+                conn_id_map.push(u16::try_from(right_id).unwrap());
             }
-            (id_map, features_map)
+            (conn_id_map, feats_map)
         };
-        let (right_id_map, right_features_map) = generate_feature_map(right_ids_tmp);
-        let (left_id_map, left_features_map) = generate_feature_map(left_ids_tmp);
-        let mut matrix = vec![0; right_features_map.len() * left_features_map.len()];
-        for (right_features, rid) in &right_features_map {
-            for (left_features, lid) in &left_features_map {
+        let (right_conn_id_map, right_feats_map) = generate_feature_map(right_feat_ids_tmp);
+        let (left_conn_id_map, left_feats_map) = generate_feature_map(left_feat_ids_tmp);
+        let mut matrix = vec![0; right_feats_map.len() * left_feats_map.len()];
+        for (right_feats, rid) in &right_feats_map {
+            for (left_feats, lid) in &left_feats_map {
                 let cost = scorer.accumulate_cost(
-                    &U31x8::to_simd_vec(right_features),
-                    &U31x8::to_simd_vec(left_features),
+                    &U31x8::to_simd_vec(right_feats),
+                    &U31x8::to_simd_vec(left_feats),
                 );
-                let index = *lid * right_features_map.len() + *rid;
+                let index = *lid * right_feats_map.len() + *rid;
                 matrix[index] = cost.min(i16::MAX as i32).max(i16::MIN as i32) as i16;
             }
         }
         let matrix_connector =
-            MatrixConnector::new(matrix, right_features_map.len(), left_features_map.len());
-        (matrix_connector, right_id_map, left_id_map)
+            MatrixConnector::new(matrix, right_feats_map.len(), left_feats_map.len());
+        (matrix_connector, right_conn_id_map, left_conn_id_map)
     }
 
     fn create_raw_connector(
-        right_ids_tmp: &[Vec<U31>],
-        left_ids_tmp: &[Vec<U31>],
+        right_feat_ids_tmp: &[Vec<U31>],
+        left_feat_ids_tmp: &[Vec<U31>],
         raw_indices: &[usize],
         scorer_builder: &mut ScorerBuilder,
     ) -> (Vec<U31>, Vec<U31>) {
-        let mut right_ids = vec![U31::default(); SIMD_SIZE];
-        let mut left_ids = vec![U31::default(); SIMD_SIZE];
-        for right_features in right_ids_tmp {
+        let mut right_feat_ids = vec![U31::default(); SIMD_SIZE];
+        let mut left_feat_ids = vec![U31::default(); SIMD_SIZE];
+        for row in right_feat_ids_tmp {
             for &idx in raw_indices {
-                right_ids.push(*right_features.get(idx).unwrap_or(&INVALID_FEATURE_ID));
+                right_feat_ids.push(*row.get(idx).unwrap_or(&INVALID_FEATURE_ID));
             }
         }
-        for left_features in left_ids_tmp {
+        for row in left_feat_ids_tmp {
             for &idx in raw_indices {
-                left_ids.push(*left_features.get(idx).unwrap_or(&INVALID_FEATURE_ID));
+                left_feat_ids.push(*row.get(idx).unwrap_or(&INVALID_FEATURE_ID));
             }
         }
-        let right_used_features: HashSet<_> = right_ids.iter().cloned().collect();
-        let left_used_features: HashSet<_> = left_ids.iter().cloned().collect();
+        let right_used_feats: HashSet<_> = right_feat_ids.iter().cloned().collect();
+        let left_used_feats: HashSet<_> = left_feat_ids.iter().cloned().collect();
         for (i, left_map) in scorer_builder.trie.iter_mut().enumerate() {
-            if right_used_features.contains(&U31::new(u32::try_from(i).unwrap()).unwrap()) {
+            if right_used_feats.contains(&U31::new(u32::try_from(i).unwrap()).unwrap()) {
                 let left_indices: Vec<_> = left_map.keys().cloned().collect();
                 for id in left_indices {
-                    if !left_used_features.contains(&id) {
+                    if !left_used_feats.contains(&id) {
                         left_map.remove(&id);
                     }
                 }
@@ -140,7 +143,7 @@ impl DualConnector {
                 left_map.clear();
             }
         }
-        (right_ids, left_ids)
+        (right_feat_ids, left_feat_ids)
     }
 
     /// Creates a new instance from `bigram.right`, `bigram.left`, and `bigram.cost`.
@@ -151,9 +154,9 @@ impl DualConnector {
         C: Read,
     {
         let RawConnectorBuilder {
-            right_ids_tmp,
-            left_ids_tmp,
-            col_size,
+            right_feat_ids_tmp,
+            left_feat_ids_tmp,
+            feat_template_size,
             mut scorer_builder,
         } = RawConnectorBuilder::from_readers(right_rdr, left_rdr, cost_rdr)?;
         let scorer = scorer_builder.build();
@@ -161,13 +164,13 @@ impl DualConnector {
         // Split features into RawConnector and MatrixConnector
         let matrix_ids_set = Self::remove_feature_templates_greedy(
             SIMD_SIZE,
-            &left_ids_tmp,
-            &right_ids_tmp,
-            col_size,
+            &right_feat_ids_tmp,
+            &left_feat_ids_tmp,
+            feat_template_size,
         );
         let mut matrix_indices = vec![];
         let mut raw_indices = vec![];
-        for i in 0..col_size {
+        for i in 0..feat_template_size {
             if matrix_ids_set.contains(&i) {
                 matrix_indices.push(i);
             } else {
@@ -175,27 +178,26 @@ impl DualConnector {
             }
         }
 
-        let (matrix_connector, matrix_right_id_map, matrix_left_id_map) =
-            Self::create_matrix_connector(
-                &right_ids_tmp,
-                &left_ids_tmp,
-                &matrix_indices,
-                col_size,
-                &scorer,
-            );
-        let (raw_right_ids, raw_left_ids) = Self::create_raw_connector(
-            &right_ids_tmp,
-            &left_ids_tmp,
+        let (matrix_connector, right_conn_id_map, left_conn_id_map) = Self::create_matrix_connector(
+            &right_feat_ids_tmp,
+            &left_feat_ids_tmp,
+            &matrix_indices,
+            feat_template_size,
+            &scorer,
+        );
+        let (right_feat_ids, left_feat_ids) = Self::create_raw_connector(
+            &right_feat_ids_tmp,
+            &left_feat_ids_tmp,
             &raw_indices,
             &mut scorer_builder,
         );
 
         Ok(Self {
             matrix_connector,
-            matrix_right_id_map,
-            matrix_left_id_map,
-            raw_right_ids: U31x8::to_simd_vec(&raw_right_ids),
-            raw_left_ids: U31x8::to_simd_vec(&raw_left_ids),
+            right_conn_id_map,
+            left_conn_id_map,
+            right_feat_ids: U31x8::to_simd_vec(&right_feat_ids),
+            left_feat_ids: U31x8::to_simd_vec(&left_feat_ids),
             raw_scorer: scorer_builder.build(),
         })
     }
@@ -204,43 +206,43 @@ impl DualConnector {
 impl Connector for DualConnector {
     #[inline(always)]
     fn num_left(&self) -> usize {
-        self.matrix_left_id_map.len()
+        self.left_conn_id_map.len()
     }
 
     #[inline(always)]
     fn num_right(&self) -> usize {
-        self.matrix_right_id_map.len()
+        self.right_conn_id_map.len()
     }
 
     fn map_connection_ids(&mut self, mapper: &ConnIdMapper) {
         assert_eq!(mapper.num_left(), self.num_left());
         assert_eq!(mapper.num_right(), self.num_right());
 
-        let mut new_raw_right_ids = vec![U31x8::default(); self.raw_right_ids.len()];
-        let mut new_right_id_map = vec![0; self.matrix_right_id_map.len()];
+        let mut new_right_feat_ids = vec![U31x8::default(); self.right_feat_ids.len()];
+        let mut new_right_conn_id_map = vec![0; self.right_conn_id_map.len()];
         for right_id in 0..self.num_right() {
             let new_id = usize::from(mapper.right(u16::try_from(right_id).unwrap()));
-            new_raw_right_ids[new_id] = self.raw_right_ids[right_id];
-            new_right_id_map[new_id] = self.matrix_right_id_map[right_id];
+            new_right_feat_ids[new_id] = self.right_feat_ids[right_id];
+            new_right_conn_id_map[new_id] = self.right_conn_id_map[right_id];
         }
-        self.raw_right_ids = new_raw_right_ids;
-        self.matrix_right_id_map = new_right_id_map;
+        self.right_feat_ids = new_right_feat_ids;
+        self.right_conn_id_map = new_right_conn_id_map;
 
-        let mut new_raw_left_ids = vec![U31x8::default(); self.raw_left_ids.len()];
-        let mut new_left_id_map = vec![0; self.matrix_left_id_map.len()];
+        let mut new_left_feat_ids = vec![U31x8::default(); self.left_feat_ids.len()];
+        let mut new_left_conn_id_map = vec![0; self.left_conn_id_map.len()];
         for left_id in 0..self.num_left() {
             let new_id = usize::from(mapper.left(u16::try_from(left_id).unwrap()));
-            new_raw_left_ids[new_id] = self.raw_left_ids[left_id];
-            new_left_id_map[new_id] = self.matrix_left_id_map[left_id];
+            new_left_feat_ids[new_id] = self.left_feat_ids[left_id];
+            new_left_conn_id_map[new_id] = self.left_conn_id_map[left_id];
         }
-        self.raw_left_ids = new_raw_left_ids;
-        self.matrix_left_id_map = new_left_id_map;
+        self.left_feat_ids = new_left_feat_ids;
+        self.left_conn_id_map = new_left_conn_id_map;
 
         let mut matrix_mapper_left = vec![u16::MAX; self.matrix_connector.num_left()];
         let mut matrix_mapper_right = vec![u16::MAX; self.matrix_connector.num_right()];
         let mut left_id = 0;
         let mut right_id = 0;
-        for i in &mut self.matrix_left_id_map {
+        for i in &mut self.left_conn_id_map {
             let map = &mut matrix_mapper_left[usize::from(*i)];
             if *map != u16::MAX {
                 *i = *map;
@@ -250,7 +252,7 @@ impl Connector for DualConnector {
             *i = left_id;
             left_id += 1;
         }
-        for i in &mut self.matrix_right_id_map {
+        for i in &mut self.right_conn_id_map {
             let map = &mut matrix_mapper_right[usize::from(*i)];
             if *map != u16::MAX {
                 *i = *map;
@@ -268,28 +270,26 @@ impl Connector for DualConnector {
 impl ConnectorCost for DualConnector {
     #[inline(always)]
     fn cost(&self, right_id: u16, left_id: u16) -> i32 {
-        let matrix_right_id = self.matrix_right_id_map[usize::from(right_id)];
-        let matrix_left_id = self.matrix_left_id_map[usize::from(left_id)];
-        let matrix_cost = self.matrix_connector.cost(matrix_right_id, matrix_left_id);
+        let right_conn_id = self.right_conn_id_map[usize::from(right_id)];
+        let left_conn_id = self.left_conn_id_map[usize::from(left_id)];
+        let matrix_cost = self.matrix_connector.cost(right_conn_id, left_conn_id);
         let raw_cost = self.raw_scorer.accumulate_cost(
-            &[self.raw_right_ids[usize::from(right_id)]],
-            &[self.raw_left_ids[usize::from(left_id)]],
+            &[self.right_feat_ids[usize::from(right_id)]],
+            &[self.left_feat_ids[usize::from(left_id)]],
         );
         matrix_cost + raw_cost
     }
 
     #[inline(always)]
     unsafe fn cost_unchecked(&self, right_id: u16, left_id: u16) -> i32 {
-        let matrix_right_id = *self
-            .matrix_right_id_map
-            .get_unchecked(usize::from(right_id));
-        let matrix_left_id = *self.matrix_left_id_map.get_unchecked(usize::from(left_id));
+        let right_conn_id = *self.right_conn_id_map.get_unchecked(usize::from(right_id));
+        let left_conn_id = *self.left_conn_id_map.get_unchecked(usize::from(left_id));
         let matrix_cost = self
             .matrix_connector
-            .cost_unchecked(matrix_right_id, matrix_left_id);
+            .cost_unchecked(right_conn_id, left_conn_id);
         let raw_cost = self.raw_scorer.accumulate_cost(
-            &[*self.raw_right_ids.get_unchecked(usize::from(right_id))],
-            &[*self.raw_left_ids.get_unchecked(usize::from(left_id))],
+            &[*self.right_feat_ids.get_unchecked(usize::from(right_id))],
+            &[*self.left_feat_ids.get_unchecked(usize::from(left_id))],
         );
         matrix_cost + raw_cost
     }
