@@ -87,9 +87,9 @@ impl DualConnector {
                 for &idx in matrix_indices {
                     feat_ids.push(*row.get(idx).unwrap_or(&INVALID_FEATURE_ID));
                 }
-                let new_id = feats_map.len();
-                let right_id = *feats_map.entry(feat_ids).or_insert(new_id);
-                conn_id_map.push(u16::try_from(right_id).unwrap());
+                let new_conn_id = feats_map.len();
+                let conn_id = *feats_map.entry(feat_ids).or_insert(new_conn_id);
+                conn_id_map.push(u16::try_from(conn_id).unwrap());
             }
             (conn_id_map, feats_map)
         };
