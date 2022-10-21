@@ -37,19 +37,20 @@ struct Args {
     #[clap(short = 'o', long)]
     sysdic_out: PathBuf,
 
-    /// Bigram information associated with right connection IDs (bigram.right).
+    /// Bi-gram information associated with right connection IDs (bigram.right).
     #[clap(long)]
     bigram_right_in: Option<PathBuf>,
 
-    /// Bigram information associated with left connection IDs (bigram.right).
+    /// Bi-gram information associated with left connection IDs (bigram.right).
     #[clap(long)]
     bigram_left_in: Option<PathBuf>,
 
-    /// Bigram cost file (bigram.cost).
+    /// Bi-gram cost file (bigram.cost).
     #[clap(long)]
     bigram_cost_in: Option<PathBuf>,
 
-    /// Use dual connector.
+    /// Control speed reduction. This option is enabled when bi-gram information
+    /// is specified.
     #[clap(long)]
     dual_connector: bool,
 }
