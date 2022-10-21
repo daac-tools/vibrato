@@ -57,7 +57,7 @@ impl DualConnector {
                 };
                 let right_num_conn_ids = calculate_num_conn_ids(right_feat_ids_tmp);
                 let left_num_conn_ids = calculate_num_conn_ids(left_feat_ids_tmp);
-                if right_num_conn_ids * left_num_conn_ids < min_matrix_size {
+                if right_num_conn_ids * left_num_conn_ids <= min_matrix_size {
                     min_matrix_size = right_num_conn_ids * left_num_conn_ids;
                     candidate_idx = trial_idx;
                 }
@@ -117,8 +117,8 @@ impl DualConnector {
         raw_indices: &[usize],
         scorer_builder: &mut ScorerBuilder,
     ) -> (Vec<U31>, Vec<U31>) {
-        let mut right_feat_ids = vec![U31::default(); SIMD_SIZE];
-        let mut left_feat_ids = vec![U31::default(); SIMD_SIZE];
+        let mut right_feat_ids = vec![U31::default(); raw_indices.len()];
+        let mut left_feat_ids = vec![U31::default(); raw_indices.len()];
         for row in right_feat_ids_tmp {
             for &idx in raw_indices {
                 right_feat_ids.push(*row.get(idx).unwrap_or(&INVALID_FEATURE_ID));
@@ -292,5 +292,87 @@ impl ConnectorCost for DualConnector {
             &[*self.left_feat_ids.get_unchecked(usize::from(left_id))],
         );
         matrix_cost + raw_cost
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn from_readers_test() {
+        let right_rdr = "\
+1\tAB,*,CD,*,EF,*,GH,*,IJ,*,KL,*,MN,*,OP,*,QR,*,ST
+2\tUV,*,WX,*,YZ,*,12,*,34,*,56,*,78,*,90,*,*,*,*"
+            .as_bytes();
+        let left_rdr = "\
+1\tuv,*,wx,*,yz,*,12,*,34,*,56,*,78,*,90,*,*,*,*
+2\tab,*,cd,*,ef,*,gh,*,ij,*,kl,*,mn,*,op,*,qr,*,st"
+            .as_bytes();
+        let cost_rdr = "\
+AB/ab\t-10
+CD/cd\t20
+EF/ef\t-30
+GH/gh\t40
+IJ/ij\t-50
+KL/kl\t60
+MN/mn\t-70
+OP/op\t80
+QR/qr\t-90
+ST/st\t100
+UV/uv\t-110
+WX/wx\t120
+YZ/yz\t-130
+12/12\t140
+34/34\t-150
+56/56\t160
+78/78\t-170
+90/90\t180"
+            .as_bytes();
+
+        let conn = DualConnector::from_readers(right_rdr, left_rdr, cost_rdr).unwrap();
+
+        assert_eq!(conn.cost(1, 2), 50);
+        assert_eq!(conn.cost(2, 1), 40);
+    }
+
+    #[test]
+    fn mapping_test() {
+        let right_rdr = "\
+1\tAB,*,CD,*,EF,*,GH,*,IJ,*,KL,*,MN,*,OP,*,QR,*,ST
+2\tUV,*,WX,*,YZ,*,12,*,34,*,56,*,78,*,90,*,*,*,*"
+            .as_bytes();
+        let left_rdr = "\
+1\tuv,*,wx,*,yz,*,12,*,34,*,56,*,78,*,90,*,*,*,*
+2\tab,*,cd,*,ef,*,gh,*,ij,*,kl,*,mn,*,op,*,qr,*,st"
+            .as_bytes();
+        let cost_rdr = "\
+AB/ab\t-10
+CD/cd\t20
+EF/ef\t-30
+GH/gh\t40
+IJ/ij\t-50
+KL/kl\t60
+MN/mn\t-70
+OP/op\t80
+QR/qr\t-90
+ST/st\t100
+UV/uv\t-110
+WX/wx\t120
+YZ/yz\t-130
+12/12\t140
+34/34\t-150
+56/56\t160
+78/78\t-170
+90/90\t180"
+            .as_bytes();
+
+        let mut conn = DualConnector::from_readers(right_rdr, left_rdr, cost_rdr).unwrap();
+
+        let mapper = ConnIdMapper::new(vec![1, 2, 0], vec![2, 0, 1]);
+        conn.map_connection_ids(&mapper);
+
+        assert_eq!(conn.cost(0, 0), 50);
+        assert_eq!(conn.cost(1, 2), 40);
     }
 }

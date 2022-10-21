@@ -211,6 +211,7 @@ impl RawConnectorBuilder {
         }
 
         let mut feat_template_size = 0;
+
         let mut right_feat_ids_tmp = vec![];
         let right_rdr = BufReader::new(right_rdr);
         for (i, line) in right_rdr.lines().enumerate() {
