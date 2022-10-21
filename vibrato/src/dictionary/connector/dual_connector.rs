@@ -133,10 +133,10 @@ impl DualConnector {
         let left_used_feats: HashSet<_> = left_feat_ids.iter().cloned().collect();
         for (i, left_map) in scorer_builder.trie.iter_mut().enumerate() {
             if right_used_feats.contains(&U31::new(u32::try_from(i).unwrap()).unwrap()) {
-                let left_indices: Vec<_> = left_map.keys().cloned().collect();
-                for id in left_indices {
-                    if !left_used_feats.contains(&id) {
-                        left_map.remove(&id);
+                let left_feat_ids: Vec<_> = left_map.keys().cloned().collect();
+                for feat_id in left_feat_ids {
+                    if !left_used_feats.contains(&feat_id) {
+                        left_map.remove(&feat_id);
                     }
                 }
             } else {
