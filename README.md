@@ -50,7 +50,7 @@ $ tar -xzf ipadic-mecab-2_7_0.tar.gz
 
 Other dictionaries can be found in [the Releases page](https://github.com/daac-tools/vibrato/releases).
 
-You also can compile or train system dictionaries from your own resources.
+You can also compile or train system dictionaries from your own resources.
 See the [docs](./docs/) for more advanced usage.
 
 ### 2. Tokenization
