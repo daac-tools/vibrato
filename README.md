@@ -48,7 +48,7 @@ $ wget https://github.com/daac-tools/vibrato/releases/download/v0.3.1/ipadic-mec
 $ tar -xzf ipadic-mecab-2_7_0.tar.gz
 ```
 
-Other dictionaries can be found in [the Releases page](https://github.com/daac-tools/vibrato/releases).
+Other precompiled dictionaries can be found in [the Releases page](https://github.com/daac-tools/vibrato/releases).
 
 You can also compile or train system dictionaries from your own resources.
 See the [docs](./docs/) for more advanced usage.
