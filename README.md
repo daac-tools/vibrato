@@ -38,42 +38,27 @@ The detailed description can be found [here](./docs/train.md).
 This software is implemented in Rust.
 First of all, install `rustc` and `cargo` following the [official instructions](https://www.rust-lang.org/tools/install).
 
-### 1. Resource preparation
+### 1. Dictionary preparation
 
-You can compile a system dictionary from language resources in the MeCab format.
-The simplest way is using publicly-available resources such as IPADIC or UniDic.
-
-The directory `scripts` provides scripts to prepare system dictionaries from several public resources.
+You can easily get started with Vibrato by downloading a precompiled dictionary.
+Here, consider to use [mecab-ipadic v2.7.0](https://taku910.github.io/mecab/).
 
 ```
-$ ls -1 scripts
-prepare_ipadic-mecab-2_7_0.sh
-prepare_ipadic-mecab-neologd-20200910.sh
-prepare_unidic-cwj-3_1_1.sh
-prepare_unidic-mecab-2_1_2.sh
+$ wget https://github.com/daac-tools/vibrato/releases/download/v0.3.1/ipadic-mecab-2_7_0.tar.gz
+$ tar -xzf ipadic-mecab-2_7_0.tar.gz
 ```
 
-For example, if you want to use [mecab-ipadic v2.7.0](https://taku910.github.io/mecab/), run `prepare_ipadic-mecab-2_7_0.sh`.
+Other precompiled dictionaries can be found in [the Releases page](https://github.com/daac-tools/vibrato/releases).
 
-```
-$ ./scripts/prepare_ipadic-mecab-2_7_0.sh
-```
-
-The system dictionary `resources_ipadic-mecab-2_7_0/system.dic` will be produced.
-
-```
-$ ls resources_ipadic-mecab-2_7_0
-system.dic
-```
-
-See the [document](./docs/compile.md) for preparation steps without these scripts.
+You can also compile or train system dictionaries from your own resources.
+See the [docs](./docs/) for more advanced usage.
 
 ### 2. Tokenization
 
 To tokenize sentences using the system dictionary, run the following command.
 
 ```
-$ echo '本とカレーの街神保町へようこそ。' | cargo run --release -p tokenize -- -i resources_ipadic-mecab-2_7_0/system.dic
+$ echo '本とカレーの街神保町へようこそ。' | cargo run --release -p tokenize -- -i ipadic-mecab-2_7_0/system.dic
 ```
 
 The resultant tokens will be output in the Mecab format.
@@ -95,7 +80,7 @@ EOS
 If you want to output tokens separated by spaces, specify `-O wakati`.
 
 ```
-$ echo '本とカレーの街神保町へようこそ。' | cargo run --release -p tokenize -- -i resources_ipadic-mecab-2_7_0/system.dic -O wakati
+$ echo '本とカレーの街神保町へようこそ。' | cargo run --release -p tokenize -- -i ipadic-mecab-2_7_0/system.dic -O wakati
 本 と カレー の 街 神保 町 へ ようこそ 。
 ```
 
@@ -119,7 +104,7 @@ EOS
 However, Vibrato handles such spaces as tokens with the default settings.
 
 ```
-$ echo 'mens second bag' | cargo run --release -p tokenize -- -i resources_ipadic-mecab-2_7_0/system.dic
+$ echo 'mens second bag' | cargo run --release -p tokenize -- -i ipadic-mecab-2_7_0/system.dic
 mens	名詞,固有名詞,組織,*,*,*,*
  	記号,空白,*,*,*,*,*
 second	名詞,固有名詞,組織,*,*,*,*
@@ -131,7 +116,7 @@ EOS
 If you want to obtain the same results as MeCab, specify the arguments `-S` and `-M 24`.
 
 ```
-$ echo 'mens second bag' | cargo run --release -p tokenize -- -i resources_ipadic-mecab-2_7_0/system.dic -S -M 24
+$ echo 'mens second bag' | cargo run --release -p tokenize -- -i ipadic-mecab-2_7_0/system.dic -S -M 24
 mens	名詞,固有名詞,組織,*,*,*,*
 second	名詞,一般,*,*,*,*,*
 bag	名詞,固有名詞,組織,*,*,*,*
@@ -170,7 +155,7 @@ $ cat user.csv
 To use the user dictionary, specify the file with the `-u` argument.
 
 ```
-$ echo '本とカレーの街神保町へようこそ。' | cargo run --release -p tokenize -- -i resources_ipadic-mecab-2_7_0/system.dic -u user.csv
+$ echo '本とカレーの街神保町へようこそ。' | cargo run --release -p tokenize -- -i ipadic-mecab-2_7_0/system.dic -u user.csv
 本とカレーの街	カスタム名詞,ホントカレーノマチ
 神保町	カスタム名詞,ジンボチョウ
 へ	助詞,格助詞,一般,*,*,*,へ,ヘ,エ
