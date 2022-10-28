@@ -74,7 +74,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let out = std::io::stdout();
     let mut out = BufWriter::new(out.lock());
-    let lines = std::io::stdin().lock().lines()
+    let lines = std::io::stdin().lock().lines();
     for line in lines {
         let line = line?;
         worker.reset_sentence(line);
