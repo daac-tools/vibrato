@@ -33,8 +33,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut worker = tokenizer.new_worker();
     worker.init_connid_counter();
 
-    #[allow(clippy::significant_drop_in_scrutinee)]
-    for line in std::io::stdin().lock().lines() {
+    let lines = std::io::stdin().lock().lines();
+    for line in lines {
         let line = line?;
         worker.reset_sentence(line);
         worker.tokenize();
