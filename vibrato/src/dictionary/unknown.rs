@@ -11,6 +11,7 @@ use crate::dictionary::LexType;
 use crate::errors::{Result, VibratoError};
 use crate::sentence::Sentence;
 use crate::utils::FromU32;
+
 #[cfg(feature = "train")]
 use crate::utils;
 
