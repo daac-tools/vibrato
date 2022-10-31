@@ -103,7 +103,7 @@ impl DualConnector {
                     &U31x8::to_simd_vec(left_feats),
                 );
                 let index = *lid * right_feats_map.len() + *rid;
-                matrix[index] = cost.min(i16::MAX as i32).max(i16::MIN as i32) as i16;
+                matrix[index] = cost.clamp(i16::MIN as i32, i16::MAX as i32) as i16;
             }
         }
         let matrix_connector =
