@@ -5,7 +5,6 @@ use crate::errors::{Result, VibratoError};
 use crate::sentence::Sentence;
 
 /// Representation of a pair of a surface and features.
-#[cfg_attr(docsrs, doc(cfg(feature = "train")))]
 pub struct Word {
     surface: String,
 
@@ -34,7 +33,6 @@ impl Word {
 }
 
 /// Representation of a sentence.
-#[cfg_attr(docsrs, doc(cfg(feature = "train")))]
 pub struct Example {
     /// Concatenation of `tokens`.
     pub(crate) sentence: Sentence,
@@ -63,7 +61,6 @@ impl Example {
 }
 
 /// Representation of a corpus.
-#[cfg_attr(docsrs, doc(cfg(feature = "train")))]
 pub struct Corpus {
     pub(crate) examples: Vec<Example>,
 }

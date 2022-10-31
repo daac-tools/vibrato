@@ -17,7 +17,6 @@ use crate::trainer::feature_extractor::FeatureExtractor;
 use crate::trainer::feature_rewriter::{FeatureRewriter, FeatureRewriterBuilder};
 
 /// Configuration for a trainer.
-#[cfg_attr(docsrs, doc(cfg(feature = "train")))]
 pub struct TrainerConfig {
     pub(crate) feature_extractor: FeatureExtractor,
     pub(crate) unigram_rewriter: FeatureRewriter,

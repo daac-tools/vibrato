@@ -10,7 +10,9 @@ use crate::dictionary::word_idx::WordIdx;
 use crate::dictionary::LexType;
 use crate::errors::{Result, VibratoError};
 use crate::sentence::Sentence;
-use crate::utils::{self, FromU32};
+use crate::utils::FromU32;
+#[cfg(feature = "train")]
+use crate::utils;
 
 use crate::common::MAX_SENTENCE_LENGTH;
 
@@ -136,7 +138,7 @@ impl UnkHandler {
     /// Returns the earliest occurrence of compatible unknown words for the given word.
     ///
     /// Returns `None` if no compatible entry exists.
-    #[allow(dead_code)]
+    #[cfg(feature = "train")]
     pub fn compatible_unk_index(
         &self,
         sent: &Sentence,
@@ -184,14 +186,14 @@ impl UnkHandler {
         &self.entries[usize::from_u32(word_idx.word_id)].feature
     }
 
-    #[allow(dead_code)]
+    #[cfg(feature = "train")]
     #[inline(always)]
     pub fn word_cate_id(&self, word_idx: WordIdx) -> u16 {
         debug_assert_eq!(word_idx.lex_type, LexType::Unknown);
         self.entries[usize::from_u32(word_idx.word_id)].cate_id
     }
 
-    #[allow(dead_code)]
+    #[cfg(feature = "train")]
     #[inline(always)]
     pub fn len(&self) -> usize {
         self.entries.len()
@@ -264,6 +266,7 @@ impl UnkHandler {
 mod tests {
     use super::*;
 
+    #[cfg(feature = "train")]
     const CHAR_DEF: &'static str = "\
 DEFAULT 0 1 0
 ALPHA   1 1 6
@@ -271,12 +274,14 @@ NUMERIC 1 1 0
 0x0030..0x0039 NUMERIC
 0x0041..0x005A ALPHA NUMERIC
 0x0061..0x007A ALPHA NUMERIC";
+    #[cfg(feature = "train")]
     const UNK_DEF: &'static str = "\
 DEFAULT,0,0,0,補助記号,*
 ALPHA,0,0,0,名詞,*,変数
 ALPHA,0,0,0,動詞,*
 NUMERIC,0,0,0,数字";
 
+    #[cfg(feature = "train")]
     #[test]
     fn test_compatible_unk_entry_1() {
         let prop = CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap();
@@ -292,6 +297,7 @@ NUMERIC,0,0,0,数字";
         assert_eq!(unk.word_feature(unk_index), "名詞,*,変数");
     }
 
+    #[cfg(feature = "train")]
     #[test]
     fn test_compatible_unk_entry_2() {
         let prop = CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap();
@@ -307,6 +313,7 @@ NUMERIC,0,0,0,数字";
         assert_eq!(unk.word_feature(unk_index), "動詞,*");
     }
 
+    #[cfg(feature = "train")]
     #[test]
     fn test_compatible_unk_entry_3() {
         let prop = CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap();
@@ -322,6 +329,7 @@ NUMERIC,0,0,0,数字";
         assert_eq!(unk.word_feature(unk_index), "数字");
     }
 
+    #[cfg(feature = "train")]
     #[test]
     fn test_compatible_unk_entry_undefined_1() {
         let prop = CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap();
@@ -334,6 +342,7 @@ NUMERIC,0,0,0,数字";
         assert!(unk.compatible_unk_index(&sent, 2, 7, "形容詞").is_none());
     }
 
+    #[cfg(feature = "train")]
     #[test]
     fn test_compatible_unk_entry_undefined_2() {
         let prop = CharProperty::from_reader(CHAR_DEF.as_bytes()).unwrap();

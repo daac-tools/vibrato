@@ -90,7 +90,6 @@ use crate::trainer::model::ModelData;
 use crate::utils::{self, FromU32};
 
 /// Trainer of morphological analyzer.
-#[cfg_attr(docsrs, doc(cfg(feature = "train")))]
 pub struct Trainer {
     config: TrainerConfig,
     max_grouping_len: Option<usize>,
