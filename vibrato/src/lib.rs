@@ -44,6 +44,7 @@
 //! # }
 //! ```
 #![deny(missing_docs)]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 
 #[cfg(not(any(target_pointer_width = "32", target_pointer_width = "64")))]
 compile_error!("`target_pointer_width` must be 32 or 64");
@@ -55,10 +56,13 @@ mod num;
 mod sentence;
 pub mod token;
 pub mod tokenizer;
-pub mod trainer;
 mod utils;
 
-#[cfg(test)]
+#[cfg(feature = "train")]
+#[cfg_attr(docsrs, doc(cfg(feature = "train")))]
+pub mod trainer;
+
+#[cfg(all(test, feature = "train"))]
 mod test_utils;
 #[cfg(test)]
 mod tests;

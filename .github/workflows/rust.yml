@@ -48,6 +48,13 @@ jobs:
           command: clippy
           args: -- -D warnings -W clippy::nursery
 
+      - name: Run cargo test (no-default-features)
+        uses: actions-rs/cargo@v1
+        continue-on-error: ${{ matrix.rust == 'nightly' }}
+        with:
+          command: test
+          args: --release --no-default-features
+
       - name: Run cargo test
         uses: actions-rs/cargo@v1
         continue-on-error: ${{ matrix.rust == 'nightly' }}

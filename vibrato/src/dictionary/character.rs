@@ -123,6 +123,7 @@ impl CharProperty {
             .map(|id| u32::try_from(id).unwrap())
     }
 
+    #[cfg(feature = "train")]
     #[inline(always)]
     pub fn cate_str(&self, cate_id: u32) -> Option<&str> {
         self.categories

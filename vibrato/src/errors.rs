@@ -34,6 +34,7 @@ pub enum VibratoError {
     Utf8(std::str::Utf8Error),
 
     /// The error variant for [`RucrfError`](rucrf::errors::RucrfError).
+    #[cfg(feature = "train")]
     Crf(rucrf::errors::RucrfError),
 }
 
@@ -70,6 +71,8 @@ impl fmt::Display for VibratoError {
             Self::BincodeEncode(e) => e.fmt(f),
             Self::StdIo(e) => e.fmt(f),
             Self::Utf8(e) => e.fmt(f),
+
+            #[cfg(feature = "train")]
             Self::Crf(e) => e.fmt(f),
         }
     }
@@ -149,6 +152,7 @@ impl From<std::str::Utf8Error> for VibratoError {
     }
 }
 
+#[cfg(feature = "train")]
 impl From<rucrf::errors::RucrfError> for VibratoError {
     fn from(error: rucrf::errors::RucrfError) -> Self {
         Self::Crf(error)
