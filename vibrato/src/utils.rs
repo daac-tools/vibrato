@@ -1,3 +1,4 @@
+#[cfg(feature = "train")]
 use std::io::Write;
 
 use csv_core::ReadFieldResult;
@@ -16,6 +17,7 @@ impl FromU32 for usize {
     }
 }
 
+#[cfg(feature = "train")]
 pub fn quote_csv_cell<W>(mut wtr: W, mut data: &[u8]) -> std::io::Result<()>
 where
     W: Write,

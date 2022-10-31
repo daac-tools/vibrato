@@ -136,6 +136,7 @@ impl UnkHandler {
     /// Returns the earliest occurrence of compatible unknown words for the given word.
     ///
     /// Returns `None` if no compatible entry exists.
+    #[allow(dead_code)]
     pub fn compatible_unk_index(
         &self,
         sent: &Sentence,
@@ -183,12 +184,14 @@ impl UnkHandler {
         &self.entries[usize::from_u32(word_idx.word_id)].feature
     }
 
+    #[allow(dead_code)]
     #[inline(always)]
     pub fn word_cate_id(&self, word_idx: WordIdx) -> u16 {
         debug_assert_eq!(word_idx.lex_type, LexType::Unknown);
         self.entries[usize::from_u32(word_idx.word_id)].cate_id
     }
 
+    #[allow(dead_code)]
     #[inline(always)]
     pub fn len(&self) -> usize {
         self.entries.len()

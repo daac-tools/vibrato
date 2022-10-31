@@ -22,6 +22,7 @@ pub struct ModelData {
 }
 
 /// Tokenization Model
+#[cfg_attr(docsrs, doc(cfg(feature = "train")))]
 pub struct Model {
     pub(crate) data: ModelData,
 
