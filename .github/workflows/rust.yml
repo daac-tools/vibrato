@@ -36,7 +36,8 @@ jobs:
         run: cargo fmt --all -- --check
 
       - name: Run cargo clippy
-        continue-on-error: ${{ matrix.rust == 'nightly' }}
+        # Run clippy only on stable to ignore unreasonable old warnings.
+        continue-on-error: ${{ matrix.rust != 'stable' }}
         run: cargo clippy -- -D warnings -W clippy::nursery
 
       - name: Run cargo test (no-default-features)
