@@ -17,63 +17,42 @@ jobs:
     strategy:
       matrix:
         rust:
+          - 1.63.0 # MSRV
           - stable
           - nightly
     steps:
-      - uses: actions/checkout@v2
-      - name: Install latest stable
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: ${{ matrix.rust }}
-          override: true
-          components: rustfmt, clippy
+      - uses: actions/checkout@v3
+      - name: Install ${{ matrix.rust }}
+        run: |
+          rustup toolchain install ${{ matrix.rust }} --profile minimal --component rustfmt,clippy
+          rustup default ${{ matrix.rust }}
 
       - name: Run cargo check
-        uses: actions-rs/cargo@v1
         continue-on-error: ${{ matrix.rust == 'nightly' }}
-        with:
-          command: check
+        run: cargo check
 
       - name: Run cargo fmt
-        uses: actions-rs/cargo@v1
         continue-on-error: ${{ matrix.rust == 'nightly' }}
-        with:
-          command: fmt
-          args: --all -- --check
+        run: cargo fmt --all -- --check
 
       - name: Run cargo clippy
-        uses: actions-rs/cargo@v1
         continue-on-error: ${{ matrix.rust == 'nightly' }}
-        with:
-          command: clippy
-          args: -- -D warnings -W clippy::nursery
+        run: cargo clippy -- -D warnings -W clippy::nursery
 
       - name: Run cargo test (no-default-features)
-        uses: actions-rs/cargo@v1
         continue-on-error: ${{ matrix.rust == 'nightly' }}
-        with:
-          command: test
-          args: --release --no-default-features
+        run: cargo test --release --no-default-features
 
       - name: Run cargo test
-        uses: actions-rs/cargo@v1
         continue-on-error: ${{ matrix.rust == 'nightly' }}
-        with:
-          command: test
-          args: --release --all-features
+        run: cargo test --release --all-features
 
       - name: Run cargo test with AVX2
-        uses: actions-rs/cargo@v1
         continue-on-error: ${{ matrix.rust == 'nightly' }}
         env:
           RUSTFLAGS: '-C target-feature=+avx2'
-        with:
-          command: test
-          args: --release --all-features
+        run: cargo test --release --all-features
 
       - name: Run cargo doc
-        uses: actions-rs/cargo@v1
         continue-on-error: ${{ matrix.rust == 'nightly' }}
-        with:
-          command: doc
-          args: --no-deps
+        run: cargo doc --no-deps
