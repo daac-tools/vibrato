@@ -19,10 +19,10 @@ use crate::common::MAX_SENTENCE_LENGTH;
 
 #[derive(Default, Debug, Clone, Decode, Encode, PartialEq, Eq)]
 pub struct UnkEntry {
-    pub cate_id: u16,
-    pub left_id: u16,
-    pub right_id: u16,
-    pub word_cost: i16,
+    pub cate_id: u32,
+    pub left_id: u32,
+    pub right_id: u32,
+    pub word_cost: i32,
     pub feature: String,
 }
 
@@ -30,10 +30,10 @@ pub struct UnkEntry {
 pub struct UnkWord {
     start_char: usize,
     end_char: usize,
-    left_id: u16,
-    right_id: u16,
-    word_cost: i16,
-    word_id: u16,
+    left_id: u32,
+    right_id: u32,
+    word_cost: i32,
+    word_id: u32,
 }
 
 impl UnkWord {
@@ -130,7 +130,7 @@ impl UnkHandler {
                 left_id: e.left_id,
                 right_id: e.right_id,
                 word_cost: e.word_cost,
-                word_id: word_id as u16,
+                word_id: word_id as u32,
             });
         }
         f
@@ -189,7 +189,7 @@ impl UnkHandler {
 
     #[cfg(feature = "train")]
     #[inline(always)]
-    pub fn word_cate_id(&self, word_idx: WordIdx) -> u16 {
+    pub fn word_cate_id(&self, word_idx: WordIdx) -> u32 {
         debug_assert_eq!(word_idx.lex_type, LexType::Unknown);
         self.entries[usize::from_u32(word_idx.word_id)].cate_id
     }
@@ -216,10 +216,10 @@ impl UnkHandler {
         C: Connector,
     {
         for e in &self.entries {
-            if conn.num_left() <= usize::from(e.left_id) {
+            if conn.num_left() <= e.left_id {
                 return false;
             }
-            if conn.num_right() <= usize::from(e.right_id) {
+            if conn.num_right() <= e.right_id {
                 return false;
             }
         }
@@ -237,7 +237,7 @@ impl UnkHandler {
         let parsed = Lexicon::parse_csv(&buf, "unk.def")?;
         let mut map = vec![vec![]; char_prop.num_categories()];
         for item in parsed {
-            let cate_id = u16::try_from(char_prop.cate_id(&item.surface).ok_or_else(|| {
+            let cate_id = u32::try_from(char_prop.cate_id(&item.surface).ok_or_else(|| {
                 let msg = format!("Undefined category: {}", item.surface);
                 VibratoError::invalid_format("unk.def", msg)
             })?)
@@ -249,7 +249,7 @@ impl UnkHandler {
                 word_cost: item.param.word_cost,
                 feature: item.feature.to_string(),
             };
-            map[usize::from(cate_id)].push(e);
+            map[usize::from_u32(cate_id)].push(e);
         }
 
         let mut offsets = vec![];

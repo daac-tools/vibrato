@@ -12,7 +12,7 @@ use crate::dictionary::connector::{Connector, ConnectorCost};
 use crate::dictionary::mapper::ConnIdMapper;
 use crate::errors::{Result, VibratoError};
 use crate::num::U31;
-use crate::utils;
+use crate::utils::{self, FromU32};
 
 /// Since only signed integers exist for vector types, the invalid feature id is set to U31::MAX so
 /// that the value does not become a negative value.
@@ -22,7 +22,7 @@ pub const INVALID_FEATURE_ID: U31 = U31::MAX;
 pub struct RawConnector {
     right_feat_ids: Vec<U31x8>,
     left_feat_ids: Vec<U31x8>,
-    feat_template_size: usize,
+    feat_template_size: u32,
     scorer: Scorer,
 }
 
@@ -30,7 +30,7 @@ impl RawConnector {
     pub fn new(
         right_feat_ids: Vec<U31x8>,
         left_feat_ids: Vec<U31x8>,
-        feat_template_size: usize,
+        feat_template_size: u32,
         scorer: Scorer,
     ) -> Self {
         Self {
@@ -59,7 +59,7 @@ impl RawConnector {
         //
         // In nightly: feat_template_size = feat_template_size.next_multiple_of(SIMD_SIZE);
         if feat_template_size != 0 {
-            feat_template_size = ((feat_template_size - 1) / SIMD_SIZE + 1) * SIMD_SIZE;
+            feat_template_size = ((feat_template_size - 1) / SIMD_SIZE as u32 + 1) * SIMD_SIZE as u32;
         }
 
         // Converts a vector of N vectors into a matrix of size (N+1)*M,
@@ -67,22 +67,22 @@ impl RawConnector {
         //
         // All short vectors are padded with INVALID_FEATURE_IDs.
         let mut right_feat_ids =
-            vec![INVALID_FEATURE_ID; (right_feat_ids_tmp.len() + 1) * feat_template_size];
+            vec![INVALID_FEATURE_ID; (right_feat_ids_tmp.len() + 1) * feat_template_size as usize];
         let mut left_feat_ids =
-            vec![INVALID_FEATURE_ID; (left_feat_ids_tmp.len() + 1) * feat_template_size];
+            vec![INVALID_FEATURE_ID; (left_feat_ids_tmp.len() + 1) * feat_template_size as usize];
 
         // The first row reserved for BOS/EOS is always an empty row with zero values.
-        right_feat_ids[..feat_template_size].fill(U31::default());
-        left_feat_ids[..feat_template_size].fill(U31::default());
+        right_feat_ids[..feat_template_size as usize].fill(U31::default());
+        left_feat_ids[..feat_template_size as usize].fill(U31::default());
 
-        for (trg, src) in right_feat_ids[feat_template_size..]
-            .chunks_mut(feat_template_size)
+        for (trg, src) in right_feat_ids[feat_template_size as usize..]
+            .chunks_mut(feat_template_size as usize)
             .zip(&right_feat_ids_tmp)
         {
             trg[..src.len()].copy_from_slice(src);
         }
-        for (trg, src) in left_feat_ids[feat_template_size..]
-            .chunks_mut(feat_template_size)
+        for (trg, src) in left_feat_ids[feat_template_size as usize..]
+            .chunks_mut(feat_template_size as usize)
             .zip(&left_feat_ids_tmp)
         {
             trg[..src.len()].copy_from_slice(src);
@@ -91,59 +91,59 @@ impl RawConnector {
         Ok(Self::new(
             U31x8::to_simd_vec(&right_feat_ids),
             U31x8::to_simd_vec(&left_feat_ids),
-            feat_template_size / SIMD_SIZE,
+            feat_template_size / SIMD_SIZE as u32,
             scorer_builder.build(),
         ))
     }
 
     #[inline(always)]
-    fn right_feature_ids(&self, right_id: u16) -> &[U31x8] {
-        &self.right_feat_ids[usize::from(right_id) * self.feat_template_size
-            ..usize::from(right_id + 1) * self.feat_template_size]
+    fn right_feature_ids(&self, right_id: u32) -> &[U31x8] {
+        &self.right_feat_ids[usize::from_u32(right_id * self.feat_template_size)
+            ..usize::from_u32((right_id + 1) * self.feat_template_size)]
     }
 
     #[inline(always)]
-    fn left_feature_ids(&self, left_id: u16) -> &[U31x8] {
-        &self.left_feat_ids[usize::from(left_id) * self.feat_template_size
-            ..usize::from(left_id + 1) * self.feat_template_size]
+    fn left_feature_ids(&self, left_id: u32) -> &[U31x8] {
+        &self.left_feat_ids[usize::from_u32(left_id * self.feat_template_size)
+            ..usize::from_u32((left_id + 1) * self.feat_template_size)]
     }
 }
 
 impl Connector for RawConnector {
     #[inline(always)]
-    fn num_left(&self) -> usize {
-        self.left_feat_ids.len() / self.feat_template_size
+    fn num_left(&self) -> u32 {
+        self.left_feat_ids.len() as u32 / self.feat_template_size
     }
 
     #[inline(always)]
-    fn num_right(&self) -> usize {
-        self.right_feat_ids.len() / self.feat_template_size
+    fn num_right(&self) -> u32 {
+        self.right_feat_ids.len() as u32 / self.feat_template_size
     }
 
     fn map_connection_ids(&mut self, mapper: &ConnIdMapper) {
-        assert_eq!(mapper.num_left(), self.num_left());
-        assert_eq!(mapper.num_right(), self.num_right());
+        assert_eq!(mapper.num_left(), usize::from_u32(self.num_left()));
+        assert_eq!(mapper.num_right(), usize::from_u32(self.num_right()));
 
         let mut mapped = vec![U31x8::default(); self.right_feat_ids.len()];
         for right_id in 0..self.num_right() {
-            let new_right_id = usize::from(mapper.right(u16::try_from(right_id).unwrap()));
-            mapped[new_right_id * self.feat_template_size
-                ..(new_right_id + 1) * self.feat_template_size]
+            let new_right_id = usize::from_u32(mapper.right(right_id));
+            mapped[new_right_id * self.feat_template_size as usize
+                ..(new_right_id + 1) * self.feat_template_size as usize]
                 .copy_from_slice(
-                    &self.right_feat_ids[right_id * self.feat_template_size
-                        ..(right_id + 1) * self.feat_template_size],
+                    &self.right_feat_ids[usize::from_u32(right_id * self.feat_template_size)
+                        ..usize::from_u32((right_id + 1) * self.feat_template_size)],
                 );
         }
         self.right_feat_ids = mapped;
 
         let mut mapped = vec![U31x8::default(); self.left_feat_ids.len()];
         for left_id in 0..self.num_left() {
-            let new_left_id = usize::from(mapper.left(u16::try_from(left_id).unwrap()));
-            mapped[new_left_id * self.feat_template_size
-                ..(new_left_id + 1) * self.feat_template_size]
+            let new_left_id = usize::from_u32(mapper.left(left_id));
+            mapped[new_left_id * self.feat_template_size as usize
+                ..(new_left_id + 1) * self.feat_template_size as usize]
                 .copy_from_slice(
-                    &self.left_feat_ids[left_id * self.feat_template_size
-                        ..(left_id + 1) * self.feat_template_size],
+                    &self.left_feat_ids[usize::from_u32(left_id * self.feat_template_size)
+                        ..usize::from_u32((left_id + 1) * self.feat_template_size)],
                 );
         }
         self.left_feat_ids = mapped;
@@ -152,7 +152,7 @@ impl Connector for RawConnector {
 
 impl ConnectorCost for RawConnector {
     #[inline(always)]
-    fn cost(&self, right_id: u16, left_id: u16) -> i32 {
+    fn cost(&self, right_id: u32, left_id: u32) -> i32 {
         self.scorer.accumulate_cost(
             self.right_feature_ids(right_id),
             self.left_feature_ids(left_id),
@@ -161,7 +161,7 @@ impl ConnectorCost for RawConnector {
 
     /// TODO: Implement unchecked optimization.
     #[inline(always)]
-    unsafe fn cost_unchecked(&self, right_id: u16, left_id: u16) -> i32 {
+    unsafe fn cost_unchecked(&self, right_id: u32, left_id: u32) -> i32 {
         self.cost(right_id, left_id)
     }
 }
@@ -170,7 +170,7 @@ impl ConnectorCost for RawConnector {
 pub struct RawConnectorBuilder {
     pub right_feat_ids_tmp: Vec<Vec<U31>>,
     pub left_feat_ids_tmp: Vec<Vec<U31>>,
-    pub feat_template_size: usize,
+    pub feat_template_size: u32,
     pub scorer_builder: ScorerBuilder,
 }
 
@@ -178,7 +178,7 @@ impl RawConnectorBuilder {
     pub fn new(
         right_feat_ids_tmp: Vec<Vec<U31>>,
         left_feat_ids_tmp: Vec<Vec<U31>>,
-        feat_template_size: usize,
+        feat_template_size: u32,
         scorer_builder: ScorerBuilder,
     ) -> Self {
         Self {
@@ -223,7 +223,7 @@ impl RawConnectorBuilder {
                     "must be ascending order",
                 ));
             }
-            feat_template_size = feat_template_size.max(feat_ids.len());
+            feat_template_size = feat_template_size.max(feat_ids.len() as u32);
             right_feat_ids_tmp.push(feat_ids);
         }
 
@@ -238,7 +238,7 @@ impl RawConnectorBuilder {
                     "must be ascending order",
                 ));
             }
-            feat_template_size = feat_template_size.max(feat_ids.len());
+            feat_template_size = feat_template_size.max(feat_ids.len() as u32);
             left_feat_ids_tmp.push(feat_ids);
         }
 

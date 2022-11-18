@@ -87,10 +87,10 @@ impl Lexicon {
     {
         for i in 0..self.params.len() {
             let p = self.params.get(i);
-            if conn.num_left() <= usize::from(p.left_id) {
+            if conn.num_left() <= p.left_id {
                 return false;
             }
-            if conn.num_right() <= usize::from(p.right_id) {
+            if conn.num_right() <= p.right_id {
                 return false;
             }
         }

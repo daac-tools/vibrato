@@ -5,17 +5,18 @@ use bincode::{Decode, Encode};
 use crate::dictionary::connector::{Connector, ConnectorCost};
 use crate::dictionary::mapper::ConnIdMapper;
 use crate::errors::{Result, VibratoError};
+use crate::utils::FromU32;
 
 /// Matrix of connection costs.
 #[derive(Decode, Encode)]
 pub struct MatrixConnector {
     data: Vec<i16>,
-    num_right: usize,
-    num_left: usize,
+    num_right: u32,
+    num_left: u32,
 }
 
 impl MatrixConnector {
-    pub fn new(data: Vec<i16>, num_right: usize, num_left: usize) -> Self {
+    pub fn new(data: Vec<i16>, num_right: u32, num_left: u32) -> Self {
         Self {
             data,
             num_right,
@@ -32,7 +33,7 @@ impl MatrixConnector {
         let mut lines = reader.lines();
 
         let (num_right, num_left) = Self::parse_header(&lines.next().unwrap()?)?;
-        let mut data = vec![0; num_right * num_left];
+        let mut data = vec![0; usize::from_u32(num_right * num_left)];
 
         for line in lines {
             let line = line?;
@@ -44,13 +45,13 @@ impl MatrixConnector {
                         "left/right_id must be within num_left/right.",
                     ));
                 }
-                data[left_id * num_right + right_id] = conn_cost;
+                data[usize::from_u32(left_id * num_right + right_id)] = conn_cost;
             }
         }
         Ok(Self::new(data, num_right, num_left))
     }
 
-    fn parse_header(line: &str) -> Result<(usize, usize)> {
+    fn parse_header(line: &str) -> Result<(u32, u32)> {
         let cols: Vec<_> = line.split(' ').collect();
         if cols.len() != 2 {
             let msg =
@@ -59,11 +60,11 @@ impl MatrixConnector {
         } else {
             let num_right: u16 = cols[0].parse()?;
             let num_left: u16 = cols[1].parse()?;
-            Ok((usize::from(num_right), usize::from(num_left)))
+            Ok((u32::from(num_right), u32::from(num_left)))
         }
     }
 
-    fn parse_body(line: &str) -> Result<(usize, usize, i16)> {
+    fn parse_body(line: &str) -> Result<(u32, u32, i16)> {
         let cols: Vec<_> = line.split(' ').collect();
         if cols.len() != 3 {
             let msg = format!(
@@ -76,10 +77,10 @@ impl MatrixConnector {
     }
 
     #[inline(always)]
-    fn index(&self, right_id: u16, left_id: u16) -> usize {
-        debug_assert!(usize::from(right_id) < self.num_right);
-        debug_assert!(usize::from(left_id) < self.num_left);
-        let index = usize::from(left_id) * self.num_right + usize::from(right_id);
+    fn index(&self, right_id: u32, left_id: u32) -> usize {
+        debug_assert!(right_id < self.num_right);
+        debug_assert!(left_id < self.num_left);
+        let index = usize::from_u32(left_id * self.num_right + right_id);
         debug_assert!(index < self.data.len());
         index
     }
@@ -87,25 +88,23 @@ impl MatrixConnector {
 
 impl Connector for MatrixConnector {
     #[inline(always)]
-    fn num_left(&self) -> usize {
+    fn num_left(&self) -> u32 {
         self.num_left
     }
 
     #[inline(always)]
-    fn num_right(&self) -> usize {
+    fn num_right(&self) -> u32 {
         self.num_right
     }
 
     fn map_connection_ids(&mut self, mapper: &ConnIdMapper) {
-        assert_eq!(mapper.num_left(), self.num_left);
-        assert_eq!(mapper.num_right(), self.num_right);
+        assert_eq!(mapper.num_left(), usize::from_u32(self.num_left));
+        assert_eq!(mapper.num_right(), usize::from_u32(self.num_right));
 
         let mut mapped = vec![0; self.data.len()];
         for right_id in 0..self.num_right {
-            let right_id = right_id as u16;
             let new_right_id = mapper.right(right_id);
             for left_id in 0..self.num_left {
-                let left_id = left_id as u16;
                 let new_left_id = mapper.left(left_id);
                 let index = self.index(right_id, left_id);
                 let new_index = self.index(new_right_id, new_left_id);
@@ -118,13 +117,13 @@ impl Connector for MatrixConnector {
 
 impl ConnectorCost for MatrixConnector {
     #[inline(always)]
-    fn cost(&self, right_id: u16, left_id: u16) -> i32 {
+    fn cost(&self, right_id: u32, left_id: u32) -> i32 {
         let index = self.index(right_id, left_id);
         i32::from(self.data[index])
     }
 
     #[inline(always)]
-    unsafe fn cost_unchecked(&self, right_id: u16, left_id: u16) -> i32 {
+    unsafe fn cost_unchecked(&self, right_id: u32, left_id: u32) -> i32 {
         let index = self.index(right_id, left_id);
         // The tokenization time can be shortened by 5--10%.
         i32::from(*self.data.get_unchecked(index))

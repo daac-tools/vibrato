@@ -86,8 +86,8 @@ impl Tokenizer {
     pub(crate) fn build_lattice(&self, sent: &Sentence, lattice: &mut Lattice) {
         match self.dict.connector() {
             ConnectorWrapper::Matrix(c) => self.build_lattice_inner(sent, lattice, c),
-            ConnectorWrapper::Raw(c) => self.build_lattice_inner(sent, lattice, c),
-            ConnectorWrapper::Dual(c) => self.build_lattice_inner(sent, lattice, c),
+            //ConnectorWrapper::Raw(c) => self.build_lattice_inner(sent, lattice, c),
+            //ConnectorWrapper::Dual(c) => self.build_lattice_inner(sent, lattice, c),
         }
     }
 

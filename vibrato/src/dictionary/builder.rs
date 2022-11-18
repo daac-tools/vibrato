@@ -1,7 +1,7 @@
 //! Builders for [`Dictionary`].
 use std::io::Read;
 
-use crate::dictionary::connector::{DualConnector, MatrixConnector, RawConnector};
+use crate::dictionary::connector::{/*DualConnector,*/ MatrixConnector,/* RawConnector*/};
 use crate::dictionary::{
     CharProperty, ConnectorWrapper, Dictionary, DictionaryInner, LexType, Lexicon, UnkHandler,
 };
@@ -129,6 +129,8 @@ impl SystemDictionaryBuilder {
         let mut system_lexicon_buf = vec![];
         system_lexicon_rdr.read_to_end(&mut system_lexicon_buf)?;
         let system_word_entries = Lexicon::parse_csv(&system_lexicon_buf, "lex.csv")?;
+        unimplemented!();
+        /*
         let connector = if dual_connector {
             ConnectorWrapper::Dual(DualConnector::from_readers(
                 bigram_right_rdr,
@@ -146,6 +148,7 @@ impl SystemDictionaryBuilder {
         let unk_handler = UnkHandler::from_reader(unk_handler_rdr, &char_prop)?;
 
         Self::build(&system_word_entries, connector, char_prop, unk_handler)
+        */
     }
 }
 

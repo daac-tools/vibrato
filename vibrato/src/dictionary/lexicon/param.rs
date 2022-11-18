@@ -4,14 +4,14 @@ use crate::dictionary::mapper::ConnIdMapper;
 
 #[derive(Debug, Default, Clone, Copy, Eq, PartialEq, Decode, Encode)]
 pub struct WordParam {
-    pub left_id: u16,
-    pub right_id: u16,
-    pub word_cost: i16,
+    pub left_id: u32,
+    pub right_id: u32,
+    pub word_cost: i32,
 }
 
 impl WordParam {
     #[inline(always)]
-    pub const fn new(left_id: u16, right_id: u16, word_cost: i16) -> Self {
+    pub const fn new(left_id: u32, right_id: u32, word_cost: i32) -> Self {
         Self {
             left_id,
             right_id,

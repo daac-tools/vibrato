@@ -3,11 +3,12 @@ use crate::dictionary::lexicon::WordParam;
 use crate::dictionary::mapper::ConnIdCounter;
 use crate::dictionary::word_idx::WordIdx;
 use crate::dictionary::LexType;
+use crate::utils::FromU32;
 
 use crate::common::{BOS_EOS_CONNECTION_ID, MAX_SENTENCE_LENGTH};
 
 const MAX_COST: i32 = i32::MAX;
-const INVALID_IDX: u16 = u16::MAX;
+const INVALID_IDX: u32 = u32::MAX;
 
 /// 160 bits of each without extra padding.
 #[derive(Default, Debug, Clone)]
@@ -16,9 +17,9 @@ pub struct Node {
     pub lex_type: LexType, // 8 bits
     pub start_node: usize,
     pub start_word: usize,
-    pub left_id: u16,
-    pub right_id: u16,
-    pub min_idx: u16,
+    pub left_id: u32,
+    pub right_id: u32,
+    pub min_idx: u32,
     pub min_cost: i32,
 }
 
@@ -75,7 +76,7 @@ impl Lattice {
             lex_type: LexType::default(),
             start_node: MAX_SENTENCE_LENGTH,
             start_word: MAX_SENTENCE_LENGTH,
-            left_id: u16::MAX,
+            left_id: u32::MAX,
             right_id: BOS_EOS_CONNECTION_ID,
             min_idx: INVALID_IDX,
             min_cost: 0,
@@ -94,7 +95,7 @@ impl Lattice {
             start_node,
             start_word: self.len_char(),
             left_id: BOS_EOS_CONNECTION_ID,
-            right_id: u16::MAX,
+            right_id: u32::MAX,
             min_idx,
             min_cost,
         });
@@ -112,7 +113,7 @@ impl Lattice {
             start_node,
             start_word: self.len_char(),
             left_id: BOS_EOS_CONNECTION_ID,
-            right_id: u16::MAX,
+            right_id: u32::MAX,
             min_idx,
             min_cost,
         });
@@ -171,7 +172,7 @@ impl Lattice {
         });
     }
 
-    fn search_min_node<C>(&self, start_node: usize, left_id: u16, connector: &C) -> (u16, i32)
+    fn search_min_node<C>(&self, start_node: usize, left_id: u32, connector: &C) -> (u32, i32)
     where
         C: ConnectorCost,
     {
@@ -186,7 +187,7 @@ impl Lattice {
             // Depending on the order of tie-breaking, the result can be different from MeCab.
             // Using <= (not <) will produce results identical to MeCab in most case (empirically).
             if new_cost <= min_cost {
-                min_idx = i as u16;
+                min_idx = i as u32;
                 min_cost = new_cost;
             }
         }
@@ -198,9 +199,9 @@ impl Lattice {
     unsafe fn search_min_node_unchecked<C>(
         &self,
         start_node: usize,
-        left_id: u16,
+        left_id: u32,
         connector: &C,
-    ) -> (u16, i32)
+    ) -> (u32, i32)
     where
         C: ConnectorCost,
     {
@@ -215,7 +216,7 @@ impl Lattice {
             // Depending on the order of tie-breaking, the result can be different from MeCab.
             // Using <= (not <) will produce results identical to MeCab in most case (empirically).
             if new_cost <= min_cost {
-                min_idx = i as u16;
+                min_idx = i as u32;
                 min_cost = new_cost;
             }
         }
@@ -235,7 +236,7 @@ impl Lattice {
         let mut end_node = eos.start_node;
         let mut min_idx = eos.min_idx;
         while end_node != 0 {
-            let node = &self.ends[end_node][usize::from(min_idx)];
+            let node = &self.ends[end_node][usize::from_u32(min_idx)];
             top_nodes.push((end_node, node.clone()));
             (end_node, min_idx) = (node.start_node, node.min_idx);
         }

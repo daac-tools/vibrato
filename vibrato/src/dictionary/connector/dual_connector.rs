@@ -15,8 +15,8 @@ use crate::num::U31;
 #[derive(Decode, Encode)]
 pub struct DualConnector {
     matrix_connector: MatrixConnector,
-    right_conn_id_map: Vec<u16>,
-    left_conn_id_map: Vec<u16>,
+    right_conn_id_map: Vec<u32>,
+    left_conn_id_map: Vec<u32>,
     right_feat_ids: Vec<U31x8>,
     left_feat_ids: Vec<U31x8>,
     raw_scorer: Scorer,

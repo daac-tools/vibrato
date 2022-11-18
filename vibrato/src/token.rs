@@ -57,21 +57,21 @@ impl<'a> Token<'a> {
 
     /// Gets the left id of the token's node.
     #[inline(always)]
-    pub fn left_id(&self) -> u16 {
+    pub fn left_id(&self) -> u32 {
         let (_, node) = &self.worker.top_nodes[self.index];
         node.left_id
     }
 
     /// Gets the right id of the token's node.
     #[inline(always)]
-    pub fn right_id(&self) -> u16 {
+    pub fn right_id(&self) -> u32 {
         let (_, node) = &self.worker.top_nodes[self.index];
         node.right_id
     }
 
     /// Gets the word cost of the token's node.
     #[inline(always)]
-    pub fn word_cost(&self) -> i16 {
+    pub fn word_cost(&self) -> i32 {
         let (_, node) = &self.worker.top_nodes[self.index];
         self.worker
             .tokenizer
