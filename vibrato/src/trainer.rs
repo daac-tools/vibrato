@@ -417,7 +417,13 @@ impl Trainer {
                 .unigram_feature_ids
                 .get(k)
                 .unwrap();
-            if model.unigram_weight_indices()[usize::from_u32(id.get() - 1)].is_none() {
+            if model
+                .unigram_weight_indices()
+                .get(usize::from_u32(id.get() - 1))
+                .cloned()
+                .flatten()
+                .is_none()
+            {
                 self.config.feature_extractor.unigram_feature_ids.remove(k);
             }
         }
@@ -433,8 +439,10 @@ impl Trainer {
                 .left_feature_ids
                 .get(k)
                 .unwrap();
-            if model.bigram_weight_indices()[usize::from_u32(id.get())].is_empty() {
-                self.config.feature_extractor.left_feature_ids.remove(k);
+            if let Some(x) = model.bigram_weight_indices().get(usize::from_u32(id.get())) {
+                if x.is_empty() {
+                    self.config.feature_extractor.left_feature_ids.remove(k);
+                }
             }
         }
         for k in &right_feature_keys {
