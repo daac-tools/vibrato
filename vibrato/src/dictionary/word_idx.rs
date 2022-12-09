@@ -1,10 +1,10 @@
 use crate::dictionary::LexType;
 
 /// Identifier of a word.
-#[derive(Clone, Copy, Eq, PartialEq, Debug)]
+#[derive(Clone, Copy, Eq, PartialEq, Debug, Hash)]
 pub struct WordIdx {
-    pub lex_type: LexType,
-    pub word_id: u32,
+    pub(crate) lex_type: LexType,
+    pub(crate) word_id: u32,
 }
 
 impl Default for WordIdx {
@@ -16,7 +16,7 @@ impl Default for WordIdx {
 impl WordIdx {
     /// Creates a new instance.
     #[inline(always)]
-    pub const fn new(lex_type: LexType, word_id: u32) -> Self {
+    pub(crate) const fn new(lex_type: LexType, word_id: u32) -> Self {
         Self { lex_type, word_id }
     }
 }
