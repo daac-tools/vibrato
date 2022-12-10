@@ -1,7 +1,7 @@
 //! Container of resultant tokens.
 use std::ops::Range;
 
-use crate::dictionary::LexType;
+use crate::dictionary::{word_idx::WordIdx, LexType};
 use crate::tokenizer::worker::Worker;
 
 /// Resultant token.
@@ -37,22 +37,26 @@ impl<'w, 't> Token<'w, 't> {
         let sent = &self.worker.sent;
         &sent.raw()[self.range_byte()]
     }
+    /// Gets the word index of the token.
+    #[inline(always)]
+    pub fn word_idx(&self) -> WordIdx {
+        let (_, node) = &self.worker.top_nodes[self.index];
+        node.word_idx()
+    }
 
     /// Gets the feature string of the token.
     #[inline(always)]
     pub fn feature(&self) -> &'t str {
-        let (_, node) = &self.worker.top_nodes[self.index];
         self.worker
             .tokenizer
             .dictionary()
-            .word_feature(node.word_idx())
+            .word_feature(self.word_idx())
     }
 
     /// Gets the lexicon type where the token is from.
     #[inline(always)]
     pub fn lex_type(&self) -> LexType {
-        let (_, node) = &self.worker.top_nodes[self.index];
-        node.word_idx().lex_type
+        self.word_idx().lex_type
     }
 
     /// Gets the left id of the token's node.
