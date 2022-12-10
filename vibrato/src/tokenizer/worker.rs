@@ -10,17 +10,17 @@ use crate::tokenizer::Tokenizer;
 ///
 /// It holds the internal data structures used in tokenization,
 /// which can be reused to avoid unnecessary memory reallocation.
-pub struct Worker<'a> {
-    pub(crate) tokenizer: &'a Tokenizer,
+pub struct Worker<'t> {
+    pub(crate) tokenizer: &'t Tokenizer,
     pub(crate) sent: Sentence,
     pub(crate) lattice: Lattice,
     pub(crate) top_nodes: Vec<(usize, Node)>,
     pub(crate) counter: Option<ConnIdCounter>,
 }
 
-impl<'a> Worker<'a> {
+impl<'t> Worker<'t> {
     /// Creates a new instance.
-    pub(crate) fn new(tokenizer: &'a Tokenizer) -> Self {
+    pub(crate) fn new(tokenizer: &'t Tokenizer) -> Self {
         Self {
             tokenizer,
             sent: Sentence::new(),
@@ -62,14 +62,14 @@ impl<'a> Worker<'a> {
 
     /// Gets the `i`-th resultant token.
     #[inline(always)]
-    pub fn token(&self, i: usize) -> Token {
+    pub fn token<'w>(&'w self, i: usize) -> Token<'w, 't> {
         let index = self.num_tokens() - i - 1;
         Token::new(self, index)
     }
 
     /// Creates an iterator of resultant tokens.
     #[inline(always)]
-    pub const fn token_iter(&'a self) -> TokenIter<'a> {
+    pub const fn token_iter<'w>(&'w self) -> TokenIter<'w, 't> {
         TokenIter::new(self, 0)
     }
 
