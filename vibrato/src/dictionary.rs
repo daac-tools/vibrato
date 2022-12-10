@@ -17,15 +17,15 @@ use crate::dictionary::connector::{Connector, ConnectorWrapper};
 use crate::dictionary::lexicon::Lexicon;
 use crate::dictionary::mapper::ConnIdMapper;
 use crate::dictionary::unknown::UnkHandler;
-use crate::dictionary::word_idx::WordIdx;
 use crate::errors::{Result, VibratoError};
 
 pub use crate::dictionary::builder::SystemDictionaryBuilder;
+pub use crate::dictionary::word_idx::WordIdx;
 
 pub(crate) use crate::dictionary::lexicon::WordParam;
 
 /// Type of a lexicon that contains the word.
-#[derive(Clone, Copy, Eq, PartialEq, Debug, Decode, Encode)]
+#[derive(Clone, Copy, Eq, PartialEq, Debug, Hash, Decode, Encode)]
 #[repr(u8)]
 pub enum LexType {
     /// System lexicon.
@@ -109,7 +109,7 @@ impl Dictionary {
 
     /// Gets the reference to the feature string.
     #[inline(always)]
-    pub(crate) fn word_feature(&self, word_idx: WordIdx) -> &str {
+    pub fn word_feature(&self, word_idx: WordIdx) -> &str {
         match word_idx.lex_type {
             LexType::System => self.system_lexicon().word_feature(word_idx),
             LexType::User => self.user_lexicon().unwrap().word_feature(word_idx),
