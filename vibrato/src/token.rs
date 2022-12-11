@@ -5,14 +5,14 @@ use crate::dictionary::{word_idx::WordIdx, LexType};
 use crate::tokenizer::worker::Worker;
 
 /// Resultant token.
-pub struct Token<'a> {
-    worker: &'a Worker<'a>,
+pub struct Token<'w, 't> {
+    worker: &'w Worker<'t>,
     index: usize,
 }
 
-impl<'a> Token<'a> {
+impl<'w, 't> Token<'w, 't> {
     #[inline(always)]
-    pub(crate) const fn new(worker: &'a Worker, index: usize) -> Self {
+    pub(crate) const fn new(worker: &'w Worker<'t>, index: usize) -> Self {
         Self { worker, index }
     }
 
@@ -33,7 +33,7 @@ impl<'a> Token<'a> {
 
     /// Gets the surface string of the token.
     #[inline(always)]
-    pub fn surface(&self) -> &str {
+    pub fn surface(&self) -> &'w str {
         let sent = &self.worker.sent;
         &sent.raw()[self.range_byte()]
     }
@@ -46,7 +46,7 @@ impl<'a> Token<'a> {
 
     /// Gets the feature string of the token.
     #[inline(always)]
-    pub fn feature(&self) -> &str {
+    pub fn feature(&self) -> &'t str {
         self.worker
             .tokenizer
             .dictionary()
@@ -92,7 +92,7 @@ impl<'a> Token<'a> {
     }
 }
 
-impl<'a> std::fmt::Debug for Token<'a> {
+impl<'w, 't> std::fmt::Debug for Token<'w, 't> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Token")
             .field("surface", &self.surface())
@@ -109,20 +109,20 @@ impl<'a> std::fmt::Debug for Token<'a> {
 }
 
 /// Iterator of tokens.
-pub struct TokenIter<'a> {
-    worker: &'a Worker<'a>,
+pub struct TokenIter<'w, 't> {
+    worker: &'w Worker<'t>,
     i: usize,
 }
 
-impl<'a> TokenIter<'a> {
+impl<'w, 't> TokenIter<'w, 't> {
     #[inline(always)]
-    pub(crate) const fn new(worker: &'a Worker, i: usize) -> Self {
+    pub(crate) const fn new(worker: &'w Worker<'t>, i: usize) -> Self {
         Self { worker, i }
     }
 }
 
-impl<'a> Iterator for TokenIter<'a> {
-    type Item = Token<'a>;
+impl<'w, 't> Iterator for TokenIter<'w, 't> {
+    type Item = Token<'w, 't>;
 
     #[inline(always)]
     fn next(&mut self) -> Option<Self::Item> {
