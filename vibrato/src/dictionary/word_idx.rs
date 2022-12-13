@@ -3,8 +3,11 @@ use crate::dictionary::LexType;
 /// Identifier of a word.
 #[derive(Clone, Copy, Eq, PartialEq, Debug, Hash)]
 pub struct WordIdx {
-    pub(crate) lex_type: LexType,
-    pub(crate) word_id: u32,
+    /// Type of a lexicon that contains this word.
+    pub lex_type: LexType,
+
+    /// ID of this word.
+    pub word_id: u32,
 }
 
 impl Default for WordIdx {
