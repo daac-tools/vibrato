@@ -71,4 +71,4 @@ pub use dictionary::{Dictionary, SystemDictionaryBuilder};
 pub use tokenizer::Tokenizer;
 
 /// Version number of this library.
-pub const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
