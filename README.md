@@ -8,6 +8,8 @@ Vibrato is a fast implementation of tokenization (or morphological analysis) bas
 
 The technical ideas behind this library appear in [this blog post](https://tech.legalforce.co.jp/entry/2022/09/20/133132) (Japanese).
 
+A Python wrapper is also available [here](https://github.com/daac-tools/python-vibrato).
+
 ## Features
 
 ### Fast tokenization
