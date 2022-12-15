@@ -183,11 +183,9 @@ at your option.
 
 ## Acknowledgment
 
-The initial version of this software was developed by LegalForce, Inc.,
-but not an officially supported LegalForce product.
+The initial version of this software was developed by LegalOn Technologies, Inc.,
+but not an officially supported LegalOn Technologies product.
 
 ## Contribution
 
-Unless you explicitly state otherwise, any contribution intentionally submitted
-for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
-dual licensed as above, without any additional terms or conditions.
+See [the guidelines](./CONTRIBUTING.md).
