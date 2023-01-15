@@ -2,6 +2,7 @@
 name = "benchmark"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.64"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -12,4 +13,4 @@ unchecked = []
 
 [dependencies]
 vibrato = { path = "../vibrato" }
-clap = { version = "3.1", features = ["derive"] }  # MIT or Apache-2.0
+clap = { version = "4.0", features = ["derive"] }  # MIT or Apache-2.0
