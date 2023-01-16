@@ -3,6 +3,7 @@ mod timer;
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use std::path::PathBuf;
 
 use vibrato::{Dictionary, Tokenizer};
 
@@ -14,14 +15,20 @@ const RUNS: usize = 10;
 const TRIALS: usize = 10;
 
 #[derive(Parser, Debug)]
-#[clap(name = "main", about = "A program.")]
+#[clap(
+    name = "benchmark",
+    about = "A program to benchmark tokenization speed."
+)]
 struct Args {
+    /// System dictionary.
     #[clap(short = 'i', long)]
-    sysdic_filename: String,
+    sysdic: PathBuf,
 
+    /// Ignores white spaces in input strings.
     #[clap(short = 'S', long)]
     ignore_space: bool,
 
+    /// Maximum length of unknown words.
     #[clap(short = 'M', long)]
     max_grouping_len: Option<usize>,
 }
@@ -29,7 +36,7 @@ struct Args {
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
-    let reader = BufReader::new(File::open(args.sysdic_filename)?);
+    let reader = BufReader::new(File::open(args.sysdic)?);
     #[cfg(not(feature = "unchecked"))]
     let dict = Dictionary::read(reader)?;
     #[cfg(feature = "unchecked")]
