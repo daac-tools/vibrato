@@ -7,10 +7,10 @@ authors = [
 ]
 
 [dependencies]
+gloo-worker = "0.2.1" # MIT or Apache-2.0
+ouroboros = "0.15.5" # MIT or Apache-2.0
 serde = "1" # MIT or Apache-2.0
 vibrato = { path = "../vibrato", default-features = false } # MIT or Apache-2.0
 wasm-bindgen = "0.2.83" # MIT or Apache-2.0
 web-sys = { version = "0.3", features = ["Event", "EventTarget", "InputEvent"] } # MIT or Apache-2.0
 yew = { version = "0.20", features = ["csr"] } # MIT or Apache-2.0
-gloo-worker = "0.2.1" # MIT or Apache-2.0
-ouroboros = "0.15.5" # MIT or Apache-2.0

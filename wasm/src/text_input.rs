@@ -1,10 +1,12 @@
+use std::rc::Rc;
+
 use wasm_bindgen::{JsCast, UnwrapThrowExt};
 use web_sys::{Event, HtmlInputElement, InputEvent};
 use yew::{html, Callback, Component, Context, Html, NodeRef, Properties};
 
 #[derive(Clone, PartialEq, Properties)]
 pub struct Props {
-    pub value: String,
+    pub value: Rc<String>,
     pub callback: Callback<String>,
 }
 
@@ -23,7 +25,8 @@ impl Component for TextInput {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let Props { value, callback } = ctx.props().clone();
+        let Props { value, callback } = ctx.props();
+        let callback = callback.clone();
 
         let oninput = Callback::from(move |e: InputEvent| {
             let event: Event = e.dyn_into().unwrap_throw();
@@ -37,10 +40,14 @@ impl Component for TextInput {
                 ref={self.node_ref.clone()}
                 type="text"
                 placeholder="Enter Japanese here"
-                {value}
+                value={value.to_string()}
                 {oninput}
             />
         }
+    }
+
+    fn changed(&mut self, ctx: &Context<Self>, old_props: &Self::Properties) -> bool {
+        ctx.props().value != old_props.value
     }
 
     fn rendered(&mut self, _ctx: &Context<Self>, first_render: bool) {

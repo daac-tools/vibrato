@@ -1,6 +1,8 @@
 mod text_input;
 mod token_view;
 
+use std::rc::Rc;
+
 use gloo_worker::{HandlerId, Spawnable, Worker, WorkerBridge, WorkerScope};
 use serde::{Deserialize, Serialize};
 use yew::{html, Component, Context, Html};
@@ -76,8 +78,8 @@ pub enum Msg {
 
 pub struct App {
     bridge: WorkerBridge<VibratoWorker>,
-    text: String,
-    tokens: Option<Vec<Token>>,
+    text: Rc<String>,
+    tokens: Option<Rc<Vec<Token>>>,
 }
 
 impl Component for App {
@@ -98,7 +100,7 @@ impl Component for App {
 
         Self {
             bridge,
-            text: String::new(),
+            text: String::new().into(),
             tokens: None,
         }
     }
@@ -106,11 +108,11 @@ impl Component for App {
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::SetText(text) => {
-                self.text = text;
-                self.bridge.send(self.text.clone());
+                self.text = Rc::new(text);
+                self.bridge.send(self.text.to_string());
             }
             Msg::WorkerResult(tokens) => {
-                self.tokens.replace(tokens);
+                self.tokens.replace(Rc::new(tokens));
             }
         };
         true
@@ -125,25 +127,25 @@ impl Component for App {
                 </header>
                 <main>
                     <div>
-                    {
-                        if self.tokens.is_some() {
-                            html! {
-                                <TextInput
-                                    callback={ctx.link().callback(Msg::SetText)}
-                                    value={self.text.clone()}
-                                />
-                            }
-                        } else {
-                            html!{
-                                <input type="text" disabled=true />
+                        {
+                            if self.tokens.is_some() {
+                                html! {
+                                    <TextInput
+                                        callback={ctx.link().callback(Msg::SetText)}
+                                        value={Rc::clone(&self.text)}
+                                    />
+                                }
+                            } else {
+                                html!{
+                                    <input type="text" disabled=true />
+                                }
                             }
                         }
-                    }
                     </div>
                     {
                         if let Some(tokens) = &self.tokens {
                             html! {
-                                <TokenView tokens={tokens.clone()} />
+                                <TokenView tokens={Rc::clone(&tokens)} />
                             }
                         } else {
                             html! {
