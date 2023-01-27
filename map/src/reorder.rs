@@ -48,18 +48,18 @@ fn main() -> Result<(), Box<dyn Error>> {
         output_filename.set_extension("lmap");
         let mut w = BufWriter::new(File::create(&output_filename).unwrap());
         for (i, p) in lid_probs {
-            w.write_all(format!("{}\t{}\n", i, p).as_bytes())?;
+            w.write_all(format!("{i}\t{p}\n").as_bytes())?;
         }
-        println!("Wrote {:?}", output_filename);
+        println!("Wrote {output_filename:?}");
     }
     {
         let mut output_filename = args.mapping_out;
         output_filename.set_extension("rmap");
         let mut w = BufWriter::new(File::create(&output_filename).unwrap());
         for (i, p) in rid_probs {
-            w.write_all(format!("{}\t{}\n", i, p).as_bytes())?;
+            w.write_all(format!("{i}\t{p}\n").as_bytes())?;
         }
-        println!("Wrote {:?}", output_filename);
+        println!("Wrote {output_filename:?}");
     }
 
     Ok(())
