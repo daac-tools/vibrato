@@ -9,6 +9,7 @@ authors = [
 [dependencies]
 gloo-worker = "0.2.1" # MIT or Apache-2.0
 ouroboros = "0.15.5" # MIT or Apache-2.0
+ruzstd = "0.3.0" # MIT
 serde = "1" # MIT or Apache-2.0
 vibrato = { path = "../vibrato", default-features = false } # MIT or Apache-2.0
 wasm-bindgen = "0.2.83" # MIT or Apache-2.0

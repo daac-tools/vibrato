@@ -1,6 +1,7 @@
 mod text_input;
 mod token_view;
 
+use std::io::Read;
 use std::rc::Rc;
 
 use gloo_worker::{HandlerId, Spawnable, Worker, WorkerBridge, WorkerScope};
@@ -36,7 +37,11 @@ impl Worker for VibratoWorker {
     type Output = Vec<Token>;
 
     fn create(_scope: &WorkerScope<Self>) -> Self {
-        let dict = vibrato::Dictionary::read(include_bytes!("../system.dic").as_slice()).unwrap();
+        let model_data = include_bytes!("system.dic.zst");
+        let mut decoder = ruzstd::StreamingDecoder::new(model_data.as_slice()).unwrap();
+        let mut buff = vec![];
+        decoder.read_to_end(&mut buff).unwrap();
+        let dict = vibrato::Dictionary::read(buff.as_slice()).unwrap();
         let tokenizer = vibrato::Tokenizer::new(dict);
         VibratoWorkerBuilder {
             tokenizer,

@@ -18,7 +18,7 @@ pub fn token_view(props: &Props) -> Html {
             <thead>
                 <tr>
                     <th>{"Surface"}</th>
-                    <th>{"Part-of-Speech"}</th>
+                    <th>{"Part of Speech"}</th>
                     <th>{"Pronunciation"}</th>
                 </tr>
             </thead>
