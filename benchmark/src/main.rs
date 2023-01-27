@@ -91,10 +91,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     max /= TRIALS as f64;
 
     println!("Number_of_sentences: {}", lines.len());
-    println!(
-        "Elapsed_seconds_to_tokenize_all_sentences: [{},{},{}]",
-        min, avg, max
-    );
+    println!("Elapsed_seconds_to_tokenize_all_sentences: [{min},{avg},{max}]");
 
     Ok(())
 }
