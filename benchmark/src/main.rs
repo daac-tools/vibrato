@@ -20,7 +20,7 @@ const TRIALS: usize = 10;
     about = "A program to benchmark tokenization speed."
 )]
 struct Args {
-    /// System dictionary.
+    /// System dictionary (in zstd).
     #[clap(short = 'i', long)]
     sysdic: PathBuf,
 
