@@ -1,6 +1,5 @@
 use std::error::Error;
 use std::fs::File;
-use std::io::BufWriter;
 use std::path::PathBuf;
 use std::time::Instant;
 
@@ -33,7 +32,7 @@ struct Args {
     #[clap(short = 'c', long)]
     char_in: PathBuf,
 
-    /// File to which the binary dictionary is output.
+    /// File to which the binary dictionary is output (in zstd).
     #[clap(short = 'o', long)]
     sysdic_out: PathBuf,
 
@@ -91,8 +90,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
     eprintln!("{} seconds", start.elapsed().as_secs_f64());
 
-    eprintln!("Writting the system dictionary...: {:?}", &args.sysdic_out);
-    let num_bytes = dict.write(BufWriter::new(File::create(args.sysdic_out)?))?;
+    eprintln!(
+        "Writting the system dictionary in zstd...: {:?}",
+        &args.sysdic_out
+    );
+    let num_bytes = dict.write(zstd::Encoder::new(File::create(args.sysdic_out)?, 19)?)?;
     eprintln!("{} MiB", num_bytes as f64 / (1024. * 1024.));
 
     Ok(())
