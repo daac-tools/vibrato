@@ -2,7 +2,7 @@ mod timer;
 
 use std::error::Error;
 use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::io::BufRead;
 use std::path::PathBuf;
 
 use vibrato::{Dictionary, Tokenizer};
@@ -36,7 +36,7 @@ struct Args {
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
-    let reader = BufReader::new(File::open(args.sysdic)?);
+    let reader = zstd::Decoder::new(File::open(args.sysdic)?)?;
     #[cfg(not(feature = "unchecked"))]
     let dict = Dictionary::read(reader)?;
     #[cfg(feature = "unchecked")]
