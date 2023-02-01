@@ -94,8 +94,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         "Writting the system dictionary in zstd...: {:?}",
         &args.sysdic_out
     );
-    let num_bytes = dict.write(zstd::Encoder::new(File::create(args.sysdic_out)?, 19)?)?;
-    eprintln!("{} MiB", num_bytes as f64 / (1024. * 1024.));
+    let mut f = zstd::Encoder::new(File::create(args.sysdic_out)?, 19)?;
+    dict.write(&mut f)?;
+    f.finish()?;
 
     Ok(())
 }
