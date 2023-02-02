@@ -11,6 +11,7 @@ clap = { version = "4.0", features = ["derive"] }  # MIT or Apache-2.0
 csv-core = "0.1.10"  # Unlicense or MIT
 rand = "0.8"  # MIT or Apache-2.0
 vibrato = { path = "../vibrato" }  # MIT or Apache-2.0
+zstd = "0.12"  # MIT
 
 [[bin]]
 name = "split"

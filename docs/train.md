@@ -75,7 +75,7 @@ To evaluate the accuracy, run the following command:
 
 ```
 $ cargo run --release -p evaluate -- \
-    -i ./system.dic \
+    -i ./system.dic.zst \
     -t ./dataset/valid.txt \
     --feature-indices 0,1,2,3,9
 ```
