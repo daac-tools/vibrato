@@ -6,5 +6,5 @@ rust-version = "1.64"
 
 [dependencies]
 clap = { version = "4.0", features = ["derive"] }  # MIT or Apache-2.0
-ruzstd = "0.3.0"  # MIT
+zstd = "0.12"  # MIT
 vibrato = { path = "../vibrato" }
