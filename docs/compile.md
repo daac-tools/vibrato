@@ -8,7 +8,7 @@ The simplest way is using publicly-available resources such as UniDic or IPADIC.
 
 Here, consider to use `unidic-mecab-2.1.2`.
 
-```
+```shell
 $ wget "https://clrd.ninjal.ac.jp/unidic_archive/cwj/2.1.2/unidic-mecab-2.1.2_src.zip" -O "./unidic-mecab-2.1.2_src.zip" --no-check-certificate
 $ unzip unidic-mecab-2.1.2_src.zip
 ```
@@ -16,7 +16,7 @@ $ unzip unidic-mecab-2.1.2_src.zip
 To compile the system dictionary from the resource,
 run the following command.
 
-```
+```shell
 $ cargo run --release -p compile -- \
     -l unidic-mecab-2.1.2_src/lex.csv \
     -m unidic-mecab-2.1.2_src/matrix.def \

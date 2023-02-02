@@ -11,7 +11,8 @@ To generate a smaller dictionary, you need to prepare a trained model file follo
 ## 2. Generating dictionary files
 
 To generate a smaller dictionary, specify the `--conn-id-info-out` option to the `dictgen` command as follows:
-```
+
+```shell
 $ mkdir mydict # Prepare the output directory
 $ cargo run --release -p dictgen -- \
     -i ./modeldata.zst \
@@ -27,7 +28,8 @@ This command generates three files: `./mydict/bigram.left`, `./mydict/bigram.rig
 
 After copying `char.def` used on the training to `mydict`,
 run the `compile` command with the `--bigram-*` options instead of the `-m` option as follows:
-```
+
+```shell
 $ cargo run --release -p compile -- \
     -l ./mydict/lex.csv \
     -u ./mydict/unk.def \
@@ -45,6 +47,7 @@ as described in [this document](./train.md).
 ## SIMD acceleration
 
 Compiling the `tokenize` command with the `target-feature=+avx2` option enables a SIMD acceleration (if your machine supports it) and will reduce the analyzing time:
-```
+
+```shell
 $ RUSTFLAGS='-C target-feature=+avx2' cargo build --release -p tokenize
 ```
