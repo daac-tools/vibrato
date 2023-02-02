@@ -43,14 +43,16 @@ First of all, install `rustc` and `cargo` following the [official instructions](
 ### 1. Dictionary preparation
 
 You can easily get started with Vibrato by downloading a precompiled dictionary.
+[The Releases page](https://github.com/daac-tools/vibrato/releases) distributes
+several precompiled dictionaries from different resources.
+
 Here, consider to use [mecab-ipadic v2.7.0](https://taku910.github.io/mecab/).
 
 ```
-$ wget https://github.com/daac-tools/vibrato/releases/download/v0.3.1/ipadic-mecab-2_7_0.tar.gz
+# Specify an appropriate version to VERSION.
+$ wget https://github.com/daac-tools/vibrato/releases/download/VERSION/ipadic-mecab-2_7_0.tar.gz
 $ tar -xzf ipadic-mecab-2_7_0.tar.gz
 ```
-
-Other precompiled dictionaries can be found in [the Releases page](https://github.com/daac-tools/vibrato/releases).
 
 You can also compile or train system dictionaries from your own resources.
 See the [docs](./docs/) for more advanced usage.
