@@ -25,7 +25,8 @@ This command generates three files: `./mydict/bigram.left`, `./mydict/bigram.rig
 
 ## 3. Compiling system dictionary
 
-Run the `compile` command with the `--bigram-*` options instead of the `-m` option as follows:
+After copying `char.def` used on the training to `mydict`,
+run the `compile` command with the `--bigram-*` options instead of the `-m` option as follows:
 ```
 $ cargo run --release -p compile -- \
     -l ./mydict/lex.csv \
