@@ -9,3 +9,7 @@ members = [
     "dictgen",
     "evaluate",
 ]
+
+exclude = [
+    "examples",
+]

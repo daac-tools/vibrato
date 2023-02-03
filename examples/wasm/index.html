@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8" />
+        <title>🎤 Vibrato Wasm Demo</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+input {
+    font-family: monospace;
+    font-size: 14pt;
+    width: calc(100% - 2px);
+    margin: 10px 0 10px 0;
+    padding: 0;
+    border: 1px solid #333;
+}
+
+table {
+    border: 1px solid #000;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+td {
+    border: 1px solid #000;
+}
+
+thead, tfoot {
+    background-color: #000;
+    color: #fff;
+}
+
+body {
+    width: calc(100% - 20px);
+    margin: 10px;
+    font-family: monospace;
+}
+
+.header-link {
+    text-align: right;
+}
+
+a {
+    color: #000;
+}
+
+#loading {
+    animation: blink 1.5s infinite;
+    margin: 10px;
+}
+
+@keyframes blink {
+    0%, 100% {
+        opacity: 1.0;
+    }
+    50% {
+        opacity: 0.0;
+    }
+}
+        </style>
+        <link data-trunk rel="rust" data-type="worker" data-bin="vibrato_worker" />
+        <link data-trunk rel="rust" data-bin="vibrato_app" />
+    </head>
+</html>
