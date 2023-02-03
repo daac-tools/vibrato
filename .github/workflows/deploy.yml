@@ -1,0 +1,61 @@
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+name: deploy
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    name: Check wasm
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Download model
+      working-directory: ./wasm
+      run: |
+        wget 'https://github.com/daac-tools/vibrato/releases/download/v0.4.0/ipadic-mecab-2_7_0-small.tar.xz'
+        tar xf ./ipadic-mecab-2_7_0-small.tar.xz
+        mv ./ipadic-mecab-2_7_0-small/system.dic.zst ./src/
+    - name: Install environment
+      run: |
+        rustup target add wasm32-unknown-unknown
+        cargo install trunk
+    - name: Build
+      working-directory: ./wasm
+      run: trunk build --release --public-url vibrato
+
+    - name: Archive artifact
+      shell: bash
+      if: runner.os == 'Linux'
+      run: |
+        tar \
+          --dereference --hard-dereference \
+          --directory ./wasm/dist \
+          -cvf ${{ runner.temp }}/artifact.tar \
+          .
+    - name: Upload artifact
+      uses: actions/upload-artifact@main
+      if: ${{ github.ref == 'refs/heads/main' }}
+      with:
+        name: github-pages
+        path: ${{ runner.temp }}/artifact.tar
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    if: ${{ github.ref == 'refs/heads/main' }}
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1

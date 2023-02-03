@@ -97,7 +97,7 @@ impl Component for App {
             .callback(move |m| {
                 link.send_message(Msg::WorkerResult(m));
             })
-            .spawn("http://127.0.0.1:8080/vibrato_worker.js");
+            .spawn("./vibrato_worker.js");
 
         // Send a dummy message.
         // The first response indicates that the worker is ready.
