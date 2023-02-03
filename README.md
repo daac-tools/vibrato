@@ -50,8 +50,8 @@ Here, consider to use [mecab-ipadic v2.7.0](https://taku910.github.io/mecab/).
 
 ```shell
 # Specify an appropriate release tag to VERSION (e.g., v0.4.0).
-$ wget https://github.com/daac-tools/vibrato/releases/download/VERSION/ipadic-mecab-2_7_0.tar.gz
-$ tar -xzf ipadic-mecab-2_7_0.tar.gz
+$ wget https://github.com/daac-tools/vibrato/releases/download/VERSION/ipadic-mecab-2_7_0.tar.xz
+$ tar -xzf ipadic-mecab-2_7_0.tar.xz
 ```
 
 You can also compile or train system dictionaries from your own resources.
