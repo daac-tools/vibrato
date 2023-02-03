@@ -83,7 +83,7 @@ EOS
 
 If you want to output tokens separated by spaces, specify `-O wakati`.
 
-```shell
+```
 $ echo '本とカレーの街神保町へようこそ。' | cargo run --release -p tokenize -- -i ipadic-mecab-2_7_0/system.dic.zst -O wakati
 本 と カレー の 街 神保 町 へ ようこそ 。
 ```
@@ -97,7 +97,7 @@ but with the default settings it can produce different tokens from MeCab.
 
 For example, MeCab ignores spaces (more precisely, `SPACE` defined in `char.def`) in tokenization.
 
-```shell
+```
 $ echo "mens second bag" | mecab
 mens	名詞,固有名詞,組織,*,*,*,*
 second	名詞,一般,*,*,*,*,*
@@ -107,7 +107,7 @@ EOS
 
 However, Vibrato handles such spaces as tokens with the default settings.
 
-```shell
+```
 $ echo 'mens second bag' | cargo run --release -p tokenize -- -i ipadic-mecab-2_7_0/system.dic.zst
 mens	名詞,固有名詞,組織,*,*,*,*
  	記号,空白,*,*,*,*,*
@@ -119,7 +119,7 @@ EOS
 
 If you want to obtain the same results as MeCab, specify the arguments `-S` and `-M 24`.
 
-```shell
+```
 $ echo 'mens second bag' | cargo run --release -p tokenize -- -i ipadic-mecab-2_7_0/system.dic.zst -S -M 24
 mens	名詞,固有名詞,組織,*,*,*,*
 second	名詞,一般,*,*,*,*,*
@@ -149,7 +149,7 @@ The others (i.e., `<features...>`) are optional.
 
 For example,
 
-```shell
+```
 $ cat user.csv
 神保町,1293,1293,334,カスタム名詞,ジンボチョウ
 本とカレーの街,1293,1293,0,カスタム名詞,ホントカレーノマチ
@@ -158,7 +158,7 @@ $ cat user.csv
 
 To use the user dictionary, specify the file with the `-u` argument.
 
-```shell
+```
 $ echo '本とカレーの街神保町へようこそ。' | cargo run --release -p tokenize -- -i ipadic-mecab-2_7_0/system.dic.zst -u user.csv
 本とカレーの街	カスタム名詞,ホントカレーノマチ
 神保町	カスタム名詞,ジンボチョウ
