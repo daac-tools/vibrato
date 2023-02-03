@@ -43,14 +43,16 @@ First of all, install `rustc` and `cargo` following the [official instructions](
 ### 1. Dictionary preparation
 
 You can easily get started with Vibrato by downloading a precompiled dictionary.
+[The Releases page](https://github.com/daac-tools/vibrato/releases) distributes
+several precompiled dictionaries from different resources.
+
 Here, consider to use [mecab-ipadic v2.7.0](https://taku910.github.io/mecab/).
+(Specify an appropriate Vibrato release tag to `VERSION` such as `v0.4.0`.)
 
 ```
-$ wget https://github.com/daac-tools/vibrato/releases/download/v0.3.1/ipadic-mecab-2_7_0.tar.gz
-$ tar -xzf ipadic-mecab-2_7_0.tar.gz
+$ wget https://github.com/daac-tools/vibrato/releases/download/VERSION/ipadic-mecab-2_7_0.tar.xz
+$ tar xf ipadic-mecab-2_7_0.tar.xz
 ```
-
-Other precompiled dictionaries can be found in [the Releases page](https://github.com/daac-tools/vibrato/releases).
 
 You can also compile or train system dictionaries from your own resources.
 See the [docs](./docs/) for more advanced usage.
@@ -60,7 +62,7 @@ See the [docs](./docs/) for more advanced usage.
 To tokenize sentences using the system dictionary, run the following command.
 
 ```
-$ echo '本とカレーの街神保町へようこそ。' | cargo run --release -p tokenize -- -i ipadic-mecab-2_7_0/system.dic
+$ echo '本とカレーの街神保町へようこそ。' | cargo run --release -p tokenize -- -i ipadic-mecab-2_7_0/system.dic.zst
 ```
 
 The resultant tokens will be output in the Mecab format.
@@ -82,7 +84,7 @@ EOS
 If you want to output tokens separated by spaces, specify `-O wakati`.
 
 ```
-$ echo '本とカレーの街神保町へようこそ。' | cargo run --release -p tokenize -- -i ipadic-mecab-2_7_0/system.dic -O wakati
+$ echo '本とカレーの街神保町へようこそ。' | cargo run --release -p tokenize -- -i ipadic-mecab-2_7_0/system.dic.zst -O wakati
 本 と カレー の 街 神保 町 へ ようこそ 。
 ```
 
@@ -106,7 +108,7 @@ EOS
 However, Vibrato handles such spaces as tokens with the default settings.
 
 ```
-$ echo 'mens second bag' | cargo run --release -p tokenize -- -i ipadic-mecab-2_7_0/system.dic
+$ echo 'mens second bag' | cargo run --release -p tokenize -- -i ipadic-mecab-2_7_0/system.dic.zst
 mens	名詞,固有名詞,組織,*,*,*,*
  	記号,空白,*,*,*,*,*
 second	名詞,固有名詞,組織,*,*,*,*
@@ -118,7 +120,7 @@ EOS
 If you want to obtain the same results as MeCab, specify the arguments `-S` and `-M 24`.
 
 ```
-$ echo 'mens second bag' | cargo run --release -p tokenize -- -i ipadic-mecab-2_7_0/system.dic -S -M 24
+$ echo 'mens second bag' | cargo run --release -p tokenize -- -i ipadic-mecab-2_7_0/system.dic.zst -S -M 24
 mens	名詞,固有名詞,組織,*,*,*,*
 second	名詞,一般,*,*,*,*,*
 bag	名詞,固有名詞,組織,*,*,*,*
@@ -157,7 +159,7 @@ $ cat user.csv
 To use the user dictionary, specify the file with the `-u` argument.
 
 ```
-$ echo '本とカレーの街神保町へようこそ。' | cargo run --release -p tokenize -- -i ipadic-mecab-2_7_0/system.dic -u user.csv
+$ echo '本とカレーの街神保町へようこそ。' | cargo run --release -p tokenize -- -i ipadic-mecab-2_7_0/system.dic.zst -u user.csv
 本とカレーの街	カスタム名詞,ホントカレーノマチ
 神保町	カスタム名詞,ジンボチョウ
 へ	助詞,格助詞,一般,*,*,*,へ,ヘ,エ

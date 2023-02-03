@@ -1,6 +1,6 @@
 use std::error::Error;
 use std::fs::File;
-use std::io::{BufRead, BufReader, BufWriter, Write};
+use std::io::{BufRead, BufWriter, Write};
 use std::path::PathBuf;
 use std::str::FromStr;
 
@@ -31,7 +31,7 @@ impl FromStr for OutputMode {
 #[derive(Parser, Debug)]
 #[clap(name = "tokenize", about = "Predicts morphemes")]
 struct Args {
-    /// System dictionary.
+    /// System dictionary (in zstd).
     #[clap(short = 'i', long)]
     sysdic: PathBuf,
 
@@ -56,7 +56,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     eprintln!("Loading the dictionary...");
-    let reader = BufReader::new(File::open(args.sysdic)?);
+    let reader = zstd::Decoder::new(File::open(args.sysdic)?)?;
     let mut dict = Dictionary::read(reader)?;
 
     if let Some(userlex_csv) = args.userlex_csv {

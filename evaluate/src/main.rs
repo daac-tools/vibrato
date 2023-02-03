@@ -1,7 +1,6 @@
 use std::collections::HashSet;
 use std::error::Error;
 use std::fs::File;
-use std::io::BufReader;
 use std::path::PathBuf;
 
 use csv_core::ReadFieldResult;
@@ -18,7 +17,7 @@ struct Args {
     #[clap(short = 't', long)]
     test_in: PathBuf,
 
-    /// System dictionary.
+    /// System dictionary (in zstd).
     #[clap(short = 'i', long)]
     sysdic_in: PathBuf,
 
@@ -63,7 +62,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     eprintln!("Loading the dictionary...");
-    let reader = BufReader::new(File::open(args.sysdic_in)?);
+    let reader = zstd::Decoder::new(File::open(args.sysdic_in)?)?;
     let mut dict = Dictionary::read(reader)?;
 
     if let Some(userlex_csv_in) = args.userlex_csv_in {

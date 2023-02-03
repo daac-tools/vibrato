@@ -1,6 +1,6 @@
 use std::error::Error;
 use std::fs::File;
-use std::io::{prelude::*, BufReader, BufWriter};
+use std::io::{prelude::*, BufReader};
 use std::path::PathBuf;
 
 use vibrato::dictionary::Dictionary;
@@ -13,7 +13,7 @@ use clap::Parser;
     about = "A program to edit connection ids with the reordered mapping."
 )]
 struct Args {
-    /// System dictionary in binary to be edited.
+    /// System dictionary in binary to be edited (in zstd).
     #[clap(short = 'i', long)]
     sysdic_in: PathBuf,
 
@@ -22,7 +22,7 @@ struct Args {
     #[clap(short = 'm', long)]
     mapping_in: PathBuf,
 
-    /// File to which the edited dictionary is output.
+    /// File to which the edited dictionary is output (in zstd).
     #[clap(short = 'o', long)]
     sysdic_out: PathBuf,
 }
@@ -31,7 +31,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     eprintln!("Loading the dictionary...");
-    let reader = BufReader::new(File::open(args.sysdic_in)?);
+    let reader = zstd::Decoder::new(File::open(args.sysdic_in)?)?;
     #[cfg(not(feature = "unchecked"))]
     let dict = Dictionary::read(reader)?;
     #[cfg(feature = "unchecked")]
@@ -54,8 +54,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         "Writting the mapped system dictionary...: {:?}",
         &args.sysdic_out
     );
-    let num_bytes = dict.write(BufWriter::new(File::create(args.sysdic_out)?))?;
-    eprintln!("{} MiB", num_bytes as f64 / (1024. * 1024.));
+    let mut f = zstd::Encoder::new(File::create(args.sysdic_out)?, 19)?;
+    dict.write(&mut f)?;
+    f.finish()?;
 
     Ok(())
 }

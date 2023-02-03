@@ -1,6 +1,6 @@
 use std::error::Error;
 use std::fs::File;
-use std::io::{BufRead, BufReader, BufWriter, Write};
+use std::io::{BufRead, BufWriter, Write};
 use std::path::PathBuf;
 
 use vibrato::dictionary::Dictionary;
@@ -11,7 +11,7 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[clap(name = "reorder", about = "A program to produce reordered mapping.")]
 struct Args {
-    /// System dictionary in binary.
+    /// System dictionary in binary (in zstd).
     #[clap(short = 'i', long)]
     sysdic_in: PathBuf,
 
@@ -25,7 +25,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     eprintln!("Loading the dictionary...");
-    let reader = BufReader::new(File::open(args.sysdic_in)?);
+    let reader = zstd::Decoder::new(File::open(args.sysdic_in)?)?;
     let dict = Dictionary::read(reader)?;
 
     eprintln!("Reordering connection id mappings...");
@@ -48,18 +48,18 @@ fn main() -> Result<(), Box<dyn Error>> {
         output_filename.set_extension("lmap");
         let mut w = BufWriter::new(File::create(&output_filename).unwrap());
         for (i, p) in lid_probs {
-            w.write_all(format!("{}\t{}\n", i, p).as_bytes())?;
+            w.write_all(format!("{i}\t{p}\n").as_bytes())?;
         }
-        println!("Wrote {:?}", output_filename);
+        println!("Wrote {output_filename:?}");
     }
     {
         let mut output_filename = args.mapping_out;
         output_filename.set_extension("rmap");
         let mut w = BufWriter::new(File::create(&output_filename).unwrap());
         for (i, p) in rid_probs {
-            w.write_all(format!("{}\t{}\n", i, p).as_bytes())?;
+            w.write_all(format!("{i}\t{p}\n").as_bytes())?;
         }
-        println!("Wrote {:?}", output_filename);
+        println!("Wrote {output_filename:?}");
     }
 
     Ok(())

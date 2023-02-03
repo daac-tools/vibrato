@@ -62,10 +62,7 @@ impl DualConnector {
                     candidate_idx = trial_idx;
                 }
             }
-            eprintln!(
-                "Removed feature template: #{}, matrix size: {}",
-                candidate_idx, min_matrix_size
-            );
+            eprintln!("Removed feature template: #{candidate_idx}, matrix size: {min_matrix_size}");
             matrix_indices.remove(&candidate_idx);
         }
         matrix_indices
