@@ -47,9 +47,9 @@ You can easily get started with Vibrato by downloading a precompiled dictionary.
 several precompiled dictionaries from different resources.
 
 Here, consider to use [mecab-ipadic v2.7.0](https://taku910.github.io/mecab/).
+(Specify an appropriate release tag to `VERSION` such as v0.4.0.)
 
-```shell
-# Specify an appropriate release tag to VERSION (e.g., v0.4.0).
+```
 $ wget https://github.com/daac-tools/vibrato/releases/download/VERSION/ipadic-mecab-2_7_0.tar.xz
 $ tar -xzf ipadic-mecab-2_7_0.tar.xz
 ```
@@ -61,7 +61,7 @@ See the [docs](./docs/) for more advanced usage.
 
 To tokenize sentences using the system dictionary, run the following command.
 
-```shell
+```
 $ echo '本とカレーの街神保町へようこそ。' | cargo run --release -p tokenize -- -i ipadic-mecab-2_7_0/system.dic.zst
 ```
 

@@ -15,7 +15,7 @@ The mapping steps consist of
 To produce a reordered mapping from sentences in `train.txt`,
 run the following command.
 
-```shell
+```
 $ cargo run --release -p map --bin reorder -- -i system.dic.zst -o reordered < train.txt
 ```
 
@@ -26,7 +26,7 @@ The two files, `reordered.lmap` and `reordered.rmap`, will be produced.
 To edit the system dictionary with the reordered mapping,
 run the following command.
 
-```shell
+```
 $ cargo run --release -p map -- -i system.dic.zst -m reordered -o system.mapped.dic.zst
 ```
 

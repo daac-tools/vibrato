@@ -21,7 +21,7 @@ You can also find an example dataset [here](../vibrato/src/tests/resources).
 
 Execute the following command to start the training process (Replace file names with the actual ones):
 
-```shell
+```
 $ cargo run --release -p train -- \
     -t ./dataset/corpus.txt \
     -l ./dataset/train_lex.csv \
@@ -41,7 +41,7 @@ When training is complete, the model is output to `./modeldata.zst`.
 
 Run the following commands to generate a set of dictionary files from the model:
 
-```shell
+```
 $ mkdir mydict # Prepare the output directory
 $ cargo run --release -p dictgen -- \
     -i ./modeldata.zst \
@@ -62,7 +62,7 @@ You can evaluate the accuracy when using the trained dictionary.
 
 To split the input corpus randomly and output train/validation/test files, run the following command:
 
-```shell
+```
 $ cargo run --release -p evaluate --bin split -- \
     -i ./dataset/corpus.txt \
     -t ./dataset/train.txt \
@@ -74,7 +74,7 @@ By default, 80% of the data is split into a training set, 10% into a validation 
 
 To evaluate the accuracy, run the following command:
 
-```shell
+```
 $ cargo run --release -p evaluate -- \
     -i ./system.dic.zst \
     -t ./dataset/valid.txt \
