@@ -22,7 +22,7 @@ $ cargo run --release -p compile -- \
     -m unidic-mecab-2.1.2_src/matrix.def \
     -u unidic-mecab-2.1.2_src/unk.def \
     -c unidic-mecab-2.1.2_src/char.def \
-    -o system.dic
+    -o system.dic.zst
 ```
 
 Instead of using publicly-available trained resources,

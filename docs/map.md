@@ -1,7 +1,7 @@
 # Achieving faster tokenization through id mapping
 
 This document describes steps to edit system dictionaries to achieve faster tokenization.
-Here assumes that you have a system dictionary `system.dic`
+Here assumes that you have a system dictionary `system.dic.zst`
 produced in the manner described in [compile.md](./compile.md) and that 
 you are at the root directory of this repository.
 
@@ -16,7 +16,7 @@ To produce a reordered mapping from sentences in `train.txt`,
 run the following command.
 
 ```
-$ cargo run --release -p map --bin reorder -- -i system.dic -o reordered < train.txt
+$ cargo run --release -p map --bin reorder -- -i system.dic.zst -o reordered < train.txt
 ```
 
 The two files, `reordered.lmap` and `reordered.rmap`, will be produced.
@@ -27,8 +27,8 @@ To edit the system dictionary with the reordered mapping,
 run the following command.
 
 ```
-$ cargo run --release -p map -- -i system.dic -m reordered -o system.mapped.dic
+$ cargo run --release -p map -- -i system.dic.zst -m reordered -o system.mapped.dic.zst
 ```
 
 When the matrix data is large,
-`system.mapped.dic` will provide faster tokenization than `system.dic`.
+`system.mapped.dic.zst` will provide faster tokenization than `system.dic.zst`.

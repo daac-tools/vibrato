@@ -20,6 +20,7 @@ The file formats follow those in MeCab (see the [official document](https://taku
 You can also find an example dataset [here](../vibrato/src/tests/resources).
 
 Execute the following command to start the training process (Replace file names with the actual ones):
+
 ```
 $ cargo run --release -p train -- \
     -t ./dataset/corpus.txt \
@@ -75,7 +76,7 @@ To evaluate the accuracy, run the following command:
 
 ```
 $ cargo run --release -p evaluate -- \
-    -i ./system.dic \
+    -i ./system.dic.zst \
     -t ./dataset/valid.txt \
     --feature-indices 0,1,2,3,9
 ```

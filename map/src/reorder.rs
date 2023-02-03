@@ -1,6 +1,6 @@
 use std::error::Error;
 use std::fs::File;
-use std::io::{BufRead, BufReader, BufWriter, Write};
+use std::io::{BufRead, BufWriter, Write};
 use std::path::PathBuf;
 
 use vibrato::dictionary::Dictionary;
@@ -11,7 +11,7 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[clap(name = "reorder", about = "A program to produce reordered mapping.")]
 struct Args {
-    /// System dictionary in binary.
+    /// System dictionary in binary (in zstd).
     #[clap(short = 'i', long)]
     sysdic_in: PathBuf,
 
@@ -25,7 +25,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     eprintln!("Loading the dictionary...");
-    let reader = BufReader::new(File::open(args.sysdic_in)?);
+    let reader = zstd::Decoder::new(File::open(args.sysdic_in)?)?;
     let dict = Dictionary::read(reader)?;
 
     eprintln!("Reordering connection id mappings...");

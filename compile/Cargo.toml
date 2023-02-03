@@ -12,3 +12,4 @@ default = []
 [dependencies]
 vibrato = { path = "../vibrato" }
 clap = { version = "4.0", features = ["derive"] }  # MIT or Apache-2.0
+zstd = "0.12"  # MIT
