@@ -19,7 +19,7 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Download model
-      working-directory: ./wasm
+      working-directory: ./examples/wasm
       run: |
         wget 'https://github.com/daac-tools/vibrato/releases/download/v0.4.0/ipadic-mecab-2_7_0-small.tar.xz'
         tar xf ./ipadic-mecab-2_7_0-small.tar.xz
@@ -29,7 +29,7 @@ jobs:
         rustup target add wasm32-unknown-unknown
         cargo install trunk
     - name: Build
-      working-directory: ./wasm
+      working-directory: ./examples/wasm
       run: trunk build --release --public-url vibrato
 
     - name: Archive artifact
@@ -38,7 +38,7 @@ jobs:
       run: |
         tar \
           --dereference --hard-dereference \
-          --directory ./wasm/dist \
+          --directory ./examples/wasm/dist \
           -cvf ${{ runner.temp }}/artifact.tar \
           .
     - name: Upload artifact

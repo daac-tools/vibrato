@@ -8,5 +8,8 @@ members = [
     "train",
     "dictgen",
     "evaluate",
-    "wasm",
+]
+
+exclude = [
+    "examples",
 ]
