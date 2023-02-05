@@ -4,6 +4,8 @@ use wasm_bindgen::{JsCast, UnwrapThrowExt};
 use web_sys::{Event, HtmlInputElement, InputEvent};
 use yew::{html, Callback, Component, Context, Html, NodeRef, Properties};
 
+use crate::fl;
+
 #[derive(Clone, PartialEq, Properties)]
 pub struct Props {
     pub value: Rc<String>,
@@ -39,7 +41,7 @@ impl Component for TextInput {
             <input
                 ref={self.node_ref.clone()}
                 type="text"
-                placeholder="Enter Japanese here"
+                placeholder={ fl!("place-holder") }
                 value={value.to_string()}
                 {oninput}
             />
