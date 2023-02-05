@@ -10,7 +10,7 @@ The technical ideas behind this library appear in [this blog post](https://tech.
 
 A Python wrapper is also available [here](https://github.com/daac-tools/python-vibrato).
 
-[Wasm Demo](https://daac-tools.github.io/vibrato/) (takes a little time to load the model.)
+[Wasm Demo](https://vibrato-demo.pages.dev/) (takes a little time to load the model.)
 
 ## Features
 
