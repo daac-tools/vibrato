@@ -2,8 +2,8 @@ use std::rc::Rc;
 
 use yew::{function_component, html, Html, Properties};
 
-use crate::Token;
 use crate::fl;
+use crate::Token;
 
 #[derive(Clone, PartialEq, Properties)]
 pub struct Props {
