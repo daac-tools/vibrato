@@ -1,3 +1,4 @@
+mod i18n;
 mod text_input;
 mod token_view;
 
@@ -127,8 +128,8 @@ impl Component for App {
         html! {
             <>
                 <header>
-                    <h1>{"🎤 Vibrato Wasm Demo"}</h1>
-                    <p class="header-link"><a href="https://github.com/daac-tools/vibrato">{"[Project Page]"}</a></p>
+                    <h1>{ fl!("title") }</h1>
+                    <p class="header-link"><a href="https://github.com/daac-tools/vibrato">{ fl!("project-page") }</a></p>
                 </header>
                 <main>
                     <div>
@@ -137,7 +138,7 @@ impl Component for App {
                                 html! {
                                     <TextInput
                                         callback={ctx.link().callback(Msg::SetText)}
-                                        value={Rc::clone(&self.text)}
+                                        value={ Rc::clone(&self.text) }
                                     />
                                 }
                             } else {
@@ -150,11 +151,11 @@ impl Component for App {
                     {
                         if let Some(tokens) = &self.tokens {
                             html! {
-                                <TokenView tokens={Rc::clone(&tokens)} />
+                                <TokenView tokens={ Rc::clone(tokens) } />
                             }
                         } else {
                             html! {
-                                <div id="loading">{"Loading..."}</div>
+                                <div id="loading">{ fl!("loading") }</div>
                             }
                         }
                     }

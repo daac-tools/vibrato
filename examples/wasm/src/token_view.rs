@@ -2,6 +2,7 @@ use std::rc::Rc;
 
 use yew::{function_component, html, Html, Properties};
 
+use crate::fl;
 use crate::Token;
 
 #[derive(Clone, PartialEq, Properties)]
@@ -17,18 +18,18 @@ pub fn token_view(props: &Props) -> Html {
         <table>
             <thead>
                 <tr>
-                    <th>{"Surface"}</th>
-                    <th>{"Part of Speech"}</th>
-                    <th>{"Pronunciation"}</th>
+                    <th>{ fl!("surface") }</th>
+                    <th>{ fl!("pos") }</th>
+                    <th>{ fl!("pron") }</th>
                 </tr>
             </thead>
             <tbody>
                 {
                     for tokens.iter().map(|Token { surface, pos, pron }| html! {
                         <tr>
-                            <td>{surface}</td>
-                            <td>{pos}</td>
-                            <td>{pron}</td>
+                            <td>{ surface }</td>
+                            <td>{ pos }</td>
+                            <td>{ pron }</td>
                         </tr>
                     })
                 }
