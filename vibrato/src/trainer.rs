@@ -470,16 +470,33 @@ impl Trainer {
     }
 }
 
-/// Converts MeCab model.
-pub fn convert_mecab_model(
+/// Generates bi-gram feature information from MeCab model.
+///
+/// This function is useful to create a small dictionary from an existing MeCab model.
+///
+/// # Arguments
+///
+/// * `feature_def_rdr` - A reader of the feature definition file `feature.def`.
+/// * `left_id_def_rdr` - A reader of the left-id and feature mapping file `left-id.def`.
+/// * `right_id_def_rdr` - A reader of the right-id and feature mapping file `right-id.def`
+/// * `model_def_rdr` - A reader of the model file `model.def`.
+/// * `cost_factor` - A factor to be multiplied when casting costs to integers.
+/// * `bigram_left_wtr` - A writer of the left-id and feature mapping file `bi-gram.left`.
+/// * `bigram_right_wtr` - A writer of the right-id and feature mapping file `bi-gram.right`.
+/// * `bigram_cost_wtr` - A writer of the bi-gram cost file `bi-gram.cost`.
+///
+/// # Errors
+///
+/// [`VibratoError`] is returned when the convertion failed.
+pub fn gen_bigram_info_from_mecab_model(
     feature_def_rdr: impl Read,
     left_id_def_rdr: impl Read,
     right_id_def_rdr: impl Read,
     model_def_rdr: impl Read,
     cost_factor: f64,
-    left_id_def_wtr: impl Write,
-    right_id_def_wtr: impl Write,
-    cost_def_wtr: impl Write,
+    bigram_left_wtr: impl Write,
+    bigram_right_wtr: impl Write,
+    bigram_cost_wtr: impl Write,
 ) -> Result<()> {
     let mut left_features = HashMap::new();
     let mut right_features = HashMap::new();
@@ -518,7 +535,7 @@ pub fn convert_mecab_model(
     }
     // weights
     let model_def_rdr = BufReader::new(model_def_rdr);
-    let mut cost_def_wtr = BufWriter::new(cost_def_wtr);
+    let mut bigram_cost_wtr = BufWriter::new(bigram_cost_wtr);
     for line in model_def_rdr.lines() {
         let line = line?;
         if let Some(cap) = model_re.captures(&line) {
@@ -559,41 +576,41 @@ pub fn convert_mecab_model(
                         .unwrap()
                         .to_string()
                 };
-                writeln!(&mut cost_def_wtr, "{left_id}/{right_id}\t{cost}")?;
+                writeln!(&mut bigram_cost_wtr, "{left_id}/{right_id}\t{cost}")?;
             }
         }
     }
 
-    let mut left_id_def_wtr = BufWriter::new(left_id_def_wtr);
+    let mut bigram_left_wtr = BufWriter::new(bigram_left_wtr);
     for i in 1..left_features.len() {
-        write!(&mut left_id_def_wtr, "{i}\t")?;
+        write!(&mut bigram_left_wtr, "{i}\t")?;
         for (i, feat_id) in left_features.get(&i).unwrap().iter().enumerate() {
             if i != 0 {
-                write!(&mut left_id_def_wtr, ",")?;
+                write!(&mut bigram_left_wtr, ",")?;
             }
             if let Some(feat_id) = feat_id {
-                write!(&mut left_id_def_wtr, "{}", feat_id.get())?;
+                write!(&mut bigram_left_wtr, "{}", feat_id.get())?;
             } else {
-                write!(&mut left_id_def_wtr, "*")?;
+                write!(&mut bigram_left_wtr, "*")?;
             }
         }
-        writeln!(&mut left_id_def_wtr)?;
+        writeln!(&mut bigram_left_wtr)?;
     }
 
-    let mut right_id_def_wtr = BufWriter::new(right_id_def_wtr);
+    let mut bigram_right_wtr = BufWriter::new(bigram_right_wtr);
     for i in 1..right_features.len() {
-        write!(&mut right_id_def_wtr, "{i}\t")?;
+        write!(&mut bigram_right_wtr, "{i}\t")?;
         for (i, feat_id) in right_features.get(&i).unwrap().iter().enumerate() {
             if i != 0 {
-                write!(&mut right_id_def_wtr, ",")?;
+                write!(&mut bigram_right_wtr, ",")?;
             }
             if let Some(feat_id) = feat_id {
-                write!(&mut right_id_def_wtr, "{}", feat_id.get())?;
+                write!(&mut bigram_right_wtr, "{}", feat_id.get())?;
             } else {
-                write!(&mut right_id_def_wtr, "*")?;
+                write!(&mut bigram_right_wtr, "*")?;
             }
         }
-        writeln!(&mut right_id_def_wtr)?;
+        writeln!(&mut bigram_right_wtr)?;
     }
     Ok(())
 }

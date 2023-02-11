@@ -156,7 +156,7 @@ impl ConnectorCost for RawConnector {
         self.scorer.accumulate_cost(
             self.right_feature_ids(right_id),
             self.left_feature_ids(left_id),
-        ) + 5380
+        )
     }
 
     /// TODO: Implement unchecked optimization.
