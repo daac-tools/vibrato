@@ -73,9 +73,11 @@ mod feature_extractor;
 mod feature_rewriter;
 mod model;
 
+use std::io::{BufRead, BufReader, BufWriter, Read, Write};
 use std::num::NonZeroU32;
 
 use hashbrown::{HashMap, HashSet};
+use regex::Regex;
 use rucrf::{Edge, FeatureProvider, FeatureSet, Lattice};
 
 use crate::dictionary::word_idx::WordIdx;
@@ -466,4 +468,132 @@ impl Trainer {
             user_entries: vec![],
         })
     }
+}
+
+/// Converts MeCab model.
+pub fn convert_mecab_model(
+    feature_def_rdr: impl Read,
+    left_id_def_rdr: impl Read,
+    right_id_def_rdr: impl Read,
+    model_def_rdr: impl Read,
+    cost_factor: f64,
+    left_id_def_wtr: impl Write,
+    right_id_def_wtr: impl Write,
+    cost_def_wtr: impl Write,
+) -> Result<()> {
+    let mut left_features = HashMap::new();
+    let mut right_features = HashMap::new();
+
+    let mut feature_extractor = TrainerConfig::parse_feature_config(feature_def_rdr)?;
+
+    let id_feature_re = Regex::new(r"^([0-9]+) (.*)$").unwrap();
+    let model_re = Regex::new(r"^([0-9\-\.]+)\t(.*)$").unwrap();
+
+    // NOTE(vbkaisetsu): According to the documentation of MeCab, bi-gram features are expanded to
+    // `left_context_feature/right_context_feature`, but in fact, the left and right features are
+    // expanded in opposite sides. In this code, the left and right sides are placed reversed for
+    // compatibility with MeCab.
+
+    // left features
+    let left_id_def_rdr = BufReader::new(left_id_def_rdr);
+    for line in left_id_def_rdr.lines() {
+        let line = line?;
+        let cap = id_feature_re.captures(&line).unwrap();
+        let id = cap.get(1).unwrap().as_str().parse::<usize>().unwrap();
+        let feature_str = cap.get(2).unwrap().as_str();
+        let feature_ids =
+            feature_extractor.extract_right_feature_ids(&utils::parse_csv_row(&feature_str));
+        left_features.insert(id, feature_ids);
+    }
+    // right features
+    let right_id_def_rdr = BufReader::new(right_id_def_rdr);
+    for line in right_id_def_rdr.lines() {
+        let line = line?;
+        let cap = id_feature_re.captures(&line).unwrap();
+        let id = cap.get(1).unwrap().as_str().parse::<usize>().unwrap();
+        let feature_str = cap.get(2).unwrap().as_str();
+        let feature_ids =
+            feature_extractor.extract_left_feature_ids(&utils::parse_csv_row(&feature_str));
+        right_features.insert(id, feature_ids);
+    }
+    // weights
+    let model_def_rdr = BufReader::new(model_def_rdr);
+    let mut cost_def_wtr = BufWriter::new(cost_def_wtr);
+    for line in model_def_rdr.lines() {
+        let line = line?;
+        if let Some(cap) = model_re.captures(&line) {
+            let weight = cap.get(1).unwrap().as_str().parse::<f64>().unwrap();
+            let cost = -(weight * cost_factor) as i32;
+            let feature_str = cap.get(2).unwrap().as_str().replace("BOS/EOS", "");
+            let mut spl = feature_str.split('/');
+            let left_feat_str = spl.next();
+            let right_feat_str = spl.next();
+            if let (Some(left_feat_str), Some(right_feat_str)) = (left_feat_str, right_feat_str) {
+                let left_id = if left_feat_str.is_empty() {
+                    String::new()
+                } else {
+                    if !feature_extractor
+                        .left_feature_ids()
+                        .contains_key(left_feat_str)
+                    {
+                        continue;
+                    }
+                    feature_extractor
+                        .left_feature_ids()
+                        .get(left_feat_str)
+                        .unwrap()
+                        .to_string()
+                };
+                let right_id = if right_feat_str.is_empty() {
+                    String::new()
+                } else {
+                    if !feature_extractor
+                        .right_feature_ids()
+                        .contains_key(right_feat_str)
+                    {
+                        continue;
+                    }
+                    feature_extractor
+                        .right_feature_ids()
+                        .get(right_feat_str)
+                        .unwrap()
+                        .to_string()
+                };
+                writeln!(&mut cost_def_wtr, "{left_id}/{right_id}\t{cost}")?;
+            }
+        }
+    }
+
+    let mut left_id_def_wtr = BufWriter::new(left_id_def_wtr);
+    for i in 1..left_features.len() {
+        write!(&mut left_id_def_wtr, "{i}\t")?;
+        for (i, feat_id) in left_features.get(&i).unwrap().iter().enumerate() {
+            if i != 0 {
+                write!(&mut left_id_def_wtr, ",")?;
+            }
+            if let Some(feat_id) = feat_id {
+                write!(&mut left_id_def_wtr, "{}", feat_id.get())?;
+            } else {
+                write!(&mut left_id_def_wtr, "*")?;
+            }
+        }
+        writeln!(&mut left_id_def_wtr)?;
+    }
+
+    let mut right_id_def_wtr = BufWriter::new(right_id_def_wtr);
+    for i in 1..right_features.len() {
+        write!(&mut right_id_def_wtr, "{i}\t")?;
+        for (i, feat_id) in right_features.get(&i).unwrap().iter().enumerate() {
+            if i != 0 {
+                write!(&mut right_id_def_wtr, ",")?;
+            }
+            if let Some(feat_id) = feat_id {
+                write!(&mut right_id_def_wtr, "{}", feat_id.get())?;
+            } else {
+                write!(&mut right_id_def_wtr, "*")?;
+            }
+        }
+        writeln!(&mut right_id_def_wtr)?;
+    }
+    Ok(())
 }
