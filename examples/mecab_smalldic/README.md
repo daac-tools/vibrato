@@ -12,7 +12,7 @@ $ cargo run --release -- \
     -f <(sed -e 's/ F_F .*$/ F_F\/F_F/' -e 's/ I_I .*$/ I_I\/I_I/' < unidic-cwj-3.1.1-full/feature.def) \
     -a unidic-cwj-3.1.1-full/right-id.def \
     -b unidic-cwj-3.1.1-full/left-id.def \
-    -m <(sed -e 's/ F_F$/ F_F\/F_F/' -e 's/ I_I$/ I_I\/I_I/' < unidic-cwj-3.1.1-full/model.def) \
+    -m <(sed -e 's/\tF_F$/\tF_F\/F_F/' -e 's/\tI_I$/\tI_I\/I_I/' < unidic-cwj-3.1.1-full/model.def) \
     -r 700 \
     -o ./small.dic.zst
 ```
