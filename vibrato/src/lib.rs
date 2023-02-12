@@ -60,6 +60,10 @@ mod utils;
 
 #[cfg(feature = "train")]
 #[cfg_attr(docsrs, doc(cfg(feature = "train")))]
+pub mod mecab;
+
+#[cfg(feature = "train")]
+#[cfg_attr(docsrs, doc(cfg(feature = "train")))]
 pub mod trainer;
 
 #[cfg(all(test, feature = "train"))]
