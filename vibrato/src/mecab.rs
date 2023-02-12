@@ -88,6 +88,9 @@ pub fn generate_bigram_info(
         if let Some(cap) = model_re.captures(&line) {
             let weight = cap.get(1).unwrap().as_str().parse::<f64>()?;
             let cost = -(weight * cost_factor) as i32;
+            if cost == 0 {
+                continue;
+            }
             let feature_str = cap.get(2).unwrap().as_str().replace("BOS/EOS", "");
             let mut spl = feature_str.split('/');
             let left_feat_str = spl.next();
