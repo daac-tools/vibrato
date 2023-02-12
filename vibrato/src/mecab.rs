@@ -27,6 +27,7 @@ use crate::utils;
 /// # Errors
 ///
 /// [`VibratoError`] is returned when the convertion failed.
+#[allow(clippy::too_many_arguments)]
 pub fn generate_bigram_info(
     feature_def_rdr: impl Read,
     right_id_def_rdr: impl Read,
@@ -53,7 +54,7 @@ pub fn generate_bigram_info(
             let id = cap.get(1).unwrap().as_str().parse::<usize>()?;
             let feature_str = cap.get(2).unwrap().as_str();
             let feature_ids =
-                feature_extractor.extract_left_feature_ids(&utils::parse_csv_row(&feature_str));
+                feature_extractor.extract_left_feature_ids(&utils::parse_csv_row(feature_str));
             right_features.insert(id, feature_ids);
         } else {
             return Err(VibratoError::invalid_format(
@@ -70,7 +71,7 @@ pub fn generate_bigram_info(
             let id = cap.get(1).unwrap().as_str().parse::<usize>()?;
             let feature_str = cap.get(2).unwrap().as_str();
             let feature_ids =
-                feature_extractor.extract_right_feature_ids(&utils::parse_csv_row(&feature_str));
+                feature_extractor.extract_right_feature_ids(&utils::parse_csv_row(feature_str));
             left_features.insert(id, feature_ids);
         } else {
             return Err(VibratoError::invalid_format(
@@ -94,21 +95,17 @@ pub fn generate_bigram_info(
             if let (Some(left_feat_str), Some(right_feat_str)) = (left_feat_str, right_feat_str) {
                 let left_id = if left_feat_str.is_empty() {
                     String::new()
+                } else if let Some(id) = feature_extractor.left_feature_ids().get(left_feat_str) {
+                    id.to_string()
                 } else {
-                    if let Some(id) = feature_extractor.left_feature_ids().get(left_feat_str) {
-                        id.to_string()
-                    } else {
-                        continue;
-                    }
+                    continue;
                 };
                 let right_id = if right_feat_str.is_empty() {
                     String::new()
+                } else if let Some(id) = feature_extractor.right_feature_ids().get(right_feat_str) {
+                    id.to_string()
                 } else {
-                    if let Some(id) = feature_extractor.right_feature_ids().get(right_feat_str) {
-                        id.to_string()
-                    } else {
-                        continue;
-                    }
+                    continue;
                 };
                 writeln!(&mut bigram_cost_wtr, "{left_id}/{right_id}\t{cost}")?;
             }
