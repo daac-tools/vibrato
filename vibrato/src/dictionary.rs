@@ -133,8 +133,8 @@ impl Dictionary {
 
     /// Creates a dictionary from a reader.
     ///
-    /// This function does not decompress the dictionary, so you need to use a zstd decoder such as
-    /// [zstd crate](https://docs.rs/zstd/latest/zstd/) or [ruzstd
+    /// Unlike CLI tools, this function requires an uncompressed dictionary, so you need to use a
+    /// zstd decoder such as [zstd crate](https://docs.rs/zstd/latest/zstd/) or [ruzstd
     /// crate](https://docs.rs/ruzstd/latest/ruzstd/) to decompress the dictionary beforehand.
     ///
     /// # Errors
@@ -153,8 +153,8 @@ impl Dictionary {
 
     /// Creates a dictionary from a reader.
     ///
-    /// This function does not decompress the dictionary, so you need to use a zstd decoder such as
-    /// [zstd crate](https://docs.rs/zstd/latest/zstd/) or [ruzstd
+    /// Unlike CLI tools, this function requires an uncompressed dictionary, so you need to use a
+    /// zstd decoder such as [zstd crate](https://docs.rs/zstd/latest/zstd/) or [ruzstd
     /// crate](https://docs.rs/ruzstd/latest/ruzstd/) to decompress the dictionary beforehand.
     ///
     /// # Safety
