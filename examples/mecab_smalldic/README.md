@@ -1,5 +1,7 @@
 # Small dictionary generator for MeCab dictionary
 
+This tool allows for generating a smaller dictionary from a pre-trained MeCab model
+without the training steps described [`small-dic.md`](../../docs/small-dic.md).
 ## Usage
 
 ```
