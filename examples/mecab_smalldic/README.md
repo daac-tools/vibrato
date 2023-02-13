@@ -3,8 +3,8 @@
 ## Usage
 
 ```
-$ wget https://clrd.ninjal.ac.jp/unidic_archive/cwj/3.1.1/unidic-cwj-3.1.1.zip
-$ unzip unidic-cwj-3.1.1.zip
+$ wget https://clrd.ninjal.ac.jp/unidic_archive/cwj/3.1.1/unidic-cwj-3.1.1-full.zip
+$ unzip unidic-cwj-3.1.1-full.zip
 $ cargo run --release -- \
     -l <(python3 scrape.py < unidic-cwj-3.1.1-full/lex_3_1.csv) \
     -u <(python3 scrape.py < unidic-cwj-3.1.1-full/unk.def) \
