@@ -60,7 +60,10 @@ pub fn generate_bigram_info(
             let feature_spl = utils::parse_csv_row(feature_str);
             if id == 0 {
                 if feature_spl.get(0).map_or(false, |s| s != "BOS/EOS") {
-                    return Err(VibratoError::invalid_format("right_id_def_rdr", "ID 0 must be BOS/EOS"));
+                    return Err(VibratoError::invalid_format(
+                        "right_id_def_rdr",
+                        "ID 0 must be BOS/EOS",
+                    ));
                 }
             }
             let feature_ids = feature_extractor.extract_left_feature_ids(&feature_spl);
@@ -82,7 +85,10 @@ pub fn generate_bigram_info(
             let feature_spl = utils::parse_csv_row(feature_str);
             if id == 0 {
                 if feature_spl.get(0).map_or(false, |s| s != "BOS/EOS") {
-                    return Err(VibratoError::invalid_format("left_id_def_rdr", "ID 0 must be BOS/EOS"));
+                    return Err(VibratoError::invalid_format(
+                        "left_id_def_rdr",
+                        "ID 0 must be BOS/EOS",
+                    ));
                 }
             }
             let feature_ids = feature_extractor.extract_right_feature_ids(&feature_spl);
