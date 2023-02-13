@@ -2,6 +2,7 @@
 
 This tool allows for generating a smaller dictionary from a pre-trained MeCab model
 without the training steps described [`small-dic.md`](../../docs/small-dic.md).
+
 ## Usage
 
 This tool needs several files that describe the definitions of your pre-trained model.
@@ -9,6 +10,7 @@ This tool needs several files that describe the definitions of your pre-trained 
 
 The following shows an example of using [UniDic 3.1.1](https://clrd.ninjal.ac.jp/unidic/).
 `scrape.py` is a script file to pick only POS tags and pronunciations.
+
 ```
 $ wget https://clrd.ninjal.ac.jp/unidic_archive/cwj/3.1.1/unidic-cwj-3.1.1-full.zip
 $ unzip unidic-cwj-3.1.1-full.zip
