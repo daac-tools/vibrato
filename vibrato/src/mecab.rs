@@ -46,7 +46,11 @@ pub fn generate_bigram_info(
     let id_feature_re = Regex::new(r"^([0-9]+) (.*)$").unwrap();
     let model_re = Regex::new(r"^([0-9\-\.]+)\t(.*)$").unwrap();
 
-    // right features
+    // right-id.def contains the right hand ID of the left context, and left-id.def contains
+    // the left hand ID of the right context. The left-right naming in this code is based on
+    // position between words.
+
+    // left features
     let right_id_def_rdr = BufReader::new(right_id_def_rdr);
     for line in right_id_def_rdr.lines() {
         let line = line?;
@@ -55,7 +59,7 @@ pub fn generate_bigram_info(
             let feature_str = cap.get(2).unwrap().as_str();
             let feature_ids =
                 feature_extractor.extract_left_feature_ids(&utils::parse_csv_row(feature_str));
-            right_features.insert(id, feature_ids);
+            left_features.insert(id, feature_ids);
         } else {
             return Err(VibratoError::invalid_format(
                 "right_id_def_rdr",
@@ -63,7 +67,7 @@ pub fn generate_bigram_info(
             ));
         }
     }
-    // left features
+    // right features
     let left_id_def_rdr = BufReader::new(left_id_def_rdr);
     for line in left_id_def_rdr.lines() {
         let line = line?;
@@ -72,7 +76,7 @@ pub fn generate_bigram_info(
             let feature_str = cap.get(2).unwrap().as_str();
             let feature_ids =
                 feature_extractor.extract_right_feature_ids(&utils::parse_csv_row(feature_str));
-            left_features.insert(id, feature_ids);
+            right_features.insert(id, feature_ids);
         } else {
             return Err(VibratoError::invalid_format(
                 "left_id_def_rdr",
@@ -116,9 +120,9 @@ pub fn generate_bigram_info(
     }
 
     let mut bigram_right_wtr = BufWriter::new(bigram_right_wtr);
-    for id in 1..right_features.len() {
+    for id in 1..left_features.len() {
         write!(&mut bigram_right_wtr, "{id}\t")?;
-        if let Some(features) = right_features.get(&id) {
+        if let Some(features) = left_features.get(&id) {
             for (i, feat_id) in features.iter().enumerate() {
                 if i != 0 {
                     write!(&mut bigram_right_wtr, ",")?;
@@ -139,9 +143,9 @@ pub fn generate_bigram_info(
     }
 
     let mut bigram_left_wtr = BufWriter::new(bigram_left_wtr);
-    for id in 1..left_features.len() {
+    for id in 1..right_features.len() {
         write!(&mut bigram_left_wtr, "{id}\t")?;
-        if let Some(features) = left_features.get(&id) {
+        if let Some(features) = right_features.get(&id) {
             for (i, feat_id) in features.iter().enumerate() {
                 if i != 0 {
                     write!(&mut bigram_left_wtr, ",")?;
