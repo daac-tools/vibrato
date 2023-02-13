@@ -133,6 +133,10 @@ impl Dictionary {
 
     /// Creates a dictionary from a reader.
     ///
+    /// This function does not decompress the dictionary, so you need to use a zstd decoder such as
+    /// [zstd crate](https://docs.rs/zstd/latest/zstd/) or [ruzstd
+    /// crate](https://docs.rs/ruzstd/latest/ruzstd/) to decompress the dictionary beforehand.
+    ///
     /// # Errors
     ///
     /// When bincode generates an error, it will be returned as is.
@@ -148,6 +152,10 @@ impl Dictionary {
     }
 
     /// Creates a dictionary from a reader.
+    ///
+    /// This function does not decompress the dictionary, so you need to use a zstd decoder such as
+    /// [zstd crate](https://docs.rs/zstd/latest/zstd/) or [ruzstd
+    /// crate](https://docs.rs/ruzstd/latest/ruzstd/) to decompress the dictionary beforehand.
     ///
     /// # Safety
     ///

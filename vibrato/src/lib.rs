@@ -19,8 +19,9 @@
 //!     File::open("src/tests/resources/char.def")?,
 //!     File::open("src/tests/resources/unk.def")?,
 //! )?;
-//! // or loads a compiled dictionary
-//! // let dict = Dictionary::read(File::open("src/tests/resources/system.dic")?)?;
+//! // or loads a compiled dictionary (requires a zstd decoder)
+//! // let reader = zstd::Decoder::new(File::open("path/to/system.dic.zst")?)?;
+//! // let dict = Dictionary::read(reader)?;
 //!
 //! let tokenizer = vibrato::Tokenizer::new(dict);
 //! let mut worker = tokenizer.new_worker();
