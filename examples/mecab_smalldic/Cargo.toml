@@ -1,0 +1,9 @@
+[package]
+name = "mecab_smalldic"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+vibrato = { path = "../../vibrato" }  # MIT or Apache-2.0
+clap = { version = "4.0", features = ["derive"] }  # MIT or Apache-2.0
+zstd = "0.12"  # MIT

@@ -18,6 +18,9 @@ pub enum VibratoError {
     /// The error variant for [`TryFromIntError`](std::num::TryFromIntError).
     TryFromInt(std::num::TryFromIntError),
 
+    /// The error variant for [`ParseFloatError`](std::num::ParseFloatError).
+    ParseFloat(std::num::ParseFloatError),
+
     /// The error variant for [`ParseIntError`](std::num::ParseIntError).
     ParseInt(std::num::ParseIntError),
 
@@ -66,6 +69,7 @@ impl fmt::Display for VibratoError {
             Self::InvalidArgument(e) => e.fmt(f),
             Self::InvalidFormat(e) => e.fmt(f),
             Self::TryFromInt(e) => e.fmt(f),
+            Self::ParseFloat(e) => e.fmt(f),
             Self::ParseInt(e) => e.fmt(f),
             Self::BincodeDecode(e) => e.fmt(f),
             Self::BincodeEncode(e) => e.fmt(f),
@@ -119,6 +123,12 @@ impl Error for InvalidFormatError {}
 impl From<std::num::TryFromIntError> for VibratoError {
     fn from(error: std::num::TryFromIntError) -> Self {
         Self::TryFromInt(error)
+    }
+}
+
+impl From<std::num::ParseFloatError> for VibratoError {
+    fn from(error: std::num::ParseFloatError) -> Self {
+        Self::ParseFloat(error)
     }
 }
 

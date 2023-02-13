@@ -40,7 +40,7 @@ struct Args {
     #[clap(long)]
     bigram_right_in: Option<PathBuf>,
 
-    /// Bi-gram information associated with left connection IDs (bigram.right).
+    /// Bi-gram information associated with left connection IDs (bigram.left).
     #[clap(long)]
     bigram_left_in: Option<PathBuf>,
 

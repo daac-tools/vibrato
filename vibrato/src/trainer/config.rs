@@ -62,7 +62,7 @@ impl Encode for TrainerConfig {
 }
 
 impl TrainerConfig {
-    fn parse_feature_config<R>(rdr: R) -> Result<FeatureExtractor>
+    pub(crate) fn parse_feature_config<R>(rdr: R) -> Result<FeatureExtractor>
     where
         R: Read,
     {
