@@ -19,8 +19,8 @@ jobs:
     - name: Download model
       working-directory: ./examples/wasm
       run: |
-        apt-get update
-        apt-get install -y zstd
+        sudo apt-get update
+        sudo apt-get install -y zstd
         wget 'https://github.com/daac-tools/vibrato/releases/download/v0.4.0/ipadic-mecab-2_7_0-small.tar.xz'
         tar xf ./ipadic-mecab-2_7_0-small.tar.xz
         unzstd ./ipadic-mecab-2_7_0-small/system.dic.zst
