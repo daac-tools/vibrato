@@ -24,6 +24,13 @@ pub use crate::dictionary::word_idx::WordIdx;
 
 pub(crate) use crate::dictionary::lexicon::WordParam;
 
+const VERSION: &str = env!("CARGO_PKG_VERSION");
+
+/// Returns the magic number for model.
+fn model_magic() -> Vec<u8> {
+    format!("VibratoTokenizer {VERSION}").as_bytes().to_vec()
+}
+
 /// Type of a lexicon that contains the word.
 #[derive(Clone, Copy, Eq, PartialEq, Debug, Hash, Decode, Encode)]
 #[repr(u8)]
@@ -126,9 +133,10 @@ impl Dictionary {
     where
         W: Write,
     {
-        let num_bytes =
-            bincode::encode_into_std_write(&self.data, &mut wtr, common::bincode_config())?;
-        Ok(num_bytes)
+        let config = common::bincode_config();
+        let mgc_bytes = bincode::encode_into_std_write(model_magic(), &mut wtr, config)?;
+        let dat_bytes = bincode::encode_into_std_write(&self.data, &mut wtr, config)?;
+        Ok(mgc_bytes + dat_bytes)
     }
 
     /// Creates a dictionary from a reader.
@@ -140,7 +148,15 @@ impl Dictionary {
     where
         R: Read,
     {
-        let data = bincode::decode_from_std_read(&mut rdr, common::bincode_config())?;
+        let config = common::bincode_config();
+        let magic: Vec<u8> = bincode::decode_from_std_read(&mut rdr, config)?;
+        if magic != model_magic() {
+            return Err(VibratoError::invalid_argument(
+                "rdr",
+                "model version mismatch",
+            ));
+        }
+        let data = bincode::decode_from_std_read(&mut rdr, config)?;
         Ok(Self {
             data,
             need_check: true,
@@ -161,7 +177,15 @@ impl Dictionary {
     where
         R: Read,
     {
-        let data = bincode::decode_from_std_read(&mut rdr, common::bincode_config())?;
+        let config = common::bincode_config();
+        let magic: Vec<u8> = bincode::decode_from_std_read(&mut rdr, config)?;
+        if magic != model_magic() {
+            return Err(VibratoError::invalid_argument(
+                "rdr",
+                "model version mismatch",
+            ));
+        }
+        let data = bincode::decode_from_std_read(&mut rdr, config)?;
         Ok(Self {
             data,
             need_check: false,
