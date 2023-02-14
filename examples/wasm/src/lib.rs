@@ -38,11 +38,8 @@ impl Worker for VibratoWorker {
     type Output = Vec<Token>;
 
     fn create(_scope: &WorkerScope<Self>) -> Self {
-        let model_data = include_bytes!("system.dic.zst");
-        let mut decoder = ruzstd::StreamingDecoder::new(model_data.as_slice()).unwrap();
-        let mut buff = vec![];
-        decoder.read_to_end(&mut buff).unwrap();
-        let dict = vibrato::Dictionary::read(buff.as_slice()).unwrap();
+        let model_data = include_bytes!("system.dic");
+        let dict = vibrato::Dictionary::read(model_data.as_slice()).unwrap();
         let tokenizer = vibrato::Tokenizer::new(dict);
         VibratoWorkerBuilder {
             tokenizer,
