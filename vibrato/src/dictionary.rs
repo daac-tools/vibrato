@@ -25,10 +25,16 @@ pub use crate::dictionary::word_idx::WordIdx;
 pub(crate) use crate::dictionary::lexicon::WordParam;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
+const MAGIC_LEN: usize = 20;
 
 /// Returns the magic number for model.
-fn model_magic() -> Vec<u8> {
-    format!("VibratoTokenizer {VERSION}").as_bytes().to_vec()
+fn model_magic() -> [u8; MAGIC_LEN] {
+    let magic_str = format!("Vibrato {VERSION}");
+    let magic_bytes = magic_str.as_bytes();
+    debug_assert!(magic_bytes.len() <= MAGIC_LEN);
+    let mut magic_number = [0u8; MAGIC_LEN];
+    magic_number[..magic_bytes.len()].copy_from_slice(magic_bytes);
+    magic_number
 }
 
 /// Type of a lexicon that contains the word.
@@ -133,10 +139,10 @@ impl Dictionary {
     where
         W: Write,
     {
+        wtr.write_all(&model_magic())?;
         let config = common::bincode_config();
-        let mgc_bytes = bincode::encode_into_std_write(model_magic(), &mut wtr, config)?;
-        let dat_bytes = bincode::encode_into_std_write(&self.data, &mut wtr, config)?;
-        Ok(mgc_bytes + dat_bytes)
+        let num_bytes = bincode::encode_into_std_write(&self.data, &mut wtr, config)?;
+        Ok(MAGIC_LEN + num_bytes)
     }
 
     /// Creates a dictionary from a reader.
@@ -144,21 +150,12 @@ impl Dictionary {
     /// # Errors
     ///
     /// When bincode generates an error, it will be returned as is.
-    pub fn read<R>(mut rdr: R) -> Result<Self>
+    pub fn read<R>(rdr: R) -> Result<Self>
     where
         R: Read,
     {
-        let config = common::bincode_config();
-        let magic: Vec<u8> = bincode::decode_from_std_read(&mut rdr, config)?;
-        if magic != model_magic() {
-            return Err(VibratoError::invalid_argument(
-                "rdr",
-                "model version mismatch",
-            ));
-        }
-        let data = bincode::decode_from_std_read(&mut rdr, config)?;
         Ok(Self {
-            data,
+            data: Self::read_data(rdr)?,
             need_check: true,
         })
     }
@@ -173,23 +170,31 @@ impl Dictionary {
     /// # Errors
     ///
     /// When bincode generates an error, it will be returned as is.
-    pub unsafe fn read_unchecked<R>(mut rdr: R) -> Result<Self>
+    pub unsafe fn read_unchecked<R>(rdr: R) -> Result<Self>
     where
         R: Read,
     {
-        let config = common::bincode_config();
-        let magic: Vec<u8> = bincode::decode_from_std_read(&mut rdr, config)?;
+        Ok(Self {
+            data: Self::read_data(rdr)?,
+            need_check: false,
+        })
+    }
+
+    fn read_data<R>(mut rdr: R) -> Result<DictionaryInner>
+    where
+        R: Read,
+    {
+        let mut magic = [0u8; MAGIC_LEN];
+        rdr.read_exact(&mut magic)?;
         if magic != model_magic() {
             return Err(VibratoError::invalid_argument(
                 "rdr",
-                "model version mismatch",
+                "The magic number of the input model mismatches.",
             ));
         }
+        let config = common::bincode_config();
         let data = bincode::decode_from_std_read(&mut rdr, config)?;
-        Ok(Self {
-            data,
-            need_check: false,
-        })
+        Ok(data)
     }
 
     /// Resets the user dictionary from a reader.
@@ -252,5 +257,16 @@ impl Dictionary {
         self.data.unk_handler.map_connection_ids(&mapper);
         self.data.mapper = Some(mapper);
         Ok(self)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_model_magic() {
+        // Checks if it does not panic.
+        model_magic();
     }
 }
