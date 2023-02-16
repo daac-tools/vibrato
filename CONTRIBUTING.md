@@ -9,3 +9,6 @@ There are just a few small guidelines you need to follow.
 - All submissions, including submissions by project members, require review.
   We use GitHub pull requests for this purpose.
   Consult GitHub Help for more information on using pull requests.
+
+We require all contributors to follow the [daac-tools Code of
+Conduct](https://github.com/daac-tools/guidelines/blob/main/conduct.md).
