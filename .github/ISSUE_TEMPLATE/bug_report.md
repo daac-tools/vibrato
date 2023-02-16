@@ -7,6 +7,9 @@ assignees: ''
 
 ---
 
+<!-- daac-tools requires all contributors to follow the Code of Conduct. -->
+<!-- daac-tools Code of Conduct: https://github.com/daac-tools/guidelines/blob/main/conduct.md -->
+
 **Describe the bug**
 (A clear and concise description of what the bug is.)
 
