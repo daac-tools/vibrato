@@ -97,7 +97,7 @@ If you want to load these compressed models with the `vibrato` API,
 you must decompress them outside of the API.
 
 ```rust
-# Requires zstd crate or ruzstd crate
+// Requires zstd crate or ruzstd crate
 let reader = zstd::Decoder::new(File::open("path/to/system.dic.zst")?)?;
 let dict = Dictionary::read(reader)?;
 ```
