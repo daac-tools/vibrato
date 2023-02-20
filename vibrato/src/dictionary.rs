@@ -24,18 +24,7 @@ pub use crate::dictionary::word_idx::WordIdx;
 
 pub(crate) use crate::dictionary::lexicon::WordParam;
 
-const VERSION: &str = env!("CARGO_PKG_VERSION");
-const MAGIC_LEN: usize = 20;
-
-/// Returns the magic number for model.
-fn model_magic() -> [u8; MAGIC_LEN] {
-    let magic_str = format!("Vibrato {VERSION}");
-    let magic_bytes = magic_str.as_bytes();
-    debug_assert!(magic_bytes.len() <= MAGIC_LEN);
-    let mut magic_number = [0u8; MAGIC_LEN];
-    magic_number[..magic_bytes.len()].copy_from_slice(magic_bytes);
-    magic_number
-}
+const MODEL_MAGIC: &[u8] = b"VibratoTokenizer 0.5\n";
 
 /// Type of a lexicon that contains the word.
 #[derive(Clone, Copy, Eq, PartialEq, Debug, Hash, Decode, Encode)]
@@ -160,10 +149,10 @@ impl Dictionary {
     where
         W: Write,
     {
-        wtr.write_all(&model_magic())?;
+        wtr.write_all(&MODEL_MAGIC)?;
         let config = common::bincode_config();
         let num_bytes = bincode::encode_into_std_write(&self.data, &mut wtr, config)?;
-        Ok(MAGIC_LEN + num_bytes)
+        Ok(MODEL_MAGIC.len() + num_bytes)
     }
 
     /// Creates a dictionary from raw dictionary data.
@@ -239,9 +228,9 @@ impl Dictionary {
     where
         R: Read,
     {
-        let mut magic = [0u8; MAGIC_LEN];
+        let mut magic = [0; MODEL_MAGIC.len()];
         rdr.read_exact(&mut magic)?;
-        if magic != model_magic() {
+        if magic != MODEL_MAGIC {
             return Err(VibratoError::invalid_argument(
                 "rdr",
                 "The magic number of the input model mismatches.",
@@ -312,16 +301,5 @@ impl Dictionary {
         self.data.unk_handler.map_connection_ids(&mapper);
         self.data.mapper = Some(mapper);
         Ok(self)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_model_magic() {
-        // Checks if it does not panic.
-        model_magic();
     }
 }
