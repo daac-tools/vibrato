@@ -90,6 +90,17 @@ $ echo '本とカレーの街神保町へようこそ。' | cargo run --release 
 本 と カレー の 街 神保 町 へ ようこそ 。
 ```
 
+### Notes for Vibrato APIs
+
+The distributed models are compressed in zstd format.
+If you want to load these compressed models with the `vibrato` API,
+you must decompress them outside of the API.
+
+```rust
+let reader = zstd::Decoder::new(File::open("path/to/system.dic.zst")?)?;
+let dict = Dictionary::read(reader)?;
+```
+
 ## Tokenization options
 
 ### MeCab-compatible options
