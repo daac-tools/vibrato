@@ -149,7 +149,7 @@ impl Dictionary {
     where
         W: Write,
     {
-        wtr.write_all(&MODEL_MAGIC)?;
+        wtr.write_all(MODEL_MAGIC)?;
         let config = common::bincode_config();
         let num_bytes = bincode::encode_into_std_write(&self.data, &mut wtr, config)?;
         Ok(MODEL_MAGIC.len() + num_bytes)
