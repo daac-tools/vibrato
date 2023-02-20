@@ -155,7 +155,7 @@ impl Dictionary {
         R: Read,
     {
         Ok(Self {
-            data: Self::read_data(rdr)?,
+            data: Self::read_common(rdr)?,
             need_check: true,
         })
     }
@@ -175,12 +175,12 @@ impl Dictionary {
         R: Read,
     {
         Ok(Self {
-            data: Self::read_data(rdr)?,
+            data: Self::read_common(rdr)?,
             need_check: false,
         })
     }
 
-    fn read_data<R>(mut rdr: R) -> Result<DictionaryInner>
+    fn read_common<R>(mut rdr: R) -> Result<DictionaryInner>
     where
         R: Read,
     {
