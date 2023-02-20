@@ -174,6 +174,13 @@ EOS
 
 The directory [docs](./docs/) provides descriptions of more advanced usages such as training or benchmarking.
 
+## Slack
+
+We have a Slack workspace for developers and users to ask questions and discuss a variety of topics.
+
+ * https://daac-tools.slack.com/
+ * Please get an invitation from [here](https://t.co/ikroMYhRsm).
+
 ## License
 
 Licensed under either of
