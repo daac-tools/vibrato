@@ -24,6 +24,8 @@ pub use crate::dictionary::word_idx::WordIdx;
 
 pub(crate) use crate::dictionary::lexicon::WordParam;
 
+const MODEL_MAGIC: &[u8] = b"VibratoTokenizer 0.5\n";
+
 /// Type of a lexicon that contains the word.
 #[derive(Clone, Copy, Eq, PartialEq, Debug, Hash, Decode, Encode)]
 #[repr(u8)]
@@ -147,9 +149,10 @@ impl Dictionary {
     where
         W: Write,
     {
-        let num_bytes =
-            bincode::encode_into_std_write(&self.data, &mut wtr, common::bincode_config())?;
-        Ok(num_bytes)
+        wtr.write_all(MODEL_MAGIC)?;
+        let config = common::bincode_config();
+        let num_bytes = bincode::encode_into_std_write(&self.data, &mut wtr, config)?;
+        Ok(MODEL_MAGIC.len() + num_bytes)
     }
 
     /// Creates a dictionary from raw dictionary data.
@@ -173,13 +176,12 @@ impl Dictionary {
     /// # Errors
     ///
     /// When bincode generates an error, it will be returned as is.
-    pub fn read<R>(mut rdr: R) -> Result<Self>
+    pub fn read<R>(rdr: R) -> Result<Self>
     where
         R: Read,
     {
-        let data = bincode::decode_from_std_read(&mut rdr, common::bincode_config())?;
         Ok(Self {
-            data,
+            data: Self::read_common(rdr)?,
             need_check: true,
         })
     }
@@ -212,15 +214,31 @@ impl Dictionary {
     /// # Errors
     ///
     /// When bincode generates an error, it will be returned as is.
-    pub unsafe fn read_unchecked<R>(mut rdr: R) -> Result<Self>
+    pub unsafe fn read_unchecked<R>(rdr: R) -> Result<Self>
     where
         R: Read,
     {
-        let data = bincode::decode_from_std_read(&mut rdr, common::bincode_config())?;
         Ok(Self {
-            data,
+            data: Self::read_common(rdr)?,
             need_check: false,
         })
+    }
+
+    fn read_common<R>(mut rdr: R) -> Result<DictionaryInner>
+    where
+        R: Read,
+    {
+        let mut magic = [0; MODEL_MAGIC.len()];
+        rdr.read_exact(&mut magic)?;
+        if magic != MODEL_MAGIC {
+            return Err(VibratoError::invalid_argument(
+                "rdr",
+                "The magic number of the input model mismatches.",
+            ));
+        }
+        let config = common::bincode_config();
+        let data = bincode::decode_from_std_read(&mut rdr, config)?;
+        Ok(data)
     }
 
     /// Resets the user dictionary from a reader.
