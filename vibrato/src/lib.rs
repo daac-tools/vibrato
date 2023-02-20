@@ -20,7 +20,8 @@
 //!     File::open("src/tests/resources/unk.def")?,
 //! )?;
 //! // or loads a compiled dictionary
-//! // let dict = Dictionary::read(File::open("src/tests/resources/system.dic")?)?;
+//! // let reader = File::open("path/to/system.dic")?;
+//! // let dict = Dictionary::read(reader)?;
 //!
 //! let tokenizer = vibrato::Tokenizer::new(dict);
 //! let mut worker = tokenizer.new_worker();

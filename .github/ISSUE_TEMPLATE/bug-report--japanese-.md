@@ -7,6 +7,9 @@ assignees: ''
 
 ---
 
+<!-- daac-tools ではすべての貢献者に対して行動規範 (CoC) に従うことを求めています -->
+<!-- daac-tools 行動規範 (CoC): https://github.com/daac-tools/guidelines/blob/main/conduct.md -->
+
 **バグの説明**
 (どのようなバグであるかを説明してください。)
 

@@ -132,6 +132,27 @@ impl Dictionary {
 
     /// Exports the dictionary data.
     ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use std::fs::File;
+    ///
+    /// use vibrato::SystemDictionaryBuilder;
+    ///
+    /// let dict = SystemDictionaryBuilder::from_readers(
+    ///     File::open("src/tests/resources/lex.csv")?,
+    ///     File::open("src/tests/resources/matrix.def")?,
+    ///     File::open("src/tests/resources/char.def")?,
+    ///     File::open("src/tests/resources/unk.def")?,
+    /// )?;
+    ///
+    /// let writer = File::create("path/to/system.dic")?;
+    /// dict.write(writer)?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
     /// # Errors
     ///
     /// When bincode generates an error, it will be returned as is.
@@ -145,7 +166,23 @@ impl Dictionary {
         Ok(MAGIC_LEN + num_bytes)
     }
 
-    /// Creates a dictionary from a reader.
+    /// Creates a dictionary from raw dictionary data.
+    ///
+    /// The argument must be a byte sequence exported by the [`Dictionary::write()`] function.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use std::fs::File;
+    ///
+    /// use vibrato::Dictionary;
+    ///
+    /// let reader = File::open("path/to/system.dic")?;
+    /// let dict = Dictionary::read(reader)?;
+    /// # Ok(())
+    /// # }
+    /// ```
     ///
     /// # Errors
     ///
@@ -160,12 +197,30 @@ impl Dictionary {
         })
     }
 
-    /// Creates a dictionary from a reader.
+    /// Creates a dictionary from raw dictionary data.
+    ///
+    /// The argument must be a byte sequence exported by the [`Dictionary::write()`] function.
+    ///
+    /// Unlike the [`Dictionary::read()`] function, this function does not check the correctness of
+    /// the dictionary.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use std::fs::File;
+    ///
+    /// use vibrato::Dictionary;
+    ///
+    /// let reader = File::open("path/to/system.dic")?;
+    /// let dict = unsafe { Dictionary::read_unchecked(reader)? } ;
+    /// # Ok(())
+    /// # }
+    /// ```
     ///
     /// # Safety
     ///
-    /// The given reader must be a correct file exported by
-    /// [`Dictionary::write()`].
+    /// The given reader must be a correct file exported by [`Dictionary::write()`].
     ///
     /// # Errors
     ///
