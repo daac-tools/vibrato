@@ -1,7 +1,7 @@
 [package]
 name = "vibrato"
 # NOTE(kampersanda): Developers should check compatibility with MODEL_MAGIC in dictionary.rs.
-version = "0.4.0"
+version = "0.5.0"
 edition = "2021"
 rust-version = "1.63"
 authors = [
