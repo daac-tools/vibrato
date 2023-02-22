@@ -21,9 +21,9 @@ jobs:
     - name: Download model
       working-directory: ./examples/wasm
       run: |
-        wget 'https://github.com/daac-tools/vibrato/releases/download/v0.4.0/ipadic-mecab-2_7_0-small.tar.xz'
-        tar xf ./ipadic-mecab-2_7_0-small.tar.xz
-        mv ./ipadic-mecab-2_7_0-small/system.dic.zst ./src/
+        wget 'https://github.com/daac-tools/vibrato/releases/download/v0.5.0/bccwj-suw+unidic-cwj-3_1_1-extracted+compact.tar.xz'
+        tar xf ./bccwj-suw+unidic-cwj-3_1_1-extracted+compact.tar.xz
+        mv ./bccwj-suw+unidic-cwj-3_1_1-extracted+compact/system.dic.zst ./src/
     - name: Install environment
       run: |
         rustup target add wasm32-unknown-unknown
