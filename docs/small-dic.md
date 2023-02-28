@@ -37,6 +37,7 @@ $ cargo run --release -p compile -- \
     --bigram-left-in ./mydict/bigram.left \
     --bigram-right-in ./mydict/bigram.right \
     --bigram-cost-in ./mydict/bigram.cost \
+    --dual-connector # Optional argument for faster but larger model
     -o system-compact.dic.zst
 ```
 

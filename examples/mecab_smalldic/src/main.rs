@@ -46,6 +46,12 @@ struct Args {
     #[clap(short = 'r', long)]
     cost_factor: f64,
 
+    /// Option to control trade-off between speed and memory.
+    /// When setting it, the resulting model will be faster but larger.
+    /// This option is enabled when bi-gram information is specified.
+    #[clap(long)]
+    dual_connector: bool,
+
     /// File to which the binary dictionary is output (in zstd).
     #[clap(short = 'o', long)]
     sysdic_out: PathBuf,
@@ -79,7 +85,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         bigram_cost.as_slice(),
         File::open(args.char_in)?,
         File::open(args.unk_in)?,
-        false,
+        args.dual_connector,
     )?;
     eprintln!("{} seconds", start.elapsed().as_secs_f64());
 

@@ -48,8 +48,9 @@ struct Args {
     #[clap(long)]
     bigram_cost_in: Option<PathBuf>,
 
-    /// Control speed reduction. This option is enabled when bi-gram information
-    /// is specified.
+    /// Option to control trade-off between speed and memory.
+    /// When setting it, the resulting model will be faster but larger.
+    /// This option is enabled when bi-gram information is specified.
     #[clap(long)]
     dual_connector: bool,
 }
