@@ -49,10 +49,10 @@ struct Args {
     bigram_cost_in: Option<PathBuf>,
 
     /// Option to control trade-off between speed and memory.
-    /// When setting it, the resulting model will be smaller but much slower.
+    /// When setting it, the resulting model will be faster but larger.
     /// This option can be enabled when bi-gram information is specified.
     #[clap(long)]
-    raw_connector: bool,
+    dual_connector: bool,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -79,7 +79,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             File::open(bigram_cost_in)?,
             File::open(args.char_in)?,
             File::open(args.unk_in)?,
-            !args.raw_connector,
+            args.dual_connector,
         )?
     } else {
         Args::command()
