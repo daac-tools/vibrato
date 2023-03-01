@@ -50,7 +50,7 @@ You can easily get started with Vibrato by downloading a precompiled dictionary.
 several precompiled dictionaries from different resources.
 
 Here, consider to use [mecab-ipadic v2.7.0](https://taku910.github.io/mecab/).
-(Specify an appropriate Vibrato release tag to `VERSION` such as `v0.4.0`.)
+(Specify an appropriate Vibrato release tag to `VERSION` such as `v0.5.0`.)
 
 ```
 $ wget https://github.com/daac-tools/vibrato/releases/download/VERSION/ipadic-mecab-2_7_0.tar.xz
