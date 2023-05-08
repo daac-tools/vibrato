@@ -4,6 +4,8 @@ Vibrato provides an option to generate a smaller dictionary that stores connecti
 while sacrificing tokenization speed.
 This document describes the generation steps, assuming you are in the root directory of this repository.
 
+See [this paper](https://www.anlp.jp/proceedings/annual_meeting/2023/pdf_dir/C2-1.pdf) for the technical details.
+
 ## 1. Preparing trained model
 
 To generate a smaller dictionary, you need to prepare a trained model file following [Step 1 in this document](./train.md#1-training).
