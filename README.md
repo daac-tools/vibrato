@@ -7,8 +7,6 @@
 
 Vibrato is a fast implementation of tokenization (or morphological analysis) based on the Viterbi algorithm.
 
-The technical ideas behind this library appear in [this blog post](https://tech.legalforce.co.jp/entry/2022/09/20/133132) (Japanese).
-
 A Python wrapper is also available [here](https://github.com/daac-tools/python-vibrato).
 
 [Wasm Demo](https://vibrato-demo.pages.dev/) (takes a little time to load the model.)
@@ -213,3 +211,16 @@ but not an officially supported LegalOn Technologies product.
 ## Contribution
 
 See [the guidelines](./CONTRIBUTING.md).
+
+## References
+
+Technical details of Vibrato are available in the following resources:
+
+- 神田峻介, 赤部晃一, 後藤啓介, 小田悠介.
+  [最小コスト法に基づく形態素解析におけるCPUキャッシュの効率化](https://www.anlp.jp/proceedings/annual_meeting/2023/pdf_dir/C2-4.pdf),
+  言語処理学会第29回年次大会 (NLP2023).
+- 赤部晃一, 神田峻介, 小田悠介.
+  [CRFに基づく形態素解析器のスコア計算の分割によるモデルサイズと解析速度の調整](https://www.anlp.jp/proceedings/annual_meeting/2023/pdf_dir/C2-1.pdf),
+  言語処理学会第29回年次大会 (NLP2023).
+- [MeCab互換な形態素解析器Vibratoの高速化技法](https://tech.legalforce.co.jp/entry/2022/09/20/133132),
+  LegalOn Technologies Engineering Blog (2022-09-20).

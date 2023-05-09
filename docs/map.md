@@ -2,13 +2,15 @@
 
 This document describes steps to edit system dictionaries to achieve faster tokenization.
 Here assumes that you have a system dictionary `system.dic.zst`
-produced in the manner described in [compile.md](./compile.md) and that 
+produced in the manner described in [compile.md](./compile.md) and that
 you are at the root directory of this repository.
 
 Vibrato supports faster tokenization by improving the locality of reference through mapping connection ids.
 The mapping steps consist of
 1. producing a reordered mapping using statistics obtained from training data of sentences, and
 1. editing the system dictionary with the reordered mapping.
+
+See [this paper](https://www.anlp.jp/proceedings/annual_meeting/2023/pdf_dir/C2-4.pdf) for the technical details.
 
 ## 1. Reordering mapping of connection ids
 
