@@ -2,14 +2,8 @@
 name = "map"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.67"
 
 default-run = "map"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[features]
-default = []
 
 [dependencies]
 vibrato = { path = "../vibrato" }

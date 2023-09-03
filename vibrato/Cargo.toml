@@ -3,7 +3,7 @@ name = "vibrato"
 # NOTE(kampersanda): Developers should check compatibility with MODEL_MAGIC in dictionary.rs.
 version = "0.5.1"
 edition = "2021"
-rust-version = "1.67"
+rust-version = "1.70"
 authors = [
     "Shunsuke Kanda <shnsk.knd@gmail.com>",
     "Koichi Akabe <vbkaisetsu@gmail.com>",
