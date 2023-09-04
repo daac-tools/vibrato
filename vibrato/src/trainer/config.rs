@@ -34,7 +34,6 @@ impl Decode for TrainerConfig {
         let right_rewriter = Decode::decode(decoder)?;
         let dict = Dictionary {
             data: Decode::decode(decoder)?,
-            need_check: true,
         };
         let surfaces = Decode::decode(decoder)?;
         Ok(Self {

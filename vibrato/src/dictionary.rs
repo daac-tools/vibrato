@@ -58,7 +58,6 @@ pub(crate) struct DictionaryInner {
 /// Dictionary for tokenization.
 pub struct Dictionary {
     pub(crate) data: DictionaryInner,
-    pub(crate) need_check: bool,
 }
 
 impl Dictionary {
@@ -182,45 +181,6 @@ impl Dictionary {
     {
         Ok(Self {
             data: Self::read_common(rdr)?,
-            need_check: true,
-        })
-    }
-
-    /// Creates a dictionary from raw dictionary data.
-    ///
-    /// The argument must be a byte sequence exported by the [`Dictionary::write()`] function.
-    ///
-    /// Unlike the [`Dictionary::read()`] function, this function does not check the correctness of
-    /// the dictionary.
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use std::fs::File;
-    ///
-    /// use vibrato::Dictionary;
-    ///
-    /// let reader = File::open("path/to/system.dic")?;
-    /// let dict = unsafe { Dictionary::read_unchecked(reader)? } ;
-    /// # Ok(())
-    /// # }
-    /// ```
-    ///
-    /// # Safety
-    ///
-    /// The given reader must be a correct file exported by [`Dictionary::write()`].
-    ///
-    /// # Errors
-    ///
-    /// When bincode generates an error, it will be returned as is.
-    pub unsafe fn read_unchecked<R>(rdr: R) -> Result<Self>
-    where
-        R: Read,
-    {
-        Ok(Self {
-            data: Self::read_common(rdr)?,
-            need_check: false,
         })
     }
 

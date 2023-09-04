@@ -43,7 +43,6 @@ impl SystemDictionaryBuilder {
                 char_prop,
                 unk_handler,
             },
-            need_check: false,
         })
     }
 

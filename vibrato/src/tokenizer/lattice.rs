@@ -100,24 +100,6 @@ impl Lattice {
         });
     }
 
-    pub unsafe fn insert_eos_unchecked<C>(&mut self, start_node: usize, connector: &C)
-    where
-        C: ConnectorCost,
-    {
-        let (min_idx, min_cost) =
-            self.search_min_node_unchecked(start_node, BOS_EOS_CONNECTION_ID, connector);
-        self.eos = Some(Node {
-            word_id: u32::MAX,
-            lex_type: LexType::default(),
-            start_node,
-            start_word: self.len_char(),
-            left_id: BOS_EOS_CONNECTION_ID,
-            right_id: u16::MAX,
-            min_idx,
-            min_cost,
-        });
-    }
-
     pub fn insert_node<C>(
         &mut self,
         start_node: usize,
@@ -144,33 +126,6 @@ impl Lattice {
         });
     }
 
-    pub unsafe fn insert_node_unchecked<C>(
-        &mut self,
-        start_node: usize,
-        start_word: usize,
-        end_word: usize,
-        word_idx: WordIdx,
-        word_param: WordParam,
-        connector: &C,
-    ) where
-        C: ConnectorCost,
-    {
-        debug_assert!(start_node <= start_word);
-        debug_assert!(start_word < end_word);
-        let (min_idx, min_cost) =
-            self.search_min_node_unchecked(start_node, word_param.left_id, connector);
-        self.ends[end_word].push(Node {
-            word_id: word_idx.word_id,
-            lex_type: word_idx.lex_type,
-            start_node,
-            start_word,
-            left_id: word_param.left_id,
-            right_id: word_param.right_id,
-            min_idx,
-            min_cost: min_cost + i32::from(word_param.word_cost),
-        });
-    }
-
     fn search_min_node<C>(&self, start_node: usize, left_id: u16, connector: &C) -> (u16, i32)
     where
         C: ConnectorCost,
@@ -182,35 +137,6 @@ impl Lattice {
         for (i, left_node) in self.ends[start_node].iter().enumerate() {
             debug_assert!(left_node.is_connected_to_bos());
             let conn_cost = connector.cost(left_node.right_id, left_id);
-            let new_cost = left_node.min_cost + conn_cost;
-            // Depending on the order of tie-breaking, the result can be different from MeCab.
-            // Using <= (not <) will produce results identical to MeCab in most case (empirically).
-            if new_cost <= min_cost {
-                min_idx = i as u16;
-                min_cost = new_cost;
-            }
-        }
-
-        debug_assert_ne!(min_idx, INVALID_IDX);
-        (min_idx, min_cost)
-    }
-
-    unsafe fn search_min_node_unchecked<C>(
-        &self,
-        start_node: usize,
-        left_id: u16,
-        connector: &C,
-    ) -> (u16, i32)
-    where
-        C: ConnectorCost,
-    {
-        debug_assert!(!self.ends[start_node].is_empty());
-
-        let mut min_idx = INVALID_IDX;
-        let mut min_cost = MAX_COST;
-        for (i, left_node) in self.ends[start_node].iter().enumerate() {
-            debug_assert!(left_node.is_connected_to_bos());
-            let conn_cost = connector.cost_unchecked(left_node.right_id, left_id);
             let new_cost = left_node.min_cost + conn_cost;
             // Depending on the order of tie-breaking, the result can be different from MeCab.
             // Using <= (not <) will produce results identical to MeCab in most case (empirically).

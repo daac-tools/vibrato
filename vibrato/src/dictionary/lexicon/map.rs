@@ -40,18 +40,6 @@ impl WordMap {
                 .map(move |word_id| (word_id, e.end_char))
         })
     }
-
-    #[inline(always)]
-    pub unsafe fn common_prefix_iterator_unchecked<'a>(
-        &'a self,
-        input: &'a [char],
-    ) -> impl Iterator<Item = (u32, usize)> + 'a {
-        self.trie.common_prefix_iterator(input).flat_map(move |e| {
-            self.postings
-                .ids_unchecked(usize::from_u32(e.value))
-                .map(move |word_id| (word_id, e.end_char))
-        })
-    }
 }
 
 #[derive(Default)]
