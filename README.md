@@ -2,7 +2,7 @@
 
 [![Crates.io](https://img.shields.io/crates/v/vibrato)](https://crates.io/crates/vibrato)
 [![Documentation](https://docs.rs/vibrato/badge.svg)](https://docs.rs/vibrato)
-![Build Status](https://github.com/daac-tools/vibrato/actions/workflows/rust.yml/badge.svg)
+[![Build Status](https://github.com/daac-tools/vibrato/actions/workflows/rust.yml/badge.svg)](https://github.com/daac-tools/vibrato/actions)
 [![Slack](https://img.shields.io/badge/join-chat-brightgreen?logo=slack)](https://join.slack.com/t/daac-tools/shared_invite/zt-1pwwqbcz4-KxL95Nam9VinpPlzUpEGyA)
 
 Vibrato is a fast implementation of tokenization (or morphological analysis) based on the Viterbi algorithm.
