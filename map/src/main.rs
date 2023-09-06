@@ -32,10 +32,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     eprintln!("Loading the dictionary...");
     let reader = zstd::Decoder::new(File::open(args.sysdic_in)?)?;
-    #[cfg(not(feature = "unchecked"))]
     let dict = Dictionary::read(reader)?;
-    #[cfg(feature = "unchecked")]
-    let dict = unsafe { Dictionary::read_unchecked(reader)? };
 
     eprintln!("Loading and doing the mapping...");
     let lmap = {
