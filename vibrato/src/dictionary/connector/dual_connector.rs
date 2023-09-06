@@ -276,20 +276,6 @@ impl ConnectorCost for DualConnector {
         );
         matrix_cost + raw_cost
     }
-
-    #[inline(always)]
-    unsafe fn cost_unchecked(&self, right_id: u16, left_id: u16) -> i32 {
-        let right_conn_id = *self.right_conn_id_map.get_unchecked(usize::from(right_id));
-        let left_conn_id = *self.left_conn_id_map.get_unchecked(usize::from(left_id));
-        let matrix_cost = self
-            .matrix_connector
-            .cost_unchecked(right_conn_id, left_conn_id);
-        let raw_cost = self.raw_scorer.accumulate_cost(
-            &[*self.right_feat_ids.get_unchecked(usize::from(right_id))],
-            &[*self.left_feat_ids.get_unchecked(usize::from(left_id))],
-        );
-        matrix_cost + raw_cost
-    }
 }
 
 #[cfg(test)]

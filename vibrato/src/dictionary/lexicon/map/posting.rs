@@ -19,13 +19,6 @@ impl Postings {
         let len = usize::from_u32(self.data[i]);
         self.data[i + 1..i + 1 + len].iter().cloned()
     }
-
-    #[inline(always)]
-    pub unsafe fn ids_unchecked(&'_ self, i: usize) -> impl Iterator<Item = u32> + '_ {
-        let len = usize::from_u32(self.data[i]);
-        // The tokenization time can be shortened by 10%.
-        self.data.get_unchecked(i + 1..i + 1 + len).iter().cloned()
-    }
 }
 
 #[derive(Default)]

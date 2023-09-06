@@ -129,27 +129,13 @@ impl Tokenizer {
                 break;
             }
 
-            if self.dict.need_check {
-                self.add_lattice_edges(sent, lattice, start_node, start_word, connector);
-            } else {
-                unsafe {
-                    self.add_lattice_edges_unchecked(
-                        sent, lattice, start_node, start_word, connector,
-                    );
-                }
-            }
+            self.add_lattice_edges(sent, lattice, start_node, start_word, connector);
 
             start_word += 1;
             start_node = start_word;
         }
 
-        if self.dict.need_check {
-            lattice.insert_eos(start_node, connector);
-        } else {
-            unsafe {
-                lattice.insert_eos_unchecked(start_node, connector);
-            }
-        }
+        lattice.insert_eos(start_node, connector);
     }
 
     fn add_lattice_edges<C>(
@@ -164,9 +150,7 @@ impl Tokenizer {
     {
         let mut has_matched = false;
 
-        // Safety: `start_word < sent.len_char()` is already checked in `build_lattice()`.
-        debug_assert!(start_word < sent.len_char());
-        let suffix = unsafe { sent.chars().get_unchecked(start_word..) };
+        let suffix = &sent.chars()[start_word..];
 
         if let Some(user_lexicon) = self.dict.user_lexicon() {
             for m in user_lexicon.common_prefix_iterator(suffix) {
@@ -203,72 +187,6 @@ impl Tokenizer {
             self.max_grouping_len,
             |w| {
                 lattice.insert_node(
-                    start_node,
-                    w.start_char(),
-                    w.end_char(),
-                    w.word_idx(),
-                    w.word_param(),
-                    connector,
-                );
-            },
-        );
-    }
-
-    unsafe fn add_lattice_edges_unchecked<C>(
-        &self,
-        sent: &Sentence,
-        lattice: &mut Lattice,
-        start_node: usize,
-        start_word: usize,
-        connector: &C,
-    ) where
-        C: ConnectorCost,
-    {
-        let mut has_matched = false;
-
-        // Safety: `start_word < sent.len_char()` is already checked in `build_lattice()`.
-        debug_assert!(start_word < sent.len_char());
-        let suffix = sent.chars().get_unchecked(start_word..);
-
-        if let Some(user_lexicon) = self.dict.user_lexicon() {
-            for m in user_lexicon.common_prefix_iterator_unchecked(suffix) {
-                debug_assert!(start_word + m.end_char <= sent.len_char());
-                lattice.insert_node_unchecked(
-                    start_node,
-                    start_word,
-                    start_word + m.end_char,
-                    m.word_idx,
-                    m.word_param,
-                    connector,
-                );
-                has_matched = true;
-            }
-        }
-
-        for m in self
-            .dict
-            .system_lexicon()
-            .common_prefix_iterator_unchecked(suffix)
-        {
-            debug_assert!(start_word + m.end_char <= sent.len_char());
-            lattice.insert_node_unchecked(
-                start_node,
-                start_word,
-                start_word + m.end_char,
-                m.word_idx,
-                m.word_param,
-                connector,
-            );
-            has_matched = true;
-        }
-
-        self.dict.unk_handler().gen_unk_words(
-            sent,
-            start_word,
-            has_matched,
-            self.max_grouping_len,
-            |w| {
-                lattice.insert_node_unchecked(
                     start_node,
                     w.start_char(),
                     w.end_char(),

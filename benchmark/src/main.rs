@@ -37,10 +37,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     let reader = zstd::Decoder::new(File::open(args.sysdic)?)?;
-    #[cfg(not(feature = "unchecked"))]
     let dict = Dictionary::read(reader)?;
-    #[cfg(feature = "unchecked")]
-    let dict = unsafe { Dictionary::read_unchecked(reader)? };
 
     let tokenizer = Tokenizer::new(dict)
         .ignore_space(args.ignore_space)?

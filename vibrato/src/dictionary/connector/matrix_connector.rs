@@ -122,13 +122,6 @@ impl ConnectorCost for MatrixConnector {
         let index = self.index(right_id, left_id);
         i32::from(self.data[index])
     }
-
-    #[inline(always)]
-    unsafe fn cost_unchecked(&self, right_id: u16, left_id: u16) -> i32 {
-        let index = self.index(right_id, left_id);
-        // The tokenization time can be shortened by 5--10%.
-        i32::from(*self.data.get_unchecked(index))
-    }
 }
 
 #[cfg(test)]

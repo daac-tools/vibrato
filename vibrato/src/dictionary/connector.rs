@@ -25,9 +25,6 @@ pub trait Connector {
 pub trait ConnectorCost: Connector {
     /// Gets the value of the connection matrix
     fn cost(&self, right_id: u16, left_id: u16) -> i32;
-
-    /// Gets the value of the connection matrix
-    unsafe fn cost_unchecked(&self, right_id: u16, left_id: u16) -> i32;
 }
 
 #[derive(Decode, Encode)]
