@@ -8,7 +8,6 @@
 //! ```
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use std::fs::File;
-//! use std::io::{BufRead, BufReader};
 //!
 //! use vibrato::{SystemDictionaryBuilder, Tokenizer};
 //!
@@ -23,7 +22,7 @@
 //! // let reader = File::open("path/to/system.dic")?;
 //! // let dict = Dictionary::read(reader)?;
 //!
-//! let tokenizer = vibrato::Tokenizer::new(dict);
+//! let tokenizer = Tokenizer::new(dict);
 //! let mut worker = tokenizer.new_worker();
 //!
 //! worker.reset_sentence("京都東京都");
