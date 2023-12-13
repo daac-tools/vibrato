@@ -48,7 +48,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let dict = dict.map_connection_ids_from_iter(lmap, rmap)?;
 
     eprintln!(
-        "Writting the mapped system dictionary...: {:?}",
+        "Writing the mapped system dictionary...: {:?}",
         &args.sysdic_out
     );
     let mut f = zstd::Encoder::new(File::create(args.sysdic_out)?, 19)?;
