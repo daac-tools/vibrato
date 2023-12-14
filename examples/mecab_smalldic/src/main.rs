@@ -90,7 +90,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     eprintln!("{} seconds", start.elapsed().as_secs_f64());
 
     eprintln!(
-        "Writting the system dictionary in zstd...: {:?}",
+        "Writing the system dictionary in zstd...: {:?}",
         &args.sysdic_out
     );
     let mut f = zstd::Encoder::new(File::create(args.sysdic_out)?, 19)?;

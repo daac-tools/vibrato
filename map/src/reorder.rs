@@ -42,7 +42,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     let (lid_probs, rid_probs) = worker.compute_connid_probs();
 
-    eprintln!("Writting connection id mappings...");
+    eprintln!("Writing connection id mappings...");
     {
         let mut output_filename = args.mapping_out.clone();
         output_filename.set_extension("lmap");
