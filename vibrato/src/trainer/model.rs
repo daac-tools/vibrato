@@ -10,7 +10,6 @@ use crate::dictionary::word_idx::WordIdx;
 use crate::dictionary::{LexType, WordParam};
 use crate::errors::Result;
 pub use crate::trainer::config::TrainerConfig;
-pub use crate::trainer::corpus::Corpus;
 use crate::trainer::corpus::Word;
 pub use crate::trainer::Trainer;
 use crate::utils::{self, FromU32};

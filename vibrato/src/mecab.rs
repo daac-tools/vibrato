@@ -58,7 +58,7 @@ pub fn generate_bigram_info(
             let id = cap.get(1).unwrap().as_str().parse::<usize>()?;
             let feature_str = cap.get(2).unwrap().as_str();
             let feature_spl = utils::parse_csv_row(feature_str);
-            if id == 0 && feature_spl.get(0).map_or(false, |s| s != "BOS/EOS") {
+            if id == 0 && feature_spl.first().map_or(false, |s| s != "BOS/EOS") {
                 return Err(VibratoError::invalid_format(
                     "right_id_def_rdr",
                     "ID 0 must be BOS/EOS",
@@ -81,7 +81,7 @@ pub fn generate_bigram_info(
             let id = cap.get(1).unwrap().as_str().parse::<usize>()?;
             let feature_str = cap.get(2).unwrap().as_str();
             let feature_spl = utils::parse_csv_row(feature_str);
-            if id == 0 && feature_spl.get(0).map_or(false, |s| s != "BOS/EOS") {
+            if id == 0 && feature_spl.first().map_or(false, |s| s != "BOS/EOS") {
                 return Err(VibratoError::invalid_format(
                     "left_id_def_rdr",
                     "ID 0 must be BOS/EOS",
