@@ -60,9 +60,7 @@ impl Default for U31x8 {
 
 impl Decode for U31x8 {
     fn decode<D: Decoder>(decoder: &mut D) -> Result<Self, DecodeError> {
-        let (a, b, c, d, e, f, g, h): (U31, U31, U31, U31, U31, U31, U31, U31) =
-            Decode::decode(decoder)?;
-        let data = [a, b, c, d, e, f, g, h];
+        let data: [U31; 8] = Decode::decode(decoder)?;
 
         // Safety
         debug_assert_eq!(std::mem::size_of_val(data.as_slice()), 32);
