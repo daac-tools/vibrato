@@ -17,10 +17,10 @@ const UNUSED_CHECK: u32 = u32::MAX;
 
 pub const SIMD_SIZE: usize = 8;
 #[cfg(not(target_feature = "avx2"))]
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy)]
 pub struct U31x8([U31; SIMD_SIZE]);
 #[cfg(target_feature = "avx2")]
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy)]
 pub struct U31x8(__m256i);
 
 impl U31x8 {
@@ -479,6 +479,7 @@ mod tests {
         assert_eq!(scorer.accumulate_cost(&[], &[]), 0);
     }
 
+    #[cfg(not(target_feature = "avx2"))]
     #[test]
     fn u31x8_encode_decode_test() {
         let data = U31x8([
@@ -503,6 +504,6 @@ mod tests {
             bincode::de::DecoderImpl::new(bincode::de::read::SliceReader::new(slice), config);
         let decoded = U31x8::decode(&mut decoder).unwrap();
 
-        assert_eq!(data, decoded);
+        assert_eq!(data.0, decoded.0);
     }
 }
