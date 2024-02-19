@@ -60,9 +60,7 @@ impl Default for U31x8 {
 
 impl Decode for U31x8 {
     fn decode<D: Decoder>(decoder: &mut D) -> Result<Self, DecodeError> {
-        let (a, b, c, d, e, f, g, h): (U31, U31, U31, U31, U31, U31, U31, U31) =
-            Decode::decode(decoder)?;
-        let data = [a, b, c, d, e, f, g, h];
+        let data: [U31; 8] = Decode::decode(decoder)?;
 
         // Safety
         debug_assert_eq!(std::mem::size_of_val(data.as_slice()), 32);
@@ -479,5 +477,33 @@ mod tests {
         let scorer = builder.build();
 
         assert_eq!(scorer.accumulate_cost(&[], &[]), 0);
+    }
+
+    #[cfg(not(target_feature = "avx2"))]
+    #[test]
+    fn u31x8_encode_decode_test() {
+        let data = U31x8([
+            U31::new(0).unwrap(),
+            U31::new(1).unwrap(),
+            U31::new(2).unwrap(),
+            U31::new(3).unwrap(),
+            U31::new(4).unwrap(),
+            U31::new(5).unwrap(),
+            U31::new(6).unwrap(),
+            U31::new(7).unwrap(),
+        ]);
+
+        let slice: &mut [u8] = &mut [0; 32];
+        let config = bincode::config::standard();
+
+        let mut encoder =
+            bincode::enc::EncoderImpl::new(bincode::enc::write::SliceWriter::new(slice), config);
+        data.encode(&mut encoder).unwrap();
+
+        let mut decoder =
+            bincode::de::DecoderImpl::new(bincode::de::read::SliceReader::new(slice), config);
+        let decoded = U31x8::decode(&mut decoder).unwrap();
+
+        assert_eq!(data.0, decoded.0);
     }
 }
