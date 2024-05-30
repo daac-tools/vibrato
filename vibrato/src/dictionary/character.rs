@@ -180,8 +180,8 @@ impl CharProperty {
         }
 
         let mut categories = vec![String::new(); cate_map.len()];
-        for (k, &v) in cate_map.iter() {
-            categories[usize::from_u32(v)] = k.clone();
+        for (k, v) in cate_map {
+            categories[usize::from_u32(v)] = k;
         }
 
         Ok(Self {
