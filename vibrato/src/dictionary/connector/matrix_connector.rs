@@ -15,7 +15,7 @@ pub struct MatrixConnector {
 }
 
 impl MatrixConnector {
-    pub fn new(data: Vec<i16>, num_right: usize, num_left: usize) -> Self {
+    pub const fn new(data: Vec<i16>, num_right: usize, num_left: usize) -> Self {
         Self {
             data,
             num_right,

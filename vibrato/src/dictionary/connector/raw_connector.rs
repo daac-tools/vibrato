@@ -27,7 +27,7 @@ pub struct RawConnector {
 }
 
 impl RawConnector {
-    pub fn new(
+    pub const fn new(
         right_feat_ids: Vec<U31x8>,
         left_feat_ids: Vec<U31x8>,
         feat_template_size: usize,
@@ -169,7 +169,7 @@ pub struct RawConnectorBuilder {
 }
 
 impl RawConnectorBuilder {
-    pub fn new(
+    pub const fn new(
         right_feat_ids_tmp: Vec<Vec<U31>>,
         left_feat_ids_tmp: Vec<Vec<U31>>,
         feat_template_size: usize,
