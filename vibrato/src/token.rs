@@ -92,7 +92,7 @@ impl<'w, 't> Token<'w, 't> {
     }
 }
 
-impl<'w, 't> std::fmt::Debug for Token<'w, 't> {
+impl std::fmt::Debug for Token<'_, '_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Token")
             .field("surface", &self.surface())
