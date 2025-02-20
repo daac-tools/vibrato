@@ -160,7 +160,7 @@ impl UnkHandler {
                 let e = &self.entries[word_id];
                 let unk_features = utils::parse_csv_row(&e.feature);
                 for (i, unk_feature) in unk_features.iter().enumerate() {
-                    if unk_feature != "*" && features.get(i).map_or(true, |f| unk_feature != f) {
+                    if unk_feature != "*" && (features.get(i) != Some(unk_feature)) {
                         continue 'a;
                     }
                 }
