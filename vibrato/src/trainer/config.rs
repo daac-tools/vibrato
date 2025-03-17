@@ -26,7 +26,7 @@ pub struct TrainerConfig {
     pub(crate) surfaces: Vec<String>,
 }
 
-impl Decode for TrainerConfig {
+impl<Context> Decode<Context> for TrainerConfig {
     fn decode<D: Decoder>(decoder: &mut D) -> Result<Self, DecodeError> {
         let feature_extractor = Decode::decode(decoder)?;
         let unigram_rewriter = Decode::decode(decoder)?;
