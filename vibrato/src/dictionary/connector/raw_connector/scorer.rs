@@ -500,8 +500,12 @@ mod tests {
             bincode::enc::EncoderImpl::new(bincode::enc::write::SliceWriter::new(slice), config);
         data.encode(&mut encoder).unwrap();
 
-        let mut decoder =
-            bincode::de::DecoderImpl::new(bincode::de::read::SliceReader::new(slice), config);
+        let mut context = ();
+        let mut decoder = bincode::de::DecoderImpl::new(
+            bincode::de::read::SliceReader::new(slice),
+            config,
+            &mut context,
+        );
         let decoded = U31x8::decode(&mut decoder).unwrap();
 
         assert_eq!(data.0, decoded.0);
