@@ -58,7 +58,7 @@ impl Default for U31x8 {
     }
 }
 
-impl Decode for U31x8 {
+impl<Context> Decode<Context> for U31x8 {
     fn decode<D: Decoder>(decoder: &mut D) -> Result<Self, DecodeError> {
         let data: [U31; 8] = Decode::decode(decoder)?;
 
@@ -195,7 +195,7 @@ impl Default for Scorer {
     }
 }
 
-impl Decode for Scorer {
+impl<Context> Decode<Context> for Scorer {
     fn decode<D: Decoder>(decoder: &mut D) -> Result<Self, DecodeError> {
         let bases: Vec<u32> = Decode::decode(decoder)?;
         let checks: Vec<u32> = Decode::decode(decoder)?;
@@ -500,8 +500,12 @@ mod tests {
             bincode::enc::EncoderImpl::new(bincode::enc::write::SliceWriter::new(slice), config);
         data.encode(&mut encoder).unwrap();
 
-        let mut decoder =
-            bincode::de::DecoderImpl::new(bincode::de::read::SliceReader::new(slice), config);
+        let mut context = ();
+        let mut decoder = bincode::de::DecoderImpl::new(
+            bincode::de::read::SliceReader::new(slice),
+            config,
+            &mut context,
+        );
         let decoded = U31x8::decode(&mut decoder).unwrap();
 
         assert_eq!(data.0, decoded.0);

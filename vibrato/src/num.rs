@@ -35,7 +35,7 @@ const U31_VALID_RANGE: AllowedEnumVariants = AllowedEnumVariants::Range {
     max: U31::MAX.get(),
 };
 
-impl Decode for U31 {
+impl<Context> Decode<Context> for U31 {
     fn decode<D: Decoder>(decoder: &mut D) -> Result<Self, DecodeError> {
         let x = Decode::decode(decoder)?;
         Self::new(x).ok_or(DecodeError::UnexpectedVariant {

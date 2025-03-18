@@ -249,7 +249,7 @@ impl FeatureExtractor {
     }
 }
 
-impl Decode for FeatureExtractor {
+impl<Context> Decode<Context> for FeatureExtractor {
     fn decode<D: Decoder>(decoder: &mut D) -> Result<Self, DecodeError> {
         let unigram_feature_ids: Vec<(String, NonZeroU32)> = Decode::decode(decoder)?;
         let left_feature_ids: Vec<(String, NonZeroU32)> = Decode::decode(decoder)?;
