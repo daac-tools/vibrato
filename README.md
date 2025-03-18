@@ -203,11 +203,6 @@ Licensed under either of
 
 at your option.
 
-## Acknowledgment
-
-The initial version of this software was developed by LegalOn Technologies, Inc.,
-but not an officially supported LegalOn Technologies product.
-
 ## Contribution
 
 See [the guidelines](./CONTRIBUTING.md).
