@@ -206,7 +206,7 @@ impl Dictionary {
     /// # Arguments
     ///
     ///  - `user_lexicon_rdr`: A reader of a lexicon file `*.csv` in the MeCab format.
-    ///                        If `None`, clear the current user dictionary.
+    ///    If `None`, clear the current user dictionary.
     ///
     /// # Errors
     ///
@@ -238,7 +238,7 @@ impl Dictionary {
     /// # Arguments
     ///
     ///  - `lmap/rmap`: An iterator of mappings of left/right ids, where
-    ///                 the `i`-th item (1-origin) indicates a new id mapped from id `i`.
+    ///    the `i`-th item (1-origin) indicates a new id mapped from id `i`.
     ///
     /// # Errors
     ///

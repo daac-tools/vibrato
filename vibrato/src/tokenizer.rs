@@ -63,7 +63,7 @@ impl Tokenizer {
     /// # Arguments
     ///
     ///  - `max_grouping_len`: The maximum grouping length for unknown words.
-    ///                        The default value is 0, indicating the infinity length.
+    ///    The default value is 0, indicating the infinity length.
     pub const fn max_grouping_len(mut self, max_grouping_len: usize) -> Self {
         if max_grouping_len != 0 {
             self.max_grouping_len = Some(max_grouping_len);

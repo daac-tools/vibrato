@@ -206,7 +206,7 @@ impl Model {
     /// * `connector_wtr` - Write sink targetting `matrix.def`.
     /// * `unk_handler_wtr` - Write sink targetting `unk.def`.
     /// * `user_lexicon_wtr` - Write sink targetting `user.csv`. Set a dummy argument if no user-defined
-    ///                        lexicon file is specified.
+    ///   lexicon file is specified.
     ///
     /// # Errors
     ///
