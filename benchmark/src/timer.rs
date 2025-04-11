@@ -49,7 +49,7 @@ impl Timer {
         self.times.push(self.start.elapsed().as_secs_f64());
     }
 
-    pub const fn runs(&self) -> usize {
+    pub fn runs(&self) -> usize {
         self.times.len()
     }
 
