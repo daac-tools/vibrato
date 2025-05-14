@@ -63,7 +63,7 @@ impl CharInfo {
     }
 
     #[inline(always)]
-    pub fn reset_cate_idset(&mut self, cate_idset: u32) {
+    pub const fn reset_cate_idset(&mut self, cate_idset: u32) {
         self.0 &= !CATE_IDSET_MASK;
         self.0 |= cate_idset;
     }

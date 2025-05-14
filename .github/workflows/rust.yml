@@ -44,7 +44,7 @@ jobs:
       - name: Run cargo clippy
         # Run clippy only on stable to ignore unreasonable old warnings.
         continue-on-error: ${{ matrix.rust != 'stable' }}
-        run: cargo clippy -- -D warnings -W clippy::nursery
+        run: cargo clippy -- -D warnings -W clippy::nursery -A clippy::missing_const_for_fn
 
       - name: Run cargo test (no-default-features)
         continue-on-error: ${{ matrix.rust == 'nightly' }}
@@ -67,7 +67,7 @@ jobs:
   publish:
     name: Publish
     runs-on: ubuntu-latest
-    if: "startsWith(github.ref, 'refs/tags/')"
+    if: startsWith(github.ref, 'refs/tags/')
     needs: [ build ]
     steps:
       - uses: actions/checkout@v3
