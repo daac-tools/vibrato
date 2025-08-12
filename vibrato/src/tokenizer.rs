@@ -79,7 +79,7 @@ impl Tokenizer {
     }
 
     /// Creates a new worker.
-    pub fn new_worker(&self) -> Worker {
+    pub fn new_worker(&self) -> Worker<'_> {
         Worker::new(self)
     }
 
