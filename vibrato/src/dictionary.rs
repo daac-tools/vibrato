@@ -27,21 +27,16 @@ pub(crate) use crate::dictionary::lexicon::WordParam;
 const MODEL_MAGIC: &[u8] = b"VibratoTokenizer 0.5\n";
 
 /// Type of a lexicon that contains the word.
-#[derive(Clone, Copy, Eq, PartialEq, Debug, Hash, Decode, Encode)]
+#[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, Decode, Encode)]
 #[repr(u8)]
 pub enum LexType {
     /// System lexicon.
+    #[default]
     System,
     /// User lexicon.
     User,
     /// Unknown words.
     Unknown,
-}
-
-impl Default for LexType {
-    fn default() -> Self {
-        Self::System
-    }
 }
 
 /// Inner data of [`Dictionary`].
