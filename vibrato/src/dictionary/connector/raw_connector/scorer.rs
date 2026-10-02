@@ -75,9 +75,7 @@ bincode::impl_borrow_decode!(U31x8);
 impl Encode for U31x8 {
     fn encode<E: Encoder>(&self, encoder: &mut E) -> Result<(), EncodeError> {
         #[cfg(not(target_feature = "avx2"))]
-        let data = (
-            self.0[0], self.0[1], self.0[2], self.0[3], self.0[4], self.0[5], self.0[6], self.0[7],
-        );
+        let data: (U31, U31, U31, U31, U31, U31, U31, U31) = self.0.into();
 
         #[cfg(target_feature = "avx2")]
         let data = unsafe {
