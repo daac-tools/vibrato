@@ -32,7 +32,17 @@ impl MatrixConnector {
         let mut lines = reader.lines();
 
         let (num_right, num_left) = Self::parse_header(&lines.next().unwrap()?)?;
-        let mut data = vec![0; num_right * num_left];
+        let len = num_right.checked_mul(num_left).ok_or_else(|| {
+            VibratoError::invalid_format("matrix.def", "matrix size is too large.")
+        })?;
+        let mut data = Vec::new();
+        // Do not reserve memory based only on the untrusted header before
+        // validating that the allocation is actually attainable, because
+        // `matrix.def` may come from an untrusted source.
+        data.try_reserve_exact(len).map_err(|_| {
+            VibratoError::invalid_format("matrix.def", "failed to allocate the connection matrix.")
+        })?;
+        data.resize(len, 0);
 
         for line in lines {
             let line = line?;
