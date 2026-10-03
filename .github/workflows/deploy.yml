@@ -33,6 +33,9 @@ jobs:
       run: trunk build --release
 
     - name: Publish to Cloudflare Pages
+      if: >
+        github.event_name == 'push' ||
+        github.event.pull_request.head.repo.full_name == github.repository
       id: cloudflare_pages_deploy
       uses: cloudflare/wrangler-action@v4
       with:
@@ -42,6 +45,9 @@ jobs:
         gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Add publish URL as commit status
+      if: >
+        github.event_name == 'push' ||
+        github.event.pull_request.head.repo.full_name == github.repository
       uses: actions/github-script@v6
       with:
         script: |
