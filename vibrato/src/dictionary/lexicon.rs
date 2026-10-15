@@ -131,6 +131,9 @@ impl Lexicon {
             let (result, nin, nout) = rdr.read_field(bytes, &mut output);
             let record_end = match result {
                 ReadFieldResult::InputEmpty => {
+                    if field_cnt == 3 {
+                        word_cost = std::str::from_utf8(&output[..nout])?.parse()?;
+                    }
                     features_len += nin + 1;
                     record_end_pos += nin;
                     true
@@ -165,17 +168,22 @@ impl Lexicon {
                 ReadFieldResult::End => break,
             };
             if record_end {
-                if field_cnt == 0 && nin == 0 {
+                if field_cnt == 0 && nout == 0 {
+                    bytes = &bytes[nin..];
                     continue;
                 }
-                if field_cnt <= 3 {
+                if field_cnt < 3 {
                     let msg = format!(
-                        "A csv row of lexicon must have five items at least, {:?}",
+                        "A csv row of lexicon must have four items at least, {:?}",
                         std::str::from_utf8(&record_bytes[..record_end_pos])?,
                     );
                     return Err(VibratoError::invalid_format(name, msg));
                 }
-                let feature = std::str::from_utf8(&features_bytes[..features_len - 1])?;
+                let feature = if field_cnt == 3 {
+                    ""
+                } else {
+                    std::str::from_utf8(&features_bytes[..features_len - 1])?
+                };
                 if surface.is_empty() {
                     eprintln!(
                         "Skipped an empty surface, {:?}",
