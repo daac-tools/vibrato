@@ -25,29 +25,39 @@ fn compile_crlf_dictionary() {
     assert_eq!(worker.token(1).feature(), "dog");
 }
 
+fn assert_user_dictionary_without_optional_features(csv: &str) {
+    let dict = dictionary("\n")
+        .reset_user_lexicon_from_reader(Some(csv.as_bytes()))
+        .unwrap();
+    let tokenizer = Tokenizer::new(dict);
+    let mut worker = tokenizer.new_worker();
+    worker.reset_sentence("猫犬");
+    worker.tokenize();
+    assert_eq!(worker.num_tokens(), 1);
+    assert_eq!(worker.token(0).surface(), "猫犬");
+    assert_eq!(worker.token(0).feature(), "");
+    assert_eq!(worker.token(0).word_cost(), -10);
+}
+
 #[test]
-fn user_dictionary_without_optional_features() {
-    for csv in ["猫犬,0,0,-10", "猫犬,0,0,-10\n", "猫犬,0,0,-10\r\n"] {
-        let dict = dictionary("\n")
-            .reset_user_lexicon_from_reader(Some(csv.as_bytes()))
-            .unwrap();
-        let tokenizer = Tokenizer::new(dict);
-        let mut worker = tokenizer.new_worker();
-        worker.reset_sentence("猫犬");
-        worker.tokenize();
-        assert_eq!(worker.num_tokens(), 1);
-        assert_eq!(worker.token(0).surface(), "猫犬");
-        assert_eq!(worker.token(0).feature(), "");
-        assert_eq!(worker.token(0).word_cost(), -10);
-    }
+fn user_dictionary_without_optional_features_at_eof() {
+    assert_user_dictionary_without_optional_features("猫犬,0,0,-10");
+}
+
+#[test]
+fn user_dictionary_without_optional_features_with_lf() {
+    assert_user_dictionary_without_optional_features("猫犬,0,0,-10\n");
+}
+
+#[test]
+fn user_dictionary_without_optional_features_with_crlf() {
+    assert_user_dictionary_without_optional_features("猫犬,0,0,-10\r\n");
 }
 
 fn assert_rejects_quoted_empty_record(csv: &str) {
-    assert!(
-        dictionary("\n")
-            .reset_user_lexicon_from_reader(Some(csv.as_bytes()))
-            .is_err()
-    );
+    assert!(dictionary("\n")
+        .reset_user_lexicon_from_reader(Some(csv.as_bytes()))
+        .is_err());
 }
 
 #[test]
