@@ -42,6 +42,29 @@ fn user_dictionary_without_optional_features() {
     }
 }
 
+fn assert_rejects_quoted_empty_record(csv: &str) {
+    assert!(
+        dictionary("\n")
+            .reset_user_lexicon_from_reader(Some(csv.as_bytes()))
+            .is_err()
+    );
+}
+
+#[test]
+fn reject_quoted_empty_record_at_eof() {
+    assert_rejects_quoted_empty_record("\"\"");
+}
+
+#[test]
+fn reject_quoted_empty_record_with_lf() {
+    assert_rejects_quoted_empty_record("\"\"\n");
+}
+
+#[test]
+fn reject_quoted_empty_record_with_crlf() {
+    assert_rejects_quoted_empty_record("\"\"\r\n");
+}
+
 #[test]
 fn load_crlf_user_dictionary() {
     let dict = dictionary("\n")
