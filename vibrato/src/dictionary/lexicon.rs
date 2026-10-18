@@ -120,6 +120,7 @@ impl Lexicon {
         let mut field_cnt: usize = 0;
         let mut features_len = 0;
         let mut record_end_pos = 0;
+        let mut eof_record_committed = false;
         let mut output = [0; 4096];
 
         let mut surface = String::new();
@@ -131,6 +132,10 @@ impl Lexicon {
             let (result, nin, nout) = rdr.read_field(bytes, &mut output);
             let record_end = match result {
                 ReadFieldResult::InputEmpty => {
+                    eof_record_committed = true;
+                    if field_cnt == 3 {
+                        word_cost = std::str::from_utf8(&output[..nout])?.parse()?;
+                    }
                     features_len += nin + 1;
                     record_end_pos += nin;
                     true
@@ -139,6 +144,11 @@ impl Lexicon {
                     return Err(VibratoError::invalid_format(name, "Field too large"))
                 }
                 ReadFieldResult::Field { record_end } => {
+                    if eof_record_committed {
+                        // InputEmpty already committed the EOF record below; csv-core
+                        // now reports its final field with no further input or output.
+                        continue;
+                    }
                     match field_cnt {
                         0 => {
                             surface = std::str::from_utf8(&output[..nout])?.to_string();
@@ -165,17 +175,24 @@ impl Lexicon {
                 ReadFieldResult::End => break,
             };
             if record_end {
-                if field_cnt == 0 && nin == 0 {
+                if field_cnt == 0 && nout == 0 && nin == 1 && bytes[0] == b'\n' {
+                    // csv-core ends a CRLF record after consuming `\r`, then consumes
+                    // the remaining `\n` on the next call without producing a field.
+                    bytes = &bytes[nin..];
                     continue;
                 }
-                if field_cnt <= 3 {
+                if field_cnt < 3 {
                     let msg = format!(
-                        "A csv row of lexicon must have five items at least, {:?}",
+                        "A csv row of lexicon must have four items at least, {:?}",
                         std::str::from_utf8(&record_bytes[..record_end_pos])?,
                     );
                     return Err(VibratoError::invalid_format(name, msg));
                 }
-                let feature = std::str::from_utf8(&features_bytes[..features_len - 1])?;
+                let feature = if field_cnt == 3 {
+                    ""
+                } else {
+                    std::str::from_utf8(&features_bytes[..features_len - 1])?
+                };
                 if surface.is_empty() {
                     eprintln!(
                         "Skipped an empty surface, {:?}",
